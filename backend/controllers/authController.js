@@ -1,17 +1,13 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
-
 const COOKIE_NAME = "fleet_token";
-
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax",
   maxAge: 24 * 60 * 60 * 1000,
 };
-
-// Remove password and other sensitive information
 const sanitizeUser = (user) => {
   return {
     id: user._id,
@@ -23,10 +19,6 @@ const sanitizeUser = (user) => {
     createdAt: user.createdAt,
   };
 };
-
-// ==========================
-// SIGNUP
-// ==========================
 const signup = async (req, res) => {
   try {
     const {
@@ -35,8 +27,6 @@ const signup = async (req, res) => {
       phone,
       password,
     } = req.body;
-
-    // Required fields
     if (!fullName || !email || !password) {
       return res.status(400).json({
         success: false,
@@ -48,8 +38,6 @@ const signup = async (req, res) => {
     const cleanFullName = fullName.trim();
     const normalizedEmail = email.trim().toLowerCase();
     const cleanPhone = phone ? phone.trim() : null;
-
-    // Full name validation
     if (cleanFullName.length < 2) {
       return res.status(400).json({
         success: false,
@@ -67,8 +55,6 @@ const signup = async (req, res) => {
         message: "Please enter a valid email address.",
       });
     }
-
-    // Password validation
     if (password.length < 8) {
       return res.status(400).json({
         success: false,
@@ -108,8 +94,6 @@ const signup = async (req, res) => {
           "Password must contain at least one special character.",
       });
     }
-
-    // Check existing user
     const existingUser = await User.findOne({
       email: normalizedEmail,
     });
@@ -121,16 +105,10 @@ const signup = async (req, res) => {
           "An account with this email already exists.",
       });
     }
-
-    // Hash password
     const hashedPassword = await bcrypt.hash(
       password,
       12
     );
-
-    // IMPORTANT:
-    // Never accept role from frontend.
-    // Public signup gets CUSTOMER.
     const user = await User.create({
       fullName: cleanFullName,
       email: normalizedEmail,
@@ -139,12 +117,9 @@ const signup = async (req, res) => {
       role: "CUSTOMER",
     });
 
-    // Generate JWT
     const token = generateToken(
       user._id.toString()
     );
-
-    // Store JWT in HttpOnly cookie
     res.cookie(
       COOKIE_NAME,
       token,
@@ -166,9 +141,6 @@ const signup = async (req, res) => {
   }
 };
 
-// ==========================
-// LOGIN
-// ==========================
 const login = async (req, res) => {
   try {
     const {
@@ -242,10 +214,6 @@ const login = async (req, res) => {
     });
   }
 };
-
-// ==========================
-// LOGOUT
-// ==========================
 const logout = (req, res) => {
   res.clearCookie(COOKIE_NAME, {
     httpOnly: true,
