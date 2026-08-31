@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-
 const userSchema = new mongoose.Schema(
   {
     fullName: {
@@ -9,7 +8,6 @@ const userSchema = new mongoose.Schema(
       minlength: 2,
       maxlength: 100,
     },
-
     email: {
       type: String,
       required: true,
@@ -17,21 +15,18 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-
     phone: {
       type: String,
       trim: true,
       maxlength: 20,
       default: null,
     },
-
     password: {
       type: String,
       required: true,
       minlength: 8,
       select: false,
     },
-
     role: {
       type: String,
       enum: [
@@ -46,7 +41,6 @@ const userSchema = new mongoose.Schema(
       ],
       default: "CUSTOMER",
     },
-
     isActive: {
       type: Boolean,
       default: true,
@@ -56,8 +50,4 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
-module.exports = mongoose.model(
-  "User",
-  userSchema
-);
+module.exports = mongoose.model("User", userSchema);

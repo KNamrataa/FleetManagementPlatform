@@ -13,20 +13,19 @@ import {
 
 import "../Auth.css";
 
+const API_URL = "http://localhost:5000";
+
 function Login() {
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] =
     useState(false);
 
-  const [formData, setFormData] =
-    useState({
-      email: "",
-      password: "",
-    });
-
-  const [errors, setErrors] =
-    useState({});
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [errors, setErrors] = useState({});
 
   const [loading, setLoading] =
     useState(false);
@@ -38,7 +37,7 @@ function Login() {
     const newErrors = {};
 
     const emailRegex =
-       /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!formData.email.trim()) {
       newErrors.email =
@@ -59,7 +58,6 @@ function Login() {
 
     return newErrors;
   };
-
   const handleChange = (event) => {
     const { name, value } =
       event.target;
@@ -77,75 +75,109 @@ function Login() {
     setServerError("");
   };
 
- const handleSubmit = async (event) => {
-  event.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
-  const validationErrors = validateForm();
+    const validationErrors =
+      validateForm();
 
-  if (Object.keys(validationErrors).length > 0) {
-    setErrors(validationErrors);
-    return;
-  }
-
-  try {
-    setLoading(true);
-    setServerError("");
-
-    const response = await fetch(
-      "http://localhost:5000/api/auth/login",
-      {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        credentials: "include",
-
-        body: JSON.stringify({
-          email: formData.email
-            .trim()
-            .toLowerCase(),
-
-          password: formData.password,
-        }),
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        data.message ||
-          "Invalid email or password."
-      );
+    if (
+      Object.keys(validationErrors)
+        .length > 0
+    ) {
+      setErrors(validationErrors);
+      return;
     }
 
-    console.log(
-      "Logged in user:",
-      data.user
-    );
+    try {
+      setLoading(true);
+      setServerError("");
 
-    // Backend stores JWT in HttpOnly cookie.
-    // Do NOT store JWT in localStorage.
-    navigate("/dashboard", {
-      replace: true,
-    });
-  } catch (error) {
-    console.error(
-      "Login error:",
-      error
-    );
+      const response = await fetch(
+        `${API_URL}/api/auth/login`,
+        {
+          method: "POST",
 
-    setServerError(
-      error.message ||
-        "Unable to login. Please try again."
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+          headers: {
+            "Content-Type": "application/json",
+          },
 
+          credentials: "include",
+
+          body: JSON.stringify({
+            email: formData.email
+              .trim()
+              .toLowerCase(),
+
+            password:
+              formData.password,
+          }),
+        }
+      );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+            "Invalid email or password."
+        );
+      }
+
+      console.log(
+        "Login response:",
+        data
+      );
+
+      if (!data.user) {
+        throw new Error(
+          "Login successful, but user information was not returned by the server."
+        );
+      }
+      const loggedInUser = {
+        ...data.user,
+
+        role: data.user.role
+          ? data.user.role
+              .toString()
+              .trim()
+              .toUpperCase()
+          : "CUSTOMER",
+      };
+
+      console.log(
+        "Logged in user:",
+        loggedInUser
+      );
+
+      console.log(
+        "Logged in role:",
+        loggedInUser.role
+      );
+      localStorage.setItem(
+        "fleetUser",
+        JSON.stringify(
+          loggedInUser
+        )
+      );
+      navigate("/dashboard", {
+        replace: true,
+      });
+    } catch (error) {
+      console.error(
+        "Login error:",
+        error
+      );
+
+      setServerError(
+        error.message ||
+          "Unable to login. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="auth-page">
 
@@ -153,16 +185,24 @@ function Login() {
 
       <div className="auth-wrapper">
 
+        {/* BACK HOME */}
+
         <button
           type="button"
           className="back-home-btn"
-          onClick={() => navigate("/")}
+          onClick={() =>
+            navigate("/")
+          }
         >
           <ArrowLeft size={18} />
           Back to Home
         </button>
 
+        {/* LOGIN CARD */}
+
         <div className="auth-card">
+
+          {/* BRAND */}
 
           <div className="auth-brand">
 
@@ -171,10 +211,13 @@ function Login() {
             </div>
 
             <span>
-              Fleet<span>Flow</span>
+              Fleet
+              <span>Flow</span>
             </span>
 
           </div>
+
+          {/* HEADING */}
 
           <div className="auth-heading">
 
@@ -182,7 +225,9 @@ function Login() {
               <ShieldCheck size={25} />
             </div>
 
-            <h1>Welcome Back</h1>
+            <h1>
+              Welcome Back
+            </h1>
 
             <p>
               Sign in to access your fleet
@@ -190,6 +235,8 @@ function Login() {
             </p>
 
           </div>
+
+          {/* SERVER ERROR */}
 
           {serverError && (
             <div
@@ -200,11 +247,15 @@ function Login() {
             </div>
           )}
 
+          {/* FORM */}
+
           <form
             className="auth-form"
             onSubmit={handleSubmit}
             noValidate
           >
+
+            {/* EMAIL */}
 
             <div className="auth-field">
 
@@ -219,6 +270,7 @@ function Login() {
                     : ""
                 }`}
               >
+
                 <Mail size={18} />
 
                 <input
@@ -241,6 +293,8 @@ function Login() {
 
             </div>
 
+            {/* PASSWORD */}
+
             <div className="auth-field">
 
               <label htmlFor="password">
@@ -254,6 +308,7 @@ function Login() {
                     : ""
                 }`}
               >
+
                 <Lock size={18} />
 
                 <input
@@ -284,11 +339,13 @@ function Login() {
                       : "Show password"
                   }
                 >
+
                   {showPassword ? (
                     <EyeOff size={18} />
                   ) : (
                     <Eye size={18} />
                   )}
+
                 </button>
 
               </div>

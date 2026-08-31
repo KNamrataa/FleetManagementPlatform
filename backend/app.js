@@ -2,7 +2,6 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
-
 const app = express();
 app.use(helmet());
 app.use(
@@ -24,7 +23,6 @@ const apiLimiter = rateLimit({
   },
 });
 app.use("/api", apiLimiter);
-
 app.get("/", (req, res) => {
   res.json({
     message: "Fleet Management Backend API is running",

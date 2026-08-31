@@ -9,9 +9,15 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 
+import ProtectedRoute from "./components/ProtectedRoute";
+
+import SuperAdminDashboard from "./pages/SuperAdminDashboard";
+import RoleDashboard from "./pages/RoleDashboard";
+
 function App() {
   return (
     <BrowserRouter>
+
       <Routes>
 
         <Route
@@ -29,12 +35,40 @@ function App() {
           element={<Signup />}
         />
 
+
+  
+
+        <Route
+          path="/super-admin"
+          element={
+            <ProtectedRoute>
+              <SuperAdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <RoleDashboard />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="*"
-          element={<Navigate to="/" replace />}
+          element={
+            <Navigate
+              to="/dashboard"
+              replace
+            />
+          }
         />
 
       </Routes>
+
     </BrowserRouter>
   );
 }

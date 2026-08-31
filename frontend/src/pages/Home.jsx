@@ -7,10 +7,9 @@ import {
   ChevronRight,
   Fuel,
   LayoutDashboard,
+  Mail,
   MapPin,
   Menu,
-  Mail,
-  Navigation,
   Route,
   Search,
   ShieldCheck,
@@ -40,14 +39,11 @@ function Home() {
         behavior: "smooth",
       });
     }
-
     setMenuOpen(false);
   };
 
   return (
     <div className="app">
-
-      {/* ================= NAVBAR ================= */}
 
       <header className="navbar">
         <div className="nav-container">
@@ -127,6 +123,7 @@ function Home() {
 
           </nav>
 
+
           <div className="nav-actions">
 
             <button
@@ -146,6 +143,9 @@ function Home() {
 
           </div>
 
+
+          {/* MOBILE MENU */}
+
           <button
             className="mobile-menu-btn"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -159,9 +159,6 @@ function Home() {
 
         </div>
       </header>
-
-
-      {/* ================= HERO ================= */}
 
       <section
         className="hero-section"
@@ -177,16 +174,19 @@ function Home() {
               Fleet Management Platform
             </div>
 
+
             <h1>
               Manage Your Entire Fleet.
               <span> All In One Place.</span>
             </h1>
+
 
             <p>
               Track vehicles, drivers, trips, fuel,
               maintenance, expenses and live fleet activity
               from one centralized fleet management platform.
             </p>
+
 
             <div className="hero-buttons">
 
@@ -197,6 +197,7 @@ function Home() {
                 Get Started
                 <ArrowRight size={18} />
               </button>
+
 
               <button
                 className="secondary-btn"
@@ -209,6 +210,7 @@ function Home() {
               </button>
 
             </div>
+
 
             <div className="hero-trust">
 
@@ -231,9 +233,6 @@ function Home() {
 
           </div>
 
-
-          {/* HERO DASHBOARD */}
-
           <div className="hero-visual">
 
             <div className="hero-dashboard">
@@ -242,17 +241,22 @@ function Home() {
 
                 <div>
                   <span>Fleet Dashboard</span>
-                  <h3>Fleet Overview</h3>
+
+                  <h3>
+                    Fleet Overview
+                  </h3>
                 </div>
 
+
                 <div className="hero-live">
+
                   <span></span>
+
                   Live
+
                 </div>
 
               </div>
-
-
               <div className="hero-dashboard-stats">
 
                 <div className="hero-stat-card">
@@ -262,8 +266,15 @@ function Home() {
                   </div>
 
                   <div>
-                    <span>Vehicles</span>
-                    <strong>48</strong>
+
+                    <span>
+                      Vehicles
+                    </span>
+
+                    <strong>
+                      48
+                    </strong>
+
                   </div>
 
                 </div>
@@ -276,8 +287,15 @@ function Home() {
                   </div>
 
                   <div>
-                    <span>Drivers</span>
-                    <strong>120</strong>
+
+                    <span>
+                      Drivers
+                    </span>
+
+                    <strong>
+                      120
+                    </strong>
+
                   </div>
 
                 </div>
@@ -290,8 +308,15 @@ function Home() {
                   </div>
 
                   <div>
-                    <span>Active Trips</span>
-                    <strong>24</strong>
+
+                    <span>
+                      Active Trips
+                    </span>
+
+                    <strong>
+                      24
+                    </strong>
+
                   </div>
 
                 </div>
@@ -306,8 +331,15 @@ function Home() {
                   <div className="hero-panel-heading">
 
                     <div>
-                      <h4>Fleet Status</h4>
-                      <p>Current vehicle status</p>
+
+                      <h4>
+                        Fleet Status
+                      </h4>
+
+                      <p>
+                        Current vehicle status
+                      </p>
+
                     </div>
 
                     <Activity size={18} />
@@ -320,11 +352,20 @@ function Home() {
                     <div className="status-dot available"></div>
 
                     <div>
-                      <strong>Available</strong>
-                      <span>19 Vehicles</span>
+
+                      <strong>
+                        Available
+                      </strong>
+
+                      <span>
+                        19 Vehicles
+                      </span>
+
                     </div>
 
-                    <b>19</b>
+                    <b>
+                      19
+                    </b>
 
                   </div>
 
@@ -334,11 +375,20 @@ function Home() {
                     <div className="status-dot on-trip"></div>
 
                     <div>
-                      <strong>On Trip</strong>
-                      <span>24 Vehicles</span>
+
+                      <strong>
+                        On Trip
+                      </strong>
+
+                      <span>
+                        24 Vehicles
+                      </span>
+
                     </div>
 
-                    <b>24</b>
+                    <b>
+                      24
+                    </b>
 
                   </div>
 
@@ -348,24 +398,39 @@ function Home() {
                     <div className="status-dot maintenance"></div>
 
                     <div>
-                      <strong>Maintenance</strong>
-                      <span>5 Vehicles</span>
+
+                      <strong>
+                        Maintenance
+                      </strong>
+
+                      <span>
+                        5 Vehicles
+                      </span>
+
                     </div>
 
-                    <b>5</b>
+                    <b>
+                      5
+                    </b>
 
                   </div>
 
                 </div>
-
 
                 <div className="hero-dashboard-panel">
 
                   <div className="hero-panel-heading">
 
                     <div>
-                      <h4>Active Trips</h4>
-                      <p>Currently running</p>
+
+                      <h4>
+                        Active Trips
+                      </h4>
+
+                      <p>
+                        Currently running
+                      </p>
+
                     </div>
 
                     <Route size={18} />
@@ -380,11 +445,20 @@ function Home() {
                     </div>
 
                     <div>
-                      <strong>VH-1024</strong>
-                      <span>Guntur → Vijayawada</span>
+
+                      <strong>
+                        VH-1024
+                      </strong>
+
+                      <span>
+                        Guntur → Vijayawada
+                      </span>
+
                     </div>
 
-                    <small>Live</small>
+                    <small>
+                      Live
+                    </small>
 
                   </div>
 
@@ -396,11 +470,20 @@ function Home() {
                     </div>
 
                     <div>
-                      <strong>VH-1048</strong>
-                      <span>Hyderabad → Guntur</span>
+
+                      <strong>
+                        VH-1048
+                      </strong>
+
+                      <span>
+                        Hyderabad → Guntur
+                      </span>
+
                     </div>
 
-                    <small>Live</small>
+                    <small>
+                      Live
+                    </small>
 
                   </div>
 
@@ -412,8 +495,15 @@ function Home() {
                     </div>
 
                     <div>
-                      <strong>VH-1072</strong>
-                      <span>Guntur → Tenali</span>
+
+                      <strong>
+                        VH-1072
+                      </strong>
+
+                      <span>
+                        Guntur → Tenali
+                      </span>
+
                     </div>
 
                     <small className="scheduled-text">
@@ -425,23 +515,43 @@ function Home() {
                 </div>
 
               </div>
-
-
               <div className="hero-dashboard-footer">
 
                 <div>
-                  <span>Fuel Expenses</span>
-                  <strong>₹84,250</strong>
+                  <span>
+                    Fuel Expenses
+                  </span>
+
+                  <strong>
+                    ₹84,250
+                  </strong>
+
                 </div>
 
-                <div>
-                  <span>Maintenance</span>
-                  <strong>₹42,600</strong>
-                </div>
 
                 <div>
-                  <span>Completed Today</span>
-                  <strong>126</strong>
+
+                  <span>
+                    Maintenance
+                  </span>
+
+                  <strong>
+                    ₹42,600
+                  </strong>
+
+                </div>
+
+
+                <div>
+
+                  <span>
+                    Completed Today
+                  </span>
+
+                  <strong>
+                    126
+                  </strong>
+
                 </div>
 
               </div>
@@ -454,45 +564,73 @@ function Home() {
 
       </section>
 
-
-      {/* ================= STATISTICS ================= */}
-
       <section className="stats-section">
 
         <div className="stats-container">
 
           <div className="stat-item">
-            <strong>48+</strong>
-            <span>Fleet Vehicles</span>
+
+            <strong>
+              48+
+            </strong>
+
+            <span>
+              Fleet Vehicles
+            </span>
+
           </div>
+
 
           <div className="stat-divider"></div>
 
+
           <div className="stat-item">
-            <strong>120+</strong>
-            <span>Active Drivers</span>
+
+            <strong>
+              120+
+            </strong>
+
+            <span>
+              Active Drivers
+            </span>
+
           </div>
+
 
           <div className="stat-divider"></div>
 
+
           <div className="stat-item">
-            <strong>2,450+</strong>
-            <span>Trips Completed</span>
+
+            <strong>
+              2,450+
+            </strong>
+
+            <span>
+              Trips Completed
+            </span>
+
           </div>
+
 
           <div className="stat-divider"></div>
 
+
           <div className="stat-item">
-            <strong>99.9%</strong>
-            <span>Fleet Visibility</span>
+
+            <strong>
+              99.9%
+            </strong>
+
+            <span>
+              Fleet Visibility
+            </span>
+
           </div>
 
         </div>
 
       </section>
-
-
-      {/* ================= FEATURES ================= */}
 
       <section
         className="features-section"
@@ -572,8 +710,6 @@ function Home() {
       </section>
 
 
-      {/* ================= WHY CHOOSE US ================= */}
-
       <section
         className="why-section"
         id="why-us"
@@ -587,10 +723,17 @@ function Home() {
               Why Choose FleetFlow
             </span>
 
+
             <h2>
+
               One Platform.
-              <span> Complete Fleet Visibility.</span>
+
+              <span>
+                Complete Fleet Visibility.
+              </span>
+
             </h2>
+
 
             <p>
               FleetFlow brings your fleet operations together so
@@ -608,12 +751,16 @@ function Home() {
                 </div>
 
                 <div>
-                  <strong>Centralized Operations</strong>
+
+                  <strong>
+                    Centralized Operations
+                  </strong>
 
                   <p>
                     Manage vehicles, drivers, trips, maintenance
                     and expenses from one platform.
                   </p>
+
                 </div>
 
               </div>
@@ -626,12 +773,16 @@ function Home() {
                 </div>
 
                 <div>
-                  <strong>Faster Decision Making</strong>
+
+                  <strong>
+                    Faster Decision Making
+                  </strong>
 
                   <p>
                     Get important fleet information quickly
                     through dashboards and reports.
                   </p>
+
                 </div>
 
               </div>
@@ -644,12 +795,16 @@ function Home() {
                 </div>
 
                 <div>
-                  <strong>Better Control</strong>
+
+                  <strong>
+                    Better Control
+                  </strong>
 
                   <p>
                     Maintain accurate operational records and
                     keep your entire fleet organized.
                   </p>
+
                 </div>
 
               </div>
@@ -659,6 +814,8 @@ function Home() {
           </div>
 
 
+          {/* WHY VISUAL */}
+
           <div className="why-visual">
 
             <div className="why-main-card">
@@ -666,8 +823,15 @@ function Home() {
               <div className="why-card-header">
 
                 <div>
-                  <span>Fleet Efficiency</span>
-                  <strong>87.4%</strong>
+
+                  <span>
+                    Fleet Efficiency
+                  </span>
+
+                  <strong>
+                    87.4%
+                  </strong>
+
                 </div>
 
                 <div className="efficiency-badge">
@@ -714,10 +878,15 @@ function Home() {
               </div>
 
               <div>
-                <strong>Fleet Healthy</strong>
+
+                <strong>
+                  Fleet Healthy
+                </strong>
+
                 <span>
                   43 of 48 vehicles operational
                 </span>
+
               </div>
 
             </div>
@@ -729,7 +898,9 @@ function Home() {
       </section>
 
 
-      {/* ================= HOW IT WORKS ================= */}
+      {/* =====================================================
+          HOW IT WORKS
+      ===================================================== */}
 
       <section
         className="how-section"
@@ -765,6 +936,7 @@ function Home() {
 
           <div className="step-connector"></div>
 
+
           <Step
             number="02"
             icon={<Route />}
@@ -774,6 +946,7 @@ function Home() {
 
           <div className="step-connector"></div>
 
+
           <Step
             number="03"
             icon={<MapPin />}
@@ -782,6 +955,7 @@ function Home() {
           />
 
           <div className="step-connector"></div>
+
 
           <Step
             number="04"
@@ -793,9 +967,6 @@ function Home() {
         </div>
 
       </section>
-
-
-      {/* ================= DASHBOARD OVERVIEW ================= */}
 
       <section
         className="dashboard-section"
@@ -809,81 +980,19 @@ function Home() {
           </span>
 
           <h2>
+
             Manage Everything From
-            <span> One Dashboard.</span>
+
+            <span>
+              One Dashboard.
+            </span>
+
           </h2>
 
         </div>
 
 
         <div className="main-dashboard">
-
-          <aside className="dashboard-sidebar">
-
-            <div className="dashboard-brand">
-
-              <div className="dashboard-brand-icon">
-                <Truck size={19} />
-              </div>
-
-              <span>
-                Fleet<span>Flow</span>
-              </span>
-
-            </div>
-
-
-            <div className="dashboard-menu">
-
-              <DashboardMenu
-                icon={<LayoutDashboard />}
-                text="Dashboard"
-                active
-              />
-
-              <DashboardMenu
-                icon={<Truck />}
-                text="Vehicles"
-              />
-
-              <DashboardMenu
-                icon={<Users />}
-                text="Drivers"
-              />
-
-              <DashboardMenu
-                icon={<Route />}
-                text="Trips"
-              />
-
-              <DashboardMenu
-                icon={<MapPin />}
-                text="Live Tracking"
-              />
-
-              <DashboardMenu
-                icon={<Fuel />}
-                text="Fuel"
-              />
-
-              <DashboardMenu
-                icon={<Wrench />}
-                text="Maintenance"
-              />
-
-              <DashboardMenu
-                icon={<Wallet />}
-                text="Expenses"
-              />
-
-              <DashboardMenu
-                icon={<BarChart3 />}
-                text="Reports"
-              />
-
-            </div>
-
-          </aside>
 
 
           <div className="dashboard-main-content">
@@ -908,6 +1017,7 @@ function Home() {
                 <button>
                   <Search size={17} />
                 </button>
+
 
                 <button className="notification-button">
 
@@ -954,6 +1064,7 @@ function Home() {
                 descriptionClass="success-text"
               />
 
+
               <DashboardStat
                 icon={<Route />}
                 iconClass="purple"
@@ -963,6 +1074,7 @@ function Home() {
                 descriptionClass="blue-text"
               />
 
+
               <DashboardStat
                 icon={<Users />}
                 iconClass="green"
@@ -971,6 +1083,7 @@ function Home() {
                 description="Ready for assignment"
                 descriptionClass="success-text"
               />
+
 
               <DashboardStat
                 icon={<Wrench />}
@@ -984,7 +1097,11 @@ function Home() {
             </div>
 
 
+            {/* DASHBOARD GRID */}
+
             <div className="dashboard-grid">
+
+              {/* LIVE FLEET STATUS */}
 
               <div className="dashboard-card">
 
@@ -1001,6 +1118,7 @@ function Home() {
                     </p>
 
                   </div>
+
 
                   <button>
                     View All
@@ -1048,6 +1166,8 @@ function Home() {
               </div>
 
 
+              {/* RECENT TRIPS */}
+
               <div className="dashboard-card">
 
                 <div className="dashboard-card-header">
@@ -1076,6 +1196,7 @@ function Home() {
                     statusClass="active-status"
                   />
 
+
                   <TripItem
                     id="TRP-1047"
                     route="Guntur → Amaravati"
@@ -1083,12 +1204,14 @@ function Home() {
                     statusClass="completed-status"
                   />
 
+
                   <TripItem
                     id="TRP-1046"
                     route="Vijayawada → Hyderabad"
                     status="Scheduled"
                     statusClass="scheduled-status"
                   />
+
 
                   <TripItem
                     id="TRP-1045"
@@ -1104,7 +1227,11 @@ function Home() {
             </div>
 
 
+            {/* BOTTOM METRICS */}
+
             <div className="dashboard-bottom-grid">
+
+              {/* FUEL */}
 
               <div className="dashboard-card metric-card">
 
@@ -1154,8 +1281,6 @@ function Home() {
                 </div>
 
               </div>
-
-
               <div className="dashboard-card performance-card">
 
                 <div>
@@ -1192,10 +1317,6 @@ function Home() {
         </div>
 
       </section>
-
-
-      {/* ================= CONTACT ================= */}
-
       <section
         className="contact-section"
         id="contact"
@@ -1209,9 +1330,11 @@ function Home() {
               CONTACT US
             </span>
 
+
             <h2>
               Let's <span>Connect</span>
             </h2>
+
 
             <p>
               Have questions about FleetFlow? Our team is here
@@ -1228,8 +1351,15 @@ function Home() {
                 </div>
 
                 <div>
-                  <strong>Email</strong>
-                  <span>info@shnoor.com</span>
+
+                  <strong>
+                    Email
+                  </strong>
+
+                  <span>
+                    info@shnoor.com
+                  </span>
+
                 </div>
 
               </div>
@@ -1242,12 +1372,16 @@ function Home() {
                 </div>
 
                 <div>
-                  <strong>Location</strong>
+
+                  <strong>
+                    Location
+                  </strong>
 
                   <span>
                     10009 Mount Tabor Road, Odessa Missouri,
                     United States.
                   </span>
+
                 </div>
 
               </div>
@@ -1278,7 +1412,9 @@ function Home() {
 
                 <div className="contact-field">
 
-                  <label>Name</label>
+                  <label>
+                    Name
+                  </label>
 
                   <input
                     type="text"
@@ -1290,7 +1426,9 @@ function Home() {
 
                 <div className="contact-field">
 
-                  <label>Email</label>
+                  <label>
+                    Email
+                  </label>
 
                   <input
                     type="email"
@@ -1304,7 +1442,9 @@ function Home() {
 
               <div className="contact-field">
 
-                <label>Subject</label>
+                <label>
+                  Subject
+                </label>
 
                 <input
                   type="text"
@@ -1316,7 +1456,9 @@ function Home() {
 
               <div className="contact-field">
 
-                <label>Message</label>
+                <label>
+                  Message
+                </label>
 
                 <textarea
                   placeholder="Write your message..."
@@ -1340,10 +1482,6 @@ function Home() {
         </div>
 
       </section>
-
-
-      {/* ================= CTA ================= */}
-
       <section className="cta-section">
 
         <div className="cta-container">
@@ -1364,8 +1502,6 @@ function Home() {
             </p>
 
           </div>
-
-
           <button
             className="cta-button"
             onClick={() => navigate("/signup")}
@@ -1377,13 +1513,11 @@ function Home() {
         </div>
 
       </section>
-
-
-      {/* ================= FOOTER ================= */}
-
       <footer className="footer">
 
         <div className="footer-container">
+
+          {/* FOOTER BRAND */}
 
           <div className="footer-brand">
 
@@ -1402,6 +1536,7 @@ function Home() {
 
             </div>
 
+
             <p>
               A centralized fleet management platform
               designed to simplify modern fleet operations.
@@ -1409,12 +1544,12 @@ function Home() {
 
           </div>
 
-
           <div className="footer-column">
 
             <h4>
               Platform
             </h4>
+
 
             <button
               onClick={() => scrollToSection("features")}
@@ -1422,11 +1557,13 @@ function Home() {
               Features
             </button>
 
+
             <button
               onClick={() => scrollToSection("dashboard")}
             >
               Dashboard
             </button>
+
 
             <button
               onClick={() =>
@@ -1437,13 +1574,12 @@ function Home() {
             </button>
 
           </div>
-
-
           <div className="footer-column">
 
             <h4>
               Company
             </h4>
+
 
             <button
               onClick={() => scrollToSection("why-us")}
@@ -1451,9 +1587,11 @@ function Home() {
               Why Choose Us
             </button>
 
+
             <button>
               About
             </button>
+
 
             <button
               onClick={() => scrollToSection("contact")}
@@ -1462,19 +1600,19 @@ function Home() {
             </button>
 
           </div>
-
-
           <div className="footer-column">
 
             <h4>
               Account
             </h4>
 
+
             <button
               onClick={() => navigate("/login")}
             >
               Login
             </button>
+
 
             <button
               onClick={() => navigate("/signup")}
@@ -1504,10 +1642,6 @@ function Home() {
     </div>
   );
 }
-
-
-/* ================= FEATURE CARD ================= */
-
 function FeatureCard({
   icon,
   title,
@@ -1520,13 +1654,16 @@ function FeatureCard({
         {icon}
       </div>
 
+
       <h3>
         {title}
       </h3>
 
+
       <p>
         {description}
       </p>
+
 
       <div className="feature-arrow">
         <ArrowRight size={16} />
@@ -1535,10 +1672,6 @@ function FeatureCard({
     </div>
   );
 }
-
-
-/* ================= STEP ================= */
-
 function Step({
   number,
   icon,
@@ -1552,13 +1685,16 @@ function Step({
         {number}
       </div>
 
+
       <div className="step-icon">
         {icon}
       </div>
 
+
       <h3>
         {title}
       </h3>
+
 
       <p>
         {description}
@@ -1567,35 +1703,6 @@ function Step({
     </div>
   );
 }
-
-
-/* ================= DASHBOARD MENU ================= */
-
-function DashboardMenu({
-  icon,
-  text,
-  active = false,
-}) {
-  return (
-    <div
-      className={`dashboard-menu-item ${
-        active ? "active" : ""
-      }`}
-    >
-
-      {icon}
-
-      <span>
-        {text}
-      </span>
-
-    </div>
-  );
-}
-
-
-/* ================= DASHBOARD STAT ================= */
-
 function DashboardStat({
   icon,
   iconClass,
@@ -1611,15 +1718,18 @@ function DashboardStat({
         {icon}
       </div>
 
+
       <div>
 
         <span>
           {title}
         </span>
 
+
         <strong>
           {value}
         </strong>
+
 
         <small className={descriptionClass}>
           {description}
@@ -1630,10 +1740,6 @@ function DashboardStat({
     </div>
   );
 }
-
-
-/* ================= TRIP ITEM ================= */
-
 function TripItem({
   id,
   route,
@@ -1646,18 +1752,19 @@ function TripItem({
       <div className="trip-icon">
         <Route size={15} />
       </div>
-
       <div className="trip-info">
 
         <strong>
           {id}
         </strong>
 
+
         <span>
           {route}
         </span>
 
       </div>
+
 
       <span
         className={`trip-status ${statusClass}`}
@@ -1668,5 +1775,6 @@ function TripItem({
     </div>
   );
 }
+
 
 export default Home;

@@ -1,80 +1,82 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-
-const protect = async (req, res, next) => {
+const { COOKIE_NAME } = require("../utils/authCookie");
+const authenticate = async (req, res, next) => {
   try {
-    const token =
-      req.cookies?.fleet_token;
+    let token = null;
+    if (req.cookies && req.cookies[COOKIE_NAME]) {
+      token = req.cookies[COOKIE_NAME];
+    }
+    if (!token && req.headers.authorization) {
+      const authHeader = req.headers.authorization;
 
+      if (authHeader.startsWith("Bearer ")) {
+        token = authHeader.split(" ")[1];
+      }
+    }
     if (!token) {
       return res.status(401).json({
-        success: false,
-        message:
-          "Authentication required.",
+        message: "Authentication required.",
       });
     }
-
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET
     );
-
-    const user =
-      await User.findById(decoded.userId);
-
+    const user = await User.findById(decoded.userId).select(
+      "-password"
+    );
     if (!user) {
       return res.status(401).json({
-        success: false,
-        message:
-          "User no longer exists.",
+        message: "User not found.",
       });
     }
-
-    if (!user.isActive) {
+    if (user.isActive === false) {
       return res.status(403).json({
-        success: false,
-        message:
-          "Account is not active.",
+        message: "Your account is inactive.",
       });
     }
-
+    if (
+      user.accountStatus &&
+      user.accountStatus !== "ACTIVE"
+    ) {
+      return res.status(403).json({
+        message: "Your account is inactive.",
+      });
+    }
     req.user = user;
-
     next();
   } catch (error) {
+    console.error("Authentication error:", error);
+
     return res.status(401).json({
-      success: false,
-      message:
-        "Invalid or expired authentication token.",
+      message: "Invalid or expired authentication token.",
     });
   }
 };
-
 const authorize = (...allowedRoles) => {
   return (req, res, next) => {
-    if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        message:
-          "Authentication required.",
-      });
-    }
-
-    if (
-      !allowedRoles.includes(req.user.role)
-    ) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          message: "Authentication required.",
+        });
+      }
+      if (!allowedRoles.includes(req.user.role)) {
+        return res.status(403).json({
+          message: "Access denied. Insufficient permissions.",
+        });
+      }
+      next();
+    } catch (error) {
+      console.error("Authorization error:", error);
       return res.status(403).json({
-        success: false,
-        message:
-          "You do not have permission to access this resource.",
+        message: "Access denied.",
       });
     }
-
-    next();
   };
 };
-
 module.exports = {
-  protect,
+  authenticate,
   authorize,
 };
