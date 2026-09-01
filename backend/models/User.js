@@ -1,4 +1,16 @@
 const mongoose = require("mongoose");
+
+const ROLES = [
+  "SUPER_ADMIN",
+  "FLEET_MANAGER",
+  "DISPATCHER",
+  "DRIVER",
+  "MAINTENANCE_MANAGER",
+  "FINANCE_MANAGER",
+  "VIEWER",
+  "CUSTOMER",
+];
+
 const userSchema = new mongoose.Schema(
   {
     fullName: {
@@ -29,25 +41,27 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: [
-        "SUPER_ADMIN",
-        "FLEET_MANAGER",
-        "DISPATCHER",
-        "DRIVER",
-        "MAINTENANCE_MANAGER",
-        "FINANCE_MANAGER",
-        "VIEWER",
-        "CUSTOMER",
-      ],
+      enum: ROLES,
       default: "CUSTOMER",
     },
     isActive: {
       type: Boolean,
       default: true,
     },
+    accountStatus: {
+      type: String,
+      enum: ["ACTIVE", "INACTIVE"],
+      default: "ACTIVE",
+    },
+    lastLoginAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
   }
 );
+
 module.exports = mongoose.model("User", userSchema);
+module.exports.ROLES = ROLES;

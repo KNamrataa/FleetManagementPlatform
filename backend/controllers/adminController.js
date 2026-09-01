@@ -1,32 +1,73 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 const User = require("../models/User");
-const ASSIGNABLE_ROLES = [
-  "CUSTOMER",
+
+const ALLOWED_ROLES = [
+  "SUPER_ADMIN",
   "FLEET_MANAGER",
   "DISPATCHER",
   "DRIVER",
   "MAINTENANCE_MANAGER",
   "FINANCE_MANAGER",
   "VIEWER",
+  "CUSTOMER",
 ];
-const sanitizeUser = (user) => ({
-  id: user._id.toString(),
-  _id: user._id.toString(),
-  fullName: user.fullName,
-  email: user.email,
-  phone: user.phone || null,
-  role: user.role,
-  isActive: user.isActive !== false,
 
-  createdAt: user.createdAt,
-  updatedAt: user.updatedAt,
-});
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_REGEX = /^[+\d][\d\s().-]{6,19}$/;
+const BCRYPT_REGEX = /^\$2[aby]?\$\d{2}\$/;
+
+const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
+
+const normalizedIsActive = (user) => {
+  if (user.isActive === false) return false;
+  if (user.accountStatus === "INACTIVE") return false;
+  return true;
+};
+
+const sanitizeUser = (user) => {
+  const value = typeof user.toObject === "function" ? user.toObject() : user;
+  const isActive = normalizedIsActive(value);
+
+  return {
+    id: value._id?.toString(),
+    _id: value._id?.toString(),
+    fullName: value.fullName,
+    email: value.email,
+    phone: value.phone || null,
+    role: value.role,
+    isActive,
+    accountStatus: isActive ? "ACTIVE" : "INACTIVE",
+    createdAt: value.createdAt || null,
+    updatedAt: value.updatedAt || null,
+    lastLoginAt: value.lastLoginAt || null,
+  };
+};
+
+const sendError = (res, status, message, extra = {}) =>
+  res.status(status).json({ success: false, message, ...extra });
+
+const validateUserFields = ({ fullName, email, phone, role }) => {
+  if (!fullName || fullName.trim().length < 2) return "Full name must be at least 2 characters.";
+  if (fullName.trim().length > 100) return "Full name cannot exceed 100 characters.";
+  if (!email || !EMAIL_REGEX.test(email.trim())) return "Please provide a valid email address.";
+  if (phone && !PHONE_REGEX.test(phone.trim())) return "Please provide a valid phone number.";
+  if (!role || !ALLOWED_ROLES.includes(role)) return "Invalid role selected.";
+  return null;
+};
+
+const findUser = async (id) => {
+  if (!isValidId(id)) return null;
+  return User.findById(id).select("-password");
+};
+
 const getUsers = async (req, res) => {
   try {
     const users = await User.find({})
       .select("-password")
       .sort({ createdAt: -1 })
       .lean();
+
     return res.status(200).json({
       success: true,
       count: users.length,
@@ -34,123 +75,201 @@ const getUsers = async (req, res) => {
     });
   } catch (error) {
     console.error("Get users error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Unable to load users.",
-    });
+    return sendError(res, 500, "Unable to load users. Please try again.");
   }
 };
-const assignRole = async (req, res) => {
+
+const getUserById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { role } = req.body;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid user ID.",
-      });
+    const user = await findUser(req.params.userId);
+    if (!user) return sendError(res, 404, "User not found.");
+
+    return res.status(200).json({ success: true, user: sanitizeUser(user) });
+  } catch (error) {
+    console.error("Get user error:", error);
+    return sendError(res, 500, "Unable to load the user.");
+  }
+};
+
+const createUser = async (req, res) => {
+  try {
+    const { fullName, email, phone, password, confirmPassword, role, accountStatus } = req.body;
+
+    const fieldError = validateUserFields({ fullName, email, phone, role });
+    if (fieldError) return sendError(res, 400, fieldError);
+
+    if (!password || password.length < 8) {
+      return sendError(res, 400, "Password must be at least 8 characters.");
     }
-    if (!role || !ASSIGNABLE_ROLES.includes(role)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid role selected.",
-        allowedRoles: ASSIGNABLE_ROLES,
-      });
+    if (password !== confirmPassword) {
+      return sendError(res, 400, "Password and confirm password do not match.");
     }
-    if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        message: "Authentication required.",
-      });
+    if (accountStatus && !["ACTIVE", "INACTIVE"].includes(accountStatus)) {
+      return sendError(res, 400, "Invalid account status.");
     }
-    if (req.user._id.toString() === id) {
-      return res.status(403).json({
-        success: false,
-        message: "You cannot change your own Super Admin role.",
-      });
-    }
-    const user = await User.findById(id);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found.",
-      });
-    }
-    if (user.role === "SUPER_ADMIN") {
-      return res.status(403).json({
-        success: false,
-        message: "Super Admin accounts are protected.",
-      });
-    }
-    user.role = role;
-    await user.save();
-    return res.status(200).json({
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const existing = await User.findOne({ email: normalizedEmail }).select("_id");
+    if (existing) return sendError(res, 409, "An account with this email already exists.");
+
+    const safePassword = BCRYPT_REGEX.test(password) ? password : await bcrypt.hash(password, 12);
+    const isActive = (accountStatus || "ACTIVE") === "ACTIVE";
+
+    const user = await User.create({
+      fullName: fullName.trim(),
+      email: normalizedEmail,
+      phone: phone ? phone.trim() : null,
+      password: safePassword,
+      role,
+      isActive,
+      accountStatus: isActive ? "ACTIVE" : "INACTIVE",
+    });
+
+    return res.status(201).json({
       success: true,
-      message: `Role updated to ${role}.`,
+      message: "User created successfully.",
       user: sanitizeUser(user),
     });
   } catch (error) {
-    console.error("Assign role error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Unable to assign role.",
-    });
+    console.error("Create user error:", error);
+    if (error?.code === 11000) return sendError(res, 409, "An account with this email already exists.");
+    return sendError(res, 500, "Failed to create user. Please try again.");
   }
 };
-const updateUserStatus = async (req, res) => {
+
+const updateUser = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { isActive } = req.body;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid user ID.",
-      });
+    const { userId } = req.params;
+    const { fullName, email, phone, role, accountStatus, isActive } = req.body;
+
+    const user = await findUser(userId);
+    if (!user) return sendError(res, 404, "User not found.");
+
+    const nextRole = role ?? user.role;
+    const nextStatus = accountStatus ?? (typeof isActive === "boolean" ? (isActive ? "ACTIVE" : "INACTIVE") : normalizedIsActive(user) ? "ACTIVE" : "INACTIVE");
+
+    const fieldError = validateUserFields({
+      fullName: fullName ?? user.fullName,
+      email: email ?? user.email,
+      phone: phone ?? user.phone,
+      role: nextRole,
+    });
+    if (fieldError) return sendError(res, 400, fieldError);
+    if (!["ACTIVE", "INACTIVE"].includes(nextStatus)) return sendError(res, 400, "Invalid account status.");
+
+    if (user.role === "SUPER_ADMIN" && nextRole !== "SUPER_ADMIN") {
+      return sendError(res, 403, "Super Admin accounts cannot be demoted.");
     }
-    if (typeof isActive !== "boolean") {
-      return res.status(400).json({
-        success: false,
-        message: "isActive must be true or false.",
-      });
+    if (user.role === "SUPER_ADMIN" && nextStatus !== "ACTIVE") {
+      return sendError(res, 403, "Super Admin accounts cannot be deactivated.");
     }
-    if (req.user._id.toString() === id) {
-      return res.status(403).json({
-        success: false,
-        message: "You cannot deactivate your own account.",
-      });
-    }
-    const user = await User.findById(id);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found.",
-      });
-    }
-    if (user.role === "SUPER_ADMIN") {
-      return res.status(403).json({
-        success: false,
-        message: "Super Admin accounts are protected.",
-      });
-    }
-    user.isActive = isActive;
+
+    const normalizedEmail = (email ?? user.email).trim().toLowerCase();
+    const duplicate = await User.findOne({
+      email: normalizedEmail,
+      _id: { $ne: user._id },
+    }).select("_id");
+    if (duplicate) return sendError(res, 409, "An account with this email already exists.");
+
+    user.fullName = (fullName ?? user.fullName).trim();
+    user.email = normalizedEmail;
+    user.phone = phone ? phone.trim() : null;
+    user.role = nextRole;
+    user.isActive = nextStatus === "ACTIVE";
+    user.accountStatus = nextStatus;
+
     await user.save();
+
     return res.status(200).json({
       success: true,
-      message: isActive
-        ? "User activated successfully."
-        : "User deactivated successfully.",
+      message: "User updated successfully.",
+      user: sanitizeUser(user),
+    });
+  } catch (error) {
+    console.error("Update user error:", error);
+    if (error?.code === 11000) return sendError(res, 409, "An account with this email already exists.");
+    return sendError(res, 500, "Failed to update user. Please try again.");
+  }
+};
+
+const assignRole = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { role } = req.body;
+
+    if (!isValidId(userId)) return sendError(res, 400, "Invalid user ID.");
+    if (!ALLOWED_ROLES.includes(role)) return sendError(res, 400, "Invalid role selected.", { allowedRoles: ALLOWED_ROLES });
+
+    const user = await User.findById(userId).select("-password");
+    if (!user) return sendError(res, 404, "User not found.");
+
+    if (user.role === "SUPER_ADMIN") return sendError(res, 403, "Super Admin accounts are protected and cannot be demoted.");
+    if (role === "SUPER_ADMIN") {
+      // Creating/assigning a Super Admin is intentionally allowed only through this authenticated Super Admin endpoint.
+      user.role = "SUPER_ADMIN";
+    } else {
+      user.role = role;
+    }
+
+    await user.save();
+    return res.status(200).json({ success: true, message: "Role assigned successfully.", user: sanitizeUser(user) });
+  } catch (error) {
+    console.error("Assign role error:", error);
+    return sendError(res, 500, "Failed to assign role. Please try again.");
+  }
+};
+
+const updateUserStatus = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { isActive, accountStatus } = req.body;
+
+    if (!isValidId(userId)) return sendError(res, 400, "Invalid user ID.");
+    const nextIsActive = typeof isActive === "boolean" ? isActive : accountStatus === "ACTIVE" ? true : accountStatus === "INACTIVE" ? false : null;
+    if (nextIsActive === null) return sendError(res, 400, "Provide a valid account status.");
+
+    const user = await User.findById(userId).select("-password");
+    if (!user) return sendError(res, 404, "User not found.");
+    if (user.role === "SUPER_ADMIN") return sendError(res, 403, "Super Admin accounts are protected and cannot be deactivated.");
+
+    user.isActive = nextIsActive;
+    user.accountStatus = nextIsActive ? "ACTIVE" : "INACTIVE";
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: nextIsActive ? "Account activated successfully." : "Account deactivated successfully.",
       user: sanitizeUser(user),
     });
   } catch (error) {
     console.error("Update user status error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Unable to update user status.",
-    });
+    return sendError(res, 500, "Failed to update account status. Please try again.");
   }
 };
+
+const deleteUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    if (!isValidId(userId)) return sendError(res, 400, "Invalid user ID.");
+
+    const user = await User.findById(userId);
+    if (!user) return sendError(res, 404, "User not found.");
+    if (user.role === "SUPER_ADMIN") return sendError(res, 403, "Super Admin accounts are protected and cannot be deleted.");
+
+    await User.deleteOne({ _id: userId });
+    return res.status(200).json({ success: true, message: "User deleted successfully.", userId });
+  } catch (error) {
+    console.error("Delete user error:", error);
+    return sendError(res, 500, "Failed to delete user. Please try again.");
+  }
+};
+
 module.exports = {
   getUsers,
+  getUserById,
+  createUser,
+  updateUser,
   assignRole,
   updateUserStatus,
+  deleteUser,
 };

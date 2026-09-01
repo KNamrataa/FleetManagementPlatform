@@ -31,7 +31,7 @@ const authenticate = async (req, res, next) => {
         message: "User not found.",
       });
     }
-    if (user.isActive === false) {
+    if (user.isActive === false || user.accountStatus === "INACTIVE") {
       return res.status(403).json({
         message: "Your account is inactive.",
       });

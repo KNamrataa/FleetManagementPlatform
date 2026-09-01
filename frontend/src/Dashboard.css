@@ -68,6 +68,8 @@
 }
 
 .nav-item {
+  text-decoration: none;
+  color: inherit;
   border: none;
 
   background: transparent;

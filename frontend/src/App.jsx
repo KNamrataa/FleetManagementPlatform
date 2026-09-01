@@ -13,6 +13,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import RoleDashboard from "./pages/RoleDashboard";
+import UserManagementPage from "./pages/UserManagementPage";
 
 function App() {
   return (
@@ -43,6 +44,15 @@ function App() {
           element={
             <ProtectedRoute>
               <SuperAdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/super-admin/users"
+          element={
+            <ProtectedRoute>
+              <UserManagementPage />
             </ProtectedRoute>
           }
         />

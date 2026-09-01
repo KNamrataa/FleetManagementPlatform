@@ -9,7 +9,8 @@ const sanitizeUser = (user) => ({
   phone: user.phone,
   role: user.role,
   isActive: user.isActive,
-  accountStatus: user.accountStatus,
+  accountStatus: user.accountStatus || (user.isActive === false ? "INACTIVE" : "ACTIVE"),
+  lastLoginAt: user.lastLoginAt || null,
 });
 const signup = async (req, res) => {
   try {
@@ -75,8 +76,8 @@ const login = async (req, res) => {
       });
     }
     const isActive =
-      user.isActive === true ||
-      user.accountStatus === "ACTIVE";
+      user.isActive !== false &&
+      user.accountStatus !== "INACTIVE";
     if (!isActive) {
       return res.status(403).json({
         message: "Your account is inactive.",
@@ -117,8 +118,8 @@ const getCurrentUser = async (req, res) => {
       });
     }
     const isActive =
-      user.isActive === true ||
-      user.accountStatus === "ACTIVE";
+      user.isActive !== false &&
+      user.accountStatus !== "INACTIVE";
     if (!isActive) {
       return res.status(403).json({
         message: "Your account is inactive.",

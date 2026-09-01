@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import {
   Activity,
@@ -21,7 +21,6 @@ import {
 } from "lucide-react";
 
 import "../Dashboard.css";
-import UserManagement from "../components/UserManagement";
 
 const API_URL = "http://localhost:5000";
 
@@ -385,10 +384,14 @@ function SuperAdminDashboard() {
             Reports
           </button>
 
-          <button className="nav-item">
+          <Link
+            to="/super-admin/users"
+            className="nav-item"
+            onClick={() => setSidebarOpen(false)}
+          >
             <Users size={18} />
             User Management
-          </button>
+          </Link>
 
           <button className="nav-item">
             <Settings size={18} />
@@ -761,245 +764,6 @@ function SuperAdminDashboard() {
         </section>
 
 
-        <DashboardCard
-          title="User Management & Role Assignment"
-          icon={<ShieldCheck size={18} />}
-        >
-
-          <div className="user-management-header">
-
-            <div>
-              <h3>
-                Platform Users
-              </h3>
-
-              <p>
-                Assign roles and control account access.
-              </p>
-            </div>
-
-            <button
-              className="refresh-button"
-              onClick={fetchUsers}
-            >
-              Refresh
-            </button>
-
-          </div>
-
-          {loadingUsers && (
-            <div className="dashboard-message">
-              Loading users...
-            </div>
-          )}
-
-          {userError && (
-            <div className="dashboard-error">
-              {userError}
-            </div>
-          )}
-
-          {!loadingUsers &&
-            !userError &&
-            users.length === 0 && (
-              <div className="dashboard-message">
-                No users found.
-              </div>
-            )}
-
-          {!loadingUsers &&
-            !userError &&
-            users.length > 0 && (
-              <div className="table-wrapper">
-
-                <table className="dashboard-table">
-
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>Current Role</th>
-                      <th>Status</th>
-                      <th>Assign Role</th>
-                      <th>Access</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-
-                    {users.map((user) => {
-
-                      const isSuperAdmin =
-                        user.role ===
-                        "SUPER_ADMIN";
-
-                      return (
-                        <tr key={user._id}>
-
-                          <td>
-                            <strong>
-                              {user.fullName}
-                            </strong>
-                          </td>
-
-                          <td>
-                            {user.email}
-                          </td>
-
-                          <td>
-                            {roleLabels[
-                              user.role
-                            ] ||
-                              user.role}
-                          </td>
-
-                          <td>
-
-                            <span
-                              className={
-                                user.isActive
-                                  ? "user-status active"
-                                  : "user-status inactive"
-                              }
-                            >
-                              {user.isActive
-                                ? "Active"
-                                : "Inactive"}
-                            </span>
-
-                          </td>
-
-                          <td>
-
-                            {isSuperAdmin ? (
-                              <span className="protected-role">
-                                <ShieldCheck
-                                  size={15}
-                                />
-                                Protected
-                              </span>
-                            ) : (
-                              <div className="role-control">
-
-                                <select
-                                  value={
-                                    selectedRoles[
-                                      user._id
-                                    ] || ""
-                                  }
-                                  onChange={(event) =>
-                                    setSelectedRoles(
-                                      (
-                                        previous
-                                      ) => ({
-                                        ...previous,
-                                        [user._id]:
-                                          event
-                                            .target
-                                            .value,
-                                      })
-                                    )
-                                  }
-                                >
-
-                                  <option value="">
-                                    Select role
-                                  </option>
-
-                                  {Object.entries(
-                                    roleLabels
-                                  ).map(
-                                    ([
-                                      value,
-                                      label,
-                                    ]) => (
-                                      <option
-                                        key={
-                                          value
-                                        }
-                                        value={
-                                          value
-                                        }
-                                      >
-                                        {label}
-                                      </option>
-                                    )
-                                  )}
-
-                                </select>
-
-                                <button
-                                  className="assign-button"
-                                  disabled={
-                                    !selectedRoles[
-                                      user._id
-                                    ] ||
-                                    updatingUser ===
-                                      user._id
-                                  }
-                                  onClick={() =>
-                                    assignRole(
-                                      user._id
-                                    )
-                                  }
-                                >
-                                  {updatingUser ===
-                                  user._id
-                                    ? "Saving..."
-                                    : "Assign"}
-                                </button>
-
-                              </div>
-                            )}
-
-                          </td>
-
-                          <td>
-
-                            {isSuperAdmin ? (
-                              <span className="protected-role">
-                                Protected
-                              </span>
-                            ) : (
-                              <button
-                                className={
-                                  user.isActive
-                                    ? "deactivate-button"
-                                    : "activate-button"
-                                }
-                                disabled={
-                                  statusUpdatingUser ===
-                                  user._id
-                                }
-                                onClick={() =>
-                                  toggleStatus(
-                                    user._id
-                                  )
-                                }
-                              >
-                                {statusUpdatingUser ===
-                                user._id
-                                  ? "Updating..."
-                                  : user.isActive
-                                  ? "Deactivate"
-                                  : "Activate"}
-                              </button>
-                            )}
-
-                          </td>
-
-                        </tr>
-                      );
-                    })}
-
-                  </tbody>
-
-                </table>
-
-              </div>
-            )}
-
-        </DashboardCard>
         <DashboardCard title="Recent Activities">
 
           <div className="activity-list">
@@ -1131,5 +895,4 @@ function ActivityItem({
     </div>
   );
 }
-
 export default SuperAdminDashboard;
