@@ -30,6 +30,7 @@ import {
 import { useState } from "react";
 
 import "./RoleDashboard.css";
+import RealFleetManagerDashboard from "./FleetManagerDashboard";
 
 const API_URL =
   "http://localhost:5000";
@@ -128,11 +129,7 @@ function RoleDashboard() {
 
     case "FLEET_MANAGER":
 
-      return (
-        <FleetManagerDashboard
-          {...dashboardProps}
-        />
-      );
+      return <RealFleetManagerDashboard />;
 
 
     case "DISPATCHER":
@@ -196,166 +193,6 @@ function RoleDashboard() {
         />
       );
   }
-}
-
-function FleetManagerDashboard({
-  user,
-  sidebarOpen,
-  setSidebarOpen,
-  logout,
-}) {
-  return (
-    <DashboardLayout
-      title="Fleet Manager Dashboard"
-      subtitle="Monitor and manage fleet operations"
-      role="FLEET MANAGER"
-      user={user}
-      sidebarOpen={sidebarOpen}
-      setSidebarOpen={setSidebarOpen}
-      logout={logout}
-      navigation={[
-        ["Overview", LayoutDashboard],
-        ["Vehicles", Car],
-        ["Drivers", Users],
-        ["Trips", Activity],
-        ["Live Tracking", MapPin],
-        ["Maintenance", Wrench],
-        ["Fuel", Fuel],
-        ["Reports", FileText],
-      ]}
-    >
-
-      <section className="role-stats">
-
-        <MetricCard
-          icon={<Car />}
-          title="Total Vehicles"
-          value="48"
-        />
-
-        <MetricCard
-          icon={<CheckCircle />}
-          title="Available Vehicles"
-          value="21"
-        />
-
-        <MetricCard
-          icon={<Truck />}
-          title="Vehicles On Trip"
-          value="14"
-        />
-
-        <MetricCard
-          icon={<Wrench />}
-          title="Under Maintenance"
-          value="5"
-        />
-
-        <MetricCard
-          icon={<Users />}
-          title="Total Drivers"
-          value="32"
-        />
-
-        <MetricCard
-          icon={<Activity />}
-          title="Active Trips"
-          value="12"
-        />
-
-      </section>
-
-
-      <TwoColumn>
-
-        <DashboardSection
-          title="Vehicle Status"
-        >
-
-          <StatusLine
-            label="Available"
-            value="21"
-          />
-
-          <StatusLine
-            label="On Trip"
-            value="14"
-          />
-
-          <StatusLine
-            label="Idle"
-            value="8"
-          />
-
-          <StatusLine
-            label="Maintenance"
-            value="5"
-          />
-
-        </DashboardSection>
-
-
-        <DashboardSection
-          title="Driver Status"
-        >
-
-          <StatusLine
-            label="Available"
-            value="17"
-          />
-
-          <StatusLine
-            label="On Trip"
-            value="11"
-          />
-
-          <StatusLine
-            label="Off Duty"
-            value="4"
-          />
-
-        </DashboardSection>
-
-      </TwoColumn>
-
-
-      <DashboardSection
-        title="Pending Vehicle Approvals"
-      >
-
-        <SimpleTable
-          headers={[
-            "Vehicle",
-            "Owner",
-            "Type",
-            "Status",
-          ]}
-          rows={[
-            [
-              "AP16 XY 7788",
-              "Ravi Kumar",
-              "Truck",
-              "Pending",
-            ],
-            [
-              "AP07 PQ 4567",
-              "Suresh",
-              "Van",
-              "Pending",
-            ],
-            [
-              "AP05 LM 8899",
-              "Arun Kumar",
-              "Mini Truck",
-              "Pending",
-            ],
-          ]}
-        />
-
-      </DashboardSection>
-
-    </DashboardLayout>
-  );
 }
 
 function DispatcherDashboard({

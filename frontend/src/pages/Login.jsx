@@ -161,9 +161,12 @@ function Login() {
           loggedInUser
         )
       );
-      navigate("/dashboard", {
-        replace: true,
-      });
+      const destination = loggedInUser.role === "SUPER_ADMIN"
+        ? "/super-admin"
+        : loggedInUser.role === "FLEET_MANAGER"
+          ? "/fleet-manager"
+          : "/dashboard";
+      navigate(destination, { replace: true });
     } catch (error) {
       console.error(
         "Login error:",

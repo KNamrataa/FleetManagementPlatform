@@ -14,6 +14,12 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import RoleDashboard from "./pages/RoleDashboard";
 import UserManagementPage from "./pages/UserManagementPage";
+import RoleProtectedRoute from "./components/RoleProtectedRoute";
+import FleetManagerDashboard from "./pages/FleetManagerDashboard";
+import VehiclesPage from "./pages/VehiclesPage";
+import DriversPage from "./pages/DriversPage";
+import AssignmentsPage from "./pages/AssignmentsPage";
+import TripsPage from "./pages/TripsPage";
 
 function App() {
   return (
@@ -57,6 +63,12 @@ function App() {
           }
         />
 
+
+        <Route path="/fleet-manager" element={<RoleProtectedRoute allowedRoles={["FLEET_MANAGER", "SUPER_ADMIN"]}><FleetManagerDashboard /></RoleProtectedRoute>} />
+        <Route path="/fleet-manager/vehicles" element={<RoleProtectedRoute allowedRoles={["FLEET_MANAGER", "SUPER_ADMIN"]}><VehiclesPage /></RoleProtectedRoute>} />
+        <Route path="/fleet-manager/drivers" element={<RoleProtectedRoute allowedRoles={["FLEET_MANAGER", "SUPER_ADMIN"]}><DriversPage /></RoleProtectedRoute>} />
+        <Route path="/fleet-manager/assignments" element={<RoleProtectedRoute allowedRoles={["FLEET_MANAGER", "SUPER_ADMIN"]}><AssignmentsPage /></RoleProtectedRoute>} />
+        <Route path="/fleet-manager/trips" element={<RoleProtectedRoute allowedRoles={["FLEET_MANAGER", "SUPER_ADMIN"]}><TripsPage /></RoleProtectedRoute>} />
 
         <Route
           path="/dashboard"

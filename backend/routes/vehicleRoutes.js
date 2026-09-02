@@ -1,0 +1,11 @@
+const express = require("express");
+const { getVehicles, getVehicle, createVehicle, updateVehicle, deleteVehicle } = require("../controllers/vehicleController");
+const { authenticate, authorize } = require("../middleware/authMiddleware");
+const router = express.Router();
+const access = [authenticate, authorize("FLEET_MANAGER", "SUPER_ADMIN")];
+router.get("/", ...access, getVehicles);
+router.get("/:id", ...access, getVehicle);
+router.post("/", ...access, createVehicle);
+router.put("/:id", ...access, updateVehicle);
+router.delete("/:id", ...access, deleteVehicle);
+module.exports = router;

@@ -7,11 +7,20 @@ const {
   assignRole,
   updateUserStatus,
   deleteUser,
+  getFleetOverview,
+  getAdminVehicles,
+  getAdminDrivers,
+  getSuperAdminDashboardOverview,
 } = require("../controllers/adminController");
 const { authenticate, authorize } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 const superAdminOnly = [authenticate, authorize("SUPER_ADMIN")];
+
+router.get("/dashboard-overview", ...superAdminOnly, getSuperAdminDashboardOverview);
+router.get("/fleet-overview", ...superAdminOnly, getFleetOverview);
+router.get("/vehicles", ...superAdminOnly, getAdminVehicles);
+router.get("/drivers", ...superAdminOnly, getAdminDrivers);
 
 router.get("/users", ...superAdminOnly, getUsers);
 router.get("/users/:userId", ...superAdminOnly, getUserById);

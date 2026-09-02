@@ -1,0 +1,10 @@
+const express = require("express");
+const { getAssignments, getAssignment, createAssignment, deleteAssignment } = require("../controllers/assignmentController");
+const { authenticate, authorize } = require("../middleware/authMiddleware");
+const router = express.Router();
+const access = [authenticate, authorize("FLEET_MANAGER", "SUPER_ADMIN")];
+router.get("/", ...access, getAssignments);
+router.get("/:id", ...access, getAssignment);
+router.post("/", ...access, createAssignment);
+router.delete("/:id", ...access, deleteAssignment);
+module.exports = router;

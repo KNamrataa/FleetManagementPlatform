@@ -1,0 +1,12 @@
+const express = require("express");
+const { getDrivers, getDriver, createDriver, updateDriver, setDriverStatus, unassignDriver } = require("../controllers/driverController");
+const { authenticate, authorize } = require("../middleware/authMiddleware");
+const router = express.Router();
+const access = [authenticate, authorize("FLEET_MANAGER", "SUPER_ADMIN")];
+router.get("/", ...access, getDrivers);
+router.get("/:id", ...access, getDriver);
+router.post("/", ...access, createDriver);
+router.put("/:id", ...access, updateDriver);
+router.patch("/:id/status", ...access, setDriverStatus);
+router.delete("/:id/assignment", ...access, unassignDriver);
+module.exports = router;

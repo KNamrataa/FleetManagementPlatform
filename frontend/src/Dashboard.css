@@ -912,3 +912,211 @@
     padding: 16px;
   }
 }
+/* ================= SUPER ADMIN LIVE FLEET VIEWS ================= */
+.admin-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dashboard-refresh-button {
+  border: 1px solid #d8e0ec;
+  background: white;
+  color: #34445d;
+  border-radius: 9px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.dashboard-refresh-button:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.dashboard-refresh-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.spin {
+  animation: dashboard-spin 0.9s linear infinite;
+}
+
+@keyframes dashboard-spin {
+  to { transform: rotate(360deg); }
+}
+
+.dashboard-alert {
+  padding: 12px 15px;
+  border-radius: 9px;
+  margin-bottom: 18px;
+  font-size: 14px;
+}
+
+.dashboard-alert.error {
+  background: #fff1f1;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+.admin-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.admin-data-card {
+  border: 1px solid #dce3ee;
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  text-align: left;
+  color: #172033;
+}
+
+.admin-data-card:hover {
+  border-color: #ef4444;
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.07);
+}
+
+.admin-data-card svg {
+  color: #e52525;
+}
+
+.admin-data-card div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.admin-data-card strong {
+  font-size: 25px;
+}
+
+.admin-data-card span {
+  color: #61718b;
+  font-size: 13px;
+}
+
+.role-action-row {
+  display: flex;
+  gap: 7px;
+  min-width: 210px;
+}
+
+.role-action-row select,
+.role-action-row button {
+  border: 1px solid #d8e0ec;
+  border-radius: 7px;
+  padding: 7px 8px;
+  background: white;
+  color: #27364e;
+  font-size: 12px;
+}
+
+.role-action-row select {
+  flex: 1;
+  min-width: 0;
+}
+
+.role-action-row button {
+  cursor: pointer;
+}
+
+.role-action-row button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.table-empty {
+  text-align: center;
+  color: #64748b;
+  padding: 28px !important;
+}
+
+@media (max-width: 900px) {
+  .admin-header-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .admin-quick-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 650px) {
+  .dashboard-header {
+    align-items: flex-start;
+  }
+
+  .admin-header-actions {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   SUPER ADMIN DASHBOARD - SCREENSHOT STRUCTURE
+   Vehicle, driver and trip sections are database-driven.
+   Fuel, maintenance and recent activities remain static.
+   ========================================================= */
+.super-admin-dashboard .dashboard-main { background: #f5f7fb; }
+.super-admin-dashboard .dashboard-header { background: #fff; }
+.super-admin-dashboard .sa-overview { display: flex; flex-direction: column; gap: 12px; }
+.super-admin-dashboard .sa-stats-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.super-admin-dashboard .sa-stat-card { min-height: 72px; background: #fff; border: 1px solid #dfe5ee; border-radius: 7px; display: flex; align-items: center; gap: 10px; padding: 9px 12px; box-sizing: border-box; }
+.super-admin-dashboard .sa-stat-icon { width: 34px; height: 34px; border-radius: 8px; background: #fff0f0; color: #ef2026; display: grid; place-items: center; flex: 0 0 auto; }
+.super-admin-dashboard .sa-stat-icon svg { width: 18px; height: 18px; }
+.super-admin-dashboard .sa-stat-card span { display: block; color: #526783; font-size: 10px; margin-bottom: 3px; }
+.super-admin-dashboard .sa-stat-card strong { display: block; color: #061a35; font-size: 18px; line-height: 1; }
+.super-admin-dashboard .sa-stat-card.dynamic strong { color: #061a35; }
+.super-admin-dashboard .dashboard-two-column { gap: 10px; }
+.super-admin-dashboard .dashboard-card { border-radius: 7px; box-shadow: none; border-color: #dfe5ee; padding: 12px; }
+.super-admin-dashboard .dashboard-card-header { margin-bottom: 8px; }
+.super-admin-dashboard .dashboard-card-header h2 { font-size: 13px; color: #071b35; }
+.super-admin-dashboard .dashboard-card-header h2 svg { width: 15px; height: 15px; }
+.super-admin-dashboard .status-list { display: flex; flex-direction: column; }
+.super-admin-dashboard .status-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #edf0f4; color: #516783; font-size: 11px; }
+.super-admin-dashboard .status-row:last-child { border-bottom: 0; }
+.super-admin-dashboard .status-row strong { color: #071b35; }
+.super-admin-dashboard .dashboard-table { font-size: 10px; }
+.super-admin-dashboard .dashboard-table th { padding: 7px 6px; font-size: 9px; }
+.super-admin-dashboard .dashboard-table td { padding: 7px 6px; }
+.super-admin-dashboard .sa-wide-table th:first-child, .super-admin-dashboard .sa-wide-table td:first-child { padding-left: 5px; }
+.super-admin-dashboard .sa-small-action { border: 1px solid #d6dfeb; background: #fff; border-radius: 7px; padding: 6px 10px; color: #1d426b; cursor: pointer; }
+.super-admin-dashboard .sa-live-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.super-admin-dashboard .sa-live-card { border: 1px solid #dce3ed; border-radius: 6px; padding: 10px; min-height: 62px; }
+.super-admin-dashboard .sa-live-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.super-admin-dashboard .sa-live-head strong { font-size: 10px; color: #071b35; }
+.super-admin-dashboard .sa-live-driver { font-size: 9px; color: #4d6785; margin: 5px 0; }
+.super-admin-dashboard .sa-live-meta { display: flex; justify-content: space-between; gap: 8px; color: #6d7f96; font-size: 8px; }
+.super-admin-dashboard .sa-live-meta span { display: inline-flex; align-items: center; gap: 3px; }
+.super-admin-dashboard .sa-status-badge { display: inline-flex; align-items: center; border-radius: 9px; padding: 3px 7px; font-size: 8px; font-weight: 700; white-space: nowrap; background: #edf1f5; color: #526783; }
+.super-admin-dashboard .sa-status-badge.available { background: #e7f8ed; color: #168447; }
+.super-admin-dashboard .sa-status-badge.assigned { background: #e8f0ff; color: #2864c7; }
+.super-admin-dashboard .sa-status-badge.on-trip { background: #e7f0ff; color: #1d65d1; }
+.super-admin-dashboard .sa-status-badge.in-progress { background: #e7f0ff; color: #1d65d1; }
+.super-admin-dashboard .sa-status-badge.scheduled { background: #f2eaff; color: #7848bd; }
+.super-admin-dashboard .sa-status-badge.completed { background: #e7f8ed; color: #168447; }
+.super-admin-dashboard .sa-status-badge.cancelled { background: #fff0f0; color: #dc2525; }
+.super-admin-dashboard .sa-status-badge.maintenance { background: #fff5db; color: #a76d00; }
+.super-admin-dashboard .sa-status-badge.inactive { background: #eef0f3; color: #6b7280; }
+.super-admin-dashboard .static-finance { min-height: 45px; display: flex; flex-direction: column; justify-content: center; }
+.super-admin-dashboard .static-finance strong { color: #071b35; font-size: 15px; }
+.super-admin-dashboard .static-finance span { color: #6b7c91; font-size: 9px; margin-top: 2px; }
+.super-admin-dashboard .sa-activity-list { display: flex; flex-direction: column; }
+.super-admin-dashboard .sa-activity { display: flex; gap: 8px; align-items: center; padding: 7px 0; border-bottom: 1px solid #edf0f4; }
+.super-admin-dashboard .sa-activity:last-child { border-bottom: 0; }
+.super-admin-dashboard .sa-activity-dot { width: 5px; height: 5px; border-radius: 50%; background: #ef2026; flex: 0 0 auto; }
+.super-admin-dashboard .sa-activity strong { display: block; color: #12243d; font-size: 9px; }
+.super-admin-dashboard .sa-activity small { display: block; color: #8090a3; font-size: 8px; margin-top: 2px; }
+@media (max-width: 1200px) { .super-admin-dashboard .sa-stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .super-admin-dashboard .sa-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .super-admin-dashboard .sa-live-grid { grid-template-columns: 1fr; } .super-admin-dashboard .dashboard-two-column { grid-template-columns: 1fr; } }
+@media (max-width: 480px) { .super-admin-dashboard .sa-stats-grid { grid-template-columns: 1fr; } }
