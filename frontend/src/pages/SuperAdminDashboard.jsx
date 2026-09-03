@@ -20,6 +20,7 @@ import {
   X,
 } from "lucide-react";
 import "../Dashboard.css";
+import { authFetch } from "../services/api";
 
 const API_URL = "http://localhost:5000";
 
@@ -77,7 +78,7 @@ function SuperAdminDashboard() {
   const [statusUpdatingUser, setStatusUpdatingUser] = useState(null);
 
   const request = useCallback(async (path, options = {}) => {
-    const response = await fetch(`${API_URL}${path}`, {
+    const response = await authFetch(path, {
       credentials: "include",
       ...options,
       headers: {
@@ -179,7 +180,7 @@ function SuperAdminDashboard() {
     } catch (err) {
       console.error(err);
     }
-    localStorage.removeItem("fleetUser");
+    sessionStorage.removeItem("fleetUser"); sessionStorage.removeItem("fleetToken");
     navigate("/login", { replace: true });
   };
 

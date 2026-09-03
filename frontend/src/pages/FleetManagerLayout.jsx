@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Activity, Car, LayoutDashboard, LogOut, Menu, Users, X, ClipboardList } from "lucide-react";
-import { API_URL } from "../services/api";
+import { API_URL, authFetch } from "../services/api";
 import "./FleetManager.css";
 
 export default function FleetManagerLayout({ title, subtitle, children }) {
   const navigate = useNavigate(); const [open, setOpen] = useState(false);
-  let user = {}; try { user = JSON.parse(localStorage.getItem("fleetUser") || "{}"); } catch {}
-  const logout = async () => { try { await fetch(`${API_URL}/api/auth/logout`, { method: "POST", credentials: "include" }); } catch {} localStorage.removeItem("fleetUser"); navigate("/login", { replace: true }); };
+  let user = {}; try { user = JSON.parse(sessionStorage.getItem("fleetUser") || "{}"); } catch {}
+  const logout = async () => { try { await authFetch(`${API_URL}/api/auth/logout`, { method: "POST", credentials: "include" }); } catch {} sessionStorage.removeItem("fleetUser"); sessionStorage.removeItem("fleetToken"); navigate("/login", { replace: true }); };
   const nav = [["/fleet-manager", "Overview", LayoutDashboard], ["/fleet-manager/vehicles", "Vehicles", Car], ["/fleet-manager/drivers", "Drivers", Users], ["/fleet-manager/assignments", "Assignments", ClipboardList], ["/fleet-manager/trips", "Trips", Activity]];
   return <div className="fm-shell">
     <aside className={`fm-sidebar ${open ? "open" : ""}`}>

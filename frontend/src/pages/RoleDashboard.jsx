@@ -30,6 +30,7 @@ import {
 import { useState } from "react";
 
 import "./RoleDashboard.css";
+import { authFetch } from "../services/api";
 import RealFleetManagerDashboard from "./FleetManagerDashboard";
 
 const API_URL =
@@ -85,7 +86,7 @@ function RoleDashboard() {
 
   const logout = async () => {
     try {
-      await fetch(
+      await authFetch(
         `${API_URL}/api/auth/logout`,
         {
           method: "POST",
@@ -99,7 +100,7 @@ function RoleDashboard() {
       );
     }
 
-    localStorage.removeItem(
+    sessionStorage.removeItem(
       "fleetUser"
     );
 
@@ -144,8 +145,9 @@ function RoleDashboard() {
     case "DRIVER":
 
       return (
-        <DriverDashboard
-          {...dashboardProps}
+        <Navigate
+          to="/driver"
+          replace
         />
       );
 

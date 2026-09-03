@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import "../Auth.css";
+import { setAuthSession } from "../services/api";
 
 const API_URL = "http://localhost:5000";
 
@@ -155,17 +156,17 @@ function Login() {
         "Logged in role:",
         loggedInUser.role
       );
-      localStorage.setItem(
-        "fleetUser",
-        JSON.stringify(
-          loggedInUser
-        )
-      );
+      if (!data.token) {
+        throw new Error("Login successful, but the authentication token was not returned by the server.");
+      }
+      setAuthSession(loggedInUser, data.token);
       const destination = loggedInUser.role === "SUPER_ADMIN"
         ? "/super-admin"
         : loggedInUser.role === "FLEET_MANAGER"
           ? "/fleet-manager"
-          : "/dashboard";
+          : loggedInUser.role === "DRIVER"
+            ? "/driver"
+            : "/dashboard";
       navigate(destination, { replace: true });
     } catch (error) {
       console.error(

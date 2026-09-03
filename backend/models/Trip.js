@@ -13,6 +13,7 @@ const tripSchema = new mongoose.Schema({
   actualEnd: { type: Date, default: null },
   distance: { type: Number, min: 0, default: 0 },
   tripStatus: { type: String, enum: ["SCHEDULED", "ASSIGNED", "IN_PROGRESS", "COMPLETED", "CANCELLED"], default: "SCHEDULED", index: true },
+  driverAcceptedAt: { type: Date, default: null },
   notes: { type: String, trim: true, maxlength: 1000, default: "" },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
 }, { timestamps: true });

@@ -11,6 +11,7 @@ const driverRoutes = require("./routes/driverRoutes");
 const assignmentRoutes = require("./routes/assignmentRoutes");
 const tripRoutes = require("./routes/tripRoutes");
 const fleetDashboardRoutes = require("./routes/fleetDashboardRoutes");
+const driverPortalRoutes = require("./routes/driverPortalRoutes");
 
 const app = express();
 
@@ -40,6 +41,7 @@ app.use("/api/drivers", driverRoutes);
 app.use("/api/assignments", assignmentRoutes);
 app.use("/api/trips", tripRoutes);
 app.use("/api/fleet-manager/dashboard", fleetDashboardRoutes);
+app.use("/api/driver", driverPortalRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

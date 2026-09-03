@@ -1,19 +1,70 @@
-const API_URL = "http://localhost:5000";
+export const API_URL = "http://localhost:5000";
+
+const SESSION_USER_KEY = "fleetUser";
+const SESSION_TOKEN_KEY = "fleetToken";
+
+export function getStoredUser() {
+  try {
+    return JSON.parse(sessionStorage.getItem(SESSION_USER_KEY) || "null");
+  } catch {
+    sessionStorage.removeItem(SESSION_USER_KEY);
+    return null;
+  }
+}
+
+export function getAuthToken() {
+  return sessionStorage.getItem(SESSION_TOKEN_KEY) || "";
+}
+
+export function setAuthSession(user, token) {
+  sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
+  if (token) sessionStorage.setItem(SESSION_TOKEN_KEY, token);
+}
+
+export function clearAuthSession() {
+  sessionStorage.removeItem(SESSION_USER_KEY);
+  sessionStorage.removeItem(SESSION_TOKEN_KEY);
+}
 
 export async function apiRequest(path, options = {}) {
+  const token = getAuthToken();
+  const headers = {
+    "Content-Type": "application/json",
+    ...(options.headers || {}),
+  };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
   const response = await fetch(`${API_URL}${path}`, {
     credentials: "include",
-    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
     ...options,
+    headers,
   });
+
   let data = {};
   try { data = await response.json(); } catch { data = {}; }
+
   if (!response.ok) {
-    const error = new Error(data.message || (response.status === 401 ? "Authentication required." : response.status === 403 ? "You are not authorized for this action." : "Request failed."));
+    if (response.status === 401) {
+      // Do not immediately clear the session here: the page may be able to
+      // recover or the user may have another tab/session open.
+    }
+    const error = new Error(
+      data.message ||
+      (response.status === 401 ? "Authentication required. Please log in again." :
+       response.status === 403 ? "Access denied. You are not authorized for this action." :
+       response.status === 409 ? "This operation conflicts with the current fleet state." :
+       "Request failed.")
+    );
     error.status = response.status;
     error.data = data;
     throw error;
   }
   return data;
 }
-export { API_URL };
+
+export async function authFetch(path, options = {}) {
+  const token = getAuthToken();
+  const headers = { ...(options.headers || {}) };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return fetch(`${API_URL}${path}`, { credentials: "include", ...options, headers });
+}

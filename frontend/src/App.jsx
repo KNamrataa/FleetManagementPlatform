@@ -20,6 +20,13 @@ import VehiclesPage from "./pages/VehiclesPage";
 import DriversPage from "./pages/DriversPage";
 import AssignmentsPage from "./pages/AssignmentsPage";
 import TripsPage from "./pages/TripsPage";
+import DriverOverview from "./pages/DriverOverview";
+import DriverVehicle from "./pages/DriverVehicle";
+import DriverTrips from "./pages/DriverTrips";
+import DriverTripDetails from "./pages/DriverTripDetails";
+import DriverHistory from "./pages/DriverHistory";
+import DriverIssues from "./pages/DriverIssues";
+import DriverProfile from "./pages/DriverProfile";
 
 function App() {
   return (
@@ -69,6 +76,14 @@ function App() {
         <Route path="/fleet-manager/drivers" element={<RoleProtectedRoute allowedRoles={["FLEET_MANAGER", "SUPER_ADMIN"]}><DriversPage /></RoleProtectedRoute>} />
         <Route path="/fleet-manager/assignments" element={<RoleProtectedRoute allowedRoles={["FLEET_MANAGER", "SUPER_ADMIN"]}><AssignmentsPage /></RoleProtectedRoute>} />
         <Route path="/fleet-manager/trips" element={<RoleProtectedRoute allowedRoles={["FLEET_MANAGER", "SUPER_ADMIN"]}><TripsPage /></RoleProtectedRoute>} />
+
+        <Route path="/driver" element={<RoleProtectedRoute allowedRoles={["DRIVER"]}><DriverOverview /></RoleProtectedRoute>} />
+        <Route path="/driver/vehicle" element={<RoleProtectedRoute allowedRoles={["DRIVER"]}><DriverVehicle /></RoleProtectedRoute>} />
+        <Route path="/driver/trips" element={<RoleProtectedRoute allowedRoles={["DRIVER"]}><DriverTrips /></RoleProtectedRoute>} />
+        <Route path="/driver/trips/:id" element={<RoleProtectedRoute allowedRoles={["DRIVER"]}><DriverTripDetails /></RoleProtectedRoute>} />
+        <Route path="/driver/history" element={<RoleProtectedRoute allowedRoles={["DRIVER"]}><DriverHistory /></RoleProtectedRoute>} />
+        <Route path="/driver/issues" element={<RoleProtectedRoute allowedRoles={["DRIVER"]}><DriverIssues /></RoleProtectedRoute>} />
+        <Route path="/driver/profile" element={<RoleProtectedRoute allowedRoles={["DRIVER"]}><DriverProfile /></RoleProtectedRoute>} />
 
         <Route
           path="/dashboard"

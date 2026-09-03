@@ -1,36 +1,13 @@
 import { Navigate } from "react-router-dom";
-function ProtectedRoute({ children }) {
-  const storedUser =
-    localStorage.getItem("fleetUser");
-  if (!storedUser) {
-    return (
-      <Navigate
-        to="/login"
-        replace
-      />
-    );
-  }
-  try {
-    const user = JSON.parse(storedUser);
-    if (!user || !user.role) {
-      localStorage.removeItem("fleetUser");
-      return (
-        <Navigate
-          to="/login"
-          replace
-        />
-      );
-    }
-    return children;
-  } catch (error) {
-    localStorage.removeItem("fleetUser");
+import { getStoredUser } from "../services/api";
 
-    return (
-      <Navigate
-        to="/login"
-        replace
-      />
-    );
+export default function RoleProtectedRoute({ children, allowedRoles = [] }) {
+  const user = getStoredUser();
+  if (!user || !user.role) return <Navigate to="/login" replace />;
+  const role = String(user.role).trim().toUpperCase();
+  if (allowedRoles.length && !allowedRoles.includes(role)) {
+    const destination = role === "SUPER_ADMIN" ? "/super-admin" : role === "FLEET_MANAGER" ? "/fleet-manager" : role === "DRIVER" ? "/driver" : "/dashboard";
+    return <Navigate to={destination} replace />;
   }
+  return children;
 }
-export default ProtectedRoute;

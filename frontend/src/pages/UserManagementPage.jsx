@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { authFetch } from "../services/api";
 import {
   Activity,
   Car,
@@ -111,7 +112,7 @@ function UserManagementPage() {
     try {
       showRefresh ? setRefreshing(true) : setLoading(true);
       setError("");
-      const response = await fetch(`${API_URL}/api/admin/users`, {
+      const response = await authFetch(`/api/admin/users`, {
         method: "GET",
         credentials: "include",
         headers: { Accept: "application/json" },
@@ -132,7 +133,7 @@ function UserManagementPage() {
   }, []);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("fleetUser");
+    const storedUser = sessionStorage.getItem("fleetUser");
     if (!storedUser) {
       navigate("/login", { replace: true });
       return;
@@ -144,7 +145,7 @@ function UserManagementPage() {
         return;
       }
     } catch {
-      localStorage.removeItem("fleetUser");
+      sessionStorage.removeItem("fleetUser"); sessionStorage.removeItem("fleetToken");
       navigate("/login", { replace: true });
       return;
     }
@@ -200,7 +201,7 @@ function UserManagementPage() {
     try {
       setBusyFor(userId, "role", true);
       setError("");
-      const response = await fetch(`${API_URL}/api/admin/users/${encodeURIComponent(userId)}/role`, {
+      const response = await authFetch(`/api/admin/users/${encodeURIComponent(userId)}/role`, {
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -225,7 +226,7 @@ function UserManagementPage() {
     try {
       setBusyFor(userId, "status", true);
       setError("");
-      const response = await fetch(`${API_URL}/api/admin/users/${encodeURIComponent(userId)}/status`, {
+      const response = await authFetch(`/api/admin/users/${encodeURIComponent(userId)}/status`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -248,7 +249,7 @@ function UserManagementPage() {
     try {
       setBusyFor(userId, "delete", true);
       setError("");
-      const response = await fetch(`${API_URL}/api/admin/users/${encodeURIComponent(userId)}`, {
+      const response = await authFetch(`/api/admin/users/${encodeURIComponent(userId)}`, {
         method: "DELETE",
         credentials: "include",
         headers: { Accept: "application/json" },
@@ -286,7 +287,7 @@ function UserManagementPage() {
   const openView = async (user) => {
     setModal({ type: "view", user, loading: true });
     try {
-      const response = await fetch(`${API_URL}/api/admin/users/${encodeURIComponent(getId(user))}`, {
+      const response = await authFetch(`/api/admin/users/${encodeURIComponent(getId(user))}`, {
         credentials: "include",
         headers: { Accept: "application/json" },
       });
@@ -335,7 +336,7 @@ function UserManagementPage() {
           }
         : { ...form, fullName: form.fullName.trim(), email: form.email.trim().toLowerCase(), phone: form.phone.trim() };
 
-      const response = await fetch(isEdit ? `${API_URL}/api/admin/users/${encodeURIComponent(userId)}` : `${API_URL}/api/admin/users`, {
+      const response = await authFetch(isEdit ? `${API_URL}/api/admin/users/${encodeURIComponent(userId)}` : `${API_URL}/api/admin/users`, {
         method: isEdit ? "PUT" : "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -362,11 +363,11 @@ function UserManagementPage() {
 
   const logout = async () => {
     try {
-      await fetch(`${API_URL}/api/auth/logout`, { method: "POST", credentials: "include" });
+      await authFetch(`/api/auth/logout`, { method: "POST", credentials: "include" });
     } catch (err) {
       console.error(err);
     } finally {
-      localStorage.removeItem("fleetUser");
+      sessionStorage.removeItem("fleetUser"); sessionStorage.removeItem("fleetToken");
       navigate("/login", { replace: true });
     }
   };

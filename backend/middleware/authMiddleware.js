@@ -3,16 +3,18 @@ const User = require("../models/User");
 const { COOKIE_NAME } = require("../utils/authCookie");
 const authenticate = async (req, res, next) => {
   try {
+    // Prefer the Bearer token when supplied. This allows different browser
+    // tabs to hold different FleetFlow accounts in sessionStorage without
+    // one login overwriting another tab's authentication context.
     let token = null;
-    if (req.cookies && req.cookies[COOKIE_NAME]) {
-      token = req.cookies[COOKIE_NAME];
-    }
-    if (!token && req.headers.authorization) {
+    if (req.headers.authorization) {
       const authHeader = req.headers.authorization;
-
       if (authHeader.startsWith("Bearer ")) {
-        token = authHeader.split(" ")[1];
+        token = authHeader.slice(7).trim();
       }
+    }
+    if (!token && req.cookies && req.cookies[COOKIE_NAME]) {
+      token = req.cookies[COOKIE_NAME];
     }
     if (!token) {
       return res.status(401).json({

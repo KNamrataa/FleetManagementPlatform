@@ -48,6 +48,7 @@ const signup = async (req, res) => {
     res.cookie(COOKIE_NAME, token, cookieOptions);
     return res.status(201).json({
       message: "Account created successfully.",
+      token,
       user: sanitizeUser(user),
     });
   } catch (error) {
@@ -98,6 +99,7 @@ const login = async (req, res) => {
     res.cookie(COOKIE_NAME, token, cookieOptions);
     return res.status(200).json({
       message: "Login successful.",
+      token,
       user: sanitizeUser(user),
     });
   } catch (error) {
