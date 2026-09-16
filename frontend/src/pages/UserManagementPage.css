@@ -41,7 +41,7 @@
 .um-role-badge { background: #f1f5f9; color: #475569; }
 .role-super_admin { background: #ede9fe; color: #6d28d9; }
 .role-fleet_manager { background: #eff6ff; color: #1d4ed8; }
-.role-dispatcher { background: #ecfeff; color: #0e7490; }
+.role-trip-manager { background: #ecfeff; color: #0e7490; }
 .role-driver { background: #f0fdf4; color: #15803d; }
 .role-maintenance_manager { background: #fff7ed; color: #c2410c; }
 .role-finance_manager { background: #fefce8; color: #a16207; }
@@ -108,3 +108,5 @@
 @media (max-width: 1000px) { .um-summary-grid { grid-template-columns: 1fr 1fr; } .um-toolbar { flex-direction: column; align-items: stretch; } .um-search { max-width: none; } .um-filters { justify-content: flex-end; } }
 @media (max-width: 700px) { .user-management-page .dashboard-header { flex-direction: column; } .user-management-page .um-primary-button { width: 100%; } .um-filters { flex-wrap: wrap; justify-content: stretch; } .um-filters select, .um-refresh-button { flex: 1; } .um-pagination { flex-direction: column; align-items: stretch; } .um-page-buttons { justify-content: center; flex-wrap: wrap; } .um-form-grid, .um-details-grid { grid-template-columns: 1fr; } .um-modal-backdrop { padding: 12px; } .um-modal { max-height: calc(100vh - 24px); } }
 @media (max-width: 480px) { .um-summary-grid { grid-template-columns: 1fr; } .um-toolbar { padding: 12px; } .um-filters { display: grid; grid-template-columns: 1fr 1fr; } .um-refresh-button { grid-column: 1 / -1; } .um-actions { min-width: 0; flex-wrap: wrap; } .um-modal-header, .um-form, .um-detail-layout { padding: 16px; } }
+
+.role-trip-manager { background: #ecfeff; color: #0e7490; }

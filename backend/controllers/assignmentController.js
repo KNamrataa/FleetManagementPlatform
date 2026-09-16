@@ -1,13 +1,18 @@
 const mongoose = require("mongoose");
 const Assignment = require("../models/Assignment");
 const { reservePair, releasePair, hasActiveTripForVehicle, hasActiveTripForDriver, syncAssignmentRecords } = require("../utils/fleetHelpers");
+const { safeNotify, notifyUsers } = require("../services/notificationService");
+const { paginationParams, paginationMeta } = require("../utils/pagination");
 const validId = (id) => mongoose.Types.ObjectId.isValid(id);
 const fail = (res, status, message) => res.status(status).json({ success: false, message });
 
 async function getAssignments(req, res) {
   try {
     const assignments = await syncAssignmentRecords();
-    res.json({ success: true, count: assignments.length, assignments });
+    const { page, limit } = paginationParams(req, { limit: 25, max: 100 });
+    const total = assignments.length;
+    const start = (page - 1) * limit;
+    res.json({ success: true, count: Math.min(limit, Math.max(0, total - start)), assignments: assignments.slice(start, start + limit), pagination: paginationMeta(page, limit, total) });
   } catch (e) { console.error(e); fail(res, 500, "Unable to load assignments."); }
 }
 
@@ -28,6 +33,8 @@ async function createAssignment(req, res) {
     const { vehicle, driver } = await reservePair(vehicleId, driverId);
     const assignment = await Assignment.create({ vehicle: vehicle._id, driver: driver.user, assignedBy: req.user._id, assignmentStatus: "ACTIVE" });
     const result = await Assignment.findById(assignment._id).populate("vehicle", "registrationNumber vehicleType make model status").populate("driver", "fullName email phone");
+    const io = req.app.get("io");
+    await safeNotify(() => notifyUsers({ io, recipients: [driver.user], type: "VEHICLE_ASSIGNED", title: "Vehicle Assigned", message: `Vehicle ${vehicle.registrationNumber || vehicle.vehicleNumber || "a vehicle"} has been assigned to you.`, link: "/driver/vehicle", data: { assignmentId: assignment._id, vehicleId: vehicle._id } }));
     res.status(201).json({ success: true, message: "Driver assigned to vehicle successfully.", assignment: result });
   } catch (e) { console.error(e); fail(res, e.status || 500, e.message || "Failed to create assignment."); }
 }

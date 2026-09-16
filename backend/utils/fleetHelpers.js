@@ -3,7 +3,7 @@ const DriverProfile = require("../models/DriverProfile");
 const Assignment = require("../models/Assignment");
 const User = require("../models/User");
 
-const activeTripStatuses = ["ASSIGNED", "IN_PROGRESS"];
+const activeTripStatuses = ["ASSIGNED", "IN_PROGRESS", "PAUSED"];
 
 async function getDriverProfile(driverId) {
   return DriverProfile.findOne({ user: driverId });
@@ -13,12 +13,20 @@ async function validateAvailablePair(vehicleId, driverId) {
   const vehicle = await Vehicle.findById(vehicleId);
   if (!vehicle) return { error: "Vehicle not found." };
   if (!["AVAILABLE", "ASSIGNED"].includes(vehicle.status)) return { error: "Vehicle is not available for assignment." };
+
+  if (vehicle.ownershipType === "DRIVER_OWNED") {
+    if (vehicle.approvalStatus !== "APPROVED") return { error: "This driver-owned vehicle is not approved for trip assignment." };
+    if (!vehicle.ownerId) return { error: "This driver-owned vehicle has no owner-driver." };
+    if (vehicle.ownerId.toString() !== driverId.toString()) return { error: "This driver-owned vehicle can only be assigned to its owner-driver." };
+  }
+
   if (vehicle.assignedDriver && vehicle.assignedDriver.toString() !== driverId.toString()) return { error: "Vehicle is already assigned to another driver." };
 
   const driver = await DriverProfile.findOne({ user: driverId });
   if (!driver) return { error: "Driver profile not found." };
   if (driver.status === "INACTIVE" || driver.status === "OFF_DUTY" || driver.availability === false) return { error: "Driver is not available for assignment." };
   if (driver.assignedVehicle && driver.assignedVehicle.toString() !== vehicleId.toString()) return { error: "Driver is already assigned to another vehicle." };
+  if (vehicle.ownershipType === "DRIVER_OWNED" && driver.driverType !== "OWNER_DRIVER") return { error: "The owner of a driver-owned vehicle must be an Owner-Driver." };
   return { vehicle, driver };
 }
 

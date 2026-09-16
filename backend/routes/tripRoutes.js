@@ -1,5 +1,5 @@
 const express = require("express");
-const { getTrips, getTrip, createTrip, updateTrip, startTrip, completeTrip, cancelTrip } = require("../controllers/tripController");
+const { getTrips, getTrip, createTrip, updateTrip, startTrip, pauseTrip, resumeTrip, completeTrip, cancelTrip } = require("../controllers/tripController");
 const { authenticate, authorize } = require("../middleware/authMiddleware");
 const router = express.Router();
 const access = [authenticate, authorize("FLEET_MANAGER", "SUPER_ADMIN")];
@@ -8,6 +8,8 @@ router.get("/:id", ...access, getTrip);
 router.post("/", ...access, createTrip);
 router.put("/:id", ...access, updateTrip);
 router.patch("/:id/start", ...access, startTrip);
+router.patch("/:id/pause", ...access, pauseTrip);
+router.patch("/:id/resume", ...access, resumeTrip);
 router.patch("/:id/complete", ...access, completeTrip);
 router.patch("/:id/cancel", ...access, cancelTrip);
 module.exports = router;

@@ -27,14 +27,14 @@ import {
   useNavigate,
 } from "react-router-dom";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import "./RoleDashboard.css";
-import { authFetch } from "../services/api";
+import { apiRequest, authFetch } from "../services/api";
 import RealFleetManagerDashboard from "./FleetManagerDashboard";
+import TripManagerDashboard from "./TripManagerDashboard";
 
-const API_URL =
-  "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 
 function RoleDashboard() {
@@ -46,7 +46,7 @@ function RoleDashboard() {
 
 
   const storedUser =
-    localStorage.getItem(
+    sessionStorage.getItem(
       "fleetUser"
     );
 
@@ -117,7 +117,9 @@ function RoleDashboard() {
   };
 
 
-  switch (normalizedRole) {
+  const roleForRouting = normalizedRole === "DISPATCHER" ? "TRIP_MANAGER" : normalizedRole;
+
+  switch (roleForRouting) {
     case "SUPER_ADMIN":
 
       return (
@@ -133,13 +135,9 @@ function RoleDashboard() {
       return <RealFleetManagerDashboard />;
 
 
-    case "DISPATCHER":
+    case "TRIP_MANAGER":
 
-      return (
-        <DispatcherDashboard
-          {...dashboardProps}
-        />
-      );
+      return <TripManagerDashboard />;
 
 
     case "DRIVER":
@@ -155,33 +153,25 @@ function RoleDashboard() {
     case "MAINTENANCE_MANAGER":
 
       return (
-        <MaintenanceDashboard
-          {...dashboardProps}
-        />
+        <Navigate to="/maintenance" replace />
       );
 
 
     case "FINANCE_MANAGER":
 
       return (
-        <FinanceDashboard
-          {...dashboardProps}
-        />
+        <Navigate to="/finance-manager" replace />
       );
 
     case "VIEWER":
-
-      return (
-        <ViewerDashboard
-          {...dashboardProps}
-        />
-      );
+      return <Navigate to="/management" replace />;
 
     case "CUSTOMER":
 
       return (
-        <CustomerDashboard
-          {...dashboardProps}
+        <Navigate
+          to="/customer"
+          replace
         />
       );
 
@@ -197,165 +187,8 @@ function RoleDashboard() {
   }
 }
 
-function DispatcherDashboard({
-  user,
-  sidebarOpen,
-  setSidebarOpen,
-  logout,
-}) {
-  return (
-    <DashboardLayout
-      title="Dispatcher Dashboard"
-      subtitle="Manage trip requests and assignments"
-      role="DISPATCHER"
-      user={user}
-      sidebarOpen={sidebarOpen}
-      setSidebarOpen={setSidebarOpen}
-      logout={logout}
-      navigation={[
-        ["Overview", LayoutDashboard],
-        ["Trip Requests", FileText],
-        ["Trips", Activity],
-        ["Drivers", Users],
-        ["Vehicles", Car],
-        ["Live Tracking", MapPin],
-      ]}
-    >
-
-      <section className="role-stats">
-
-        <MetricCard
-          icon={<FileText />}
-          title="Pending Requests"
-          value="8"
-        />
-
-        <MetricCard
-          icon={<Clock />}
-          title="Unassigned Trips"
-          value="5"
-        />
-
-        <MetricCard
-          icon={<Activity />}
-          title="Today's Trips"
-          value="18"
-        />
-
-        <MetricCard
-          icon={<Truck />}
-          title="Scheduled Trips"
-          value="12"
-        />
-
-        <MetricCard
-          icon={<MapPin />}
-          title="Active Trips"
-          value="7"
-        />
-
-        <MetricCard
-          icon={<CheckCircle />}
-          title="Completed"
-          value="24"
-        />
-
-      </section>
-
-
-      <DashboardSection
-        title="Pending Trip Requests"
-      >
-
-        <SimpleTable
-          headers={[
-            "Request",
-            "Customer",
-            "Pickup",
-            "Destination",
-            "Requested",
-            "Action",
-          ]}
-          rows={[
-            [
-              "REQ-1001",
-              "ABC Logistics",
-              "Guntur",
-              "Vijayawada",
-              "10:30 AM",
-              "Assign",
-            ],
-            [
-              "REQ-1002",
-              "XYZ Industries",
-              "Tenali",
-              "Hyderabad",
-              "12:00 PM",
-              "Assign",
-            ],
-            [
-              "REQ-1003",
-              "Global Equipments",
-              "Guntur",
-              "Amaravati",
-              "2:00 PM",
-              "Assign",
-            ],
-          ]}
-        />
-
-      </DashboardSection>
-
-
-      <TwoColumn>
-
-        <DashboardSection
-          title="Available Drivers"
-        >
-
-          <StatusLine
-            label="Ravi Kumar"
-            value="Available"
-          />
-
-          <StatusLine
-            label="Priya Sharma"
-            value="Available"
-          />
-
-          <StatusLine
-            label="Arun Kumar"
-            value="Available"
-          />
-
-        </DashboardSection>
-
-
-        <DashboardSection
-          title="Available Vehicles"
-        >
-
-          <StatusLine
-            label="AP16 AB 1234"
-            value="Available"
-          />
-
-          <StatusLine
-            label="AP07 CD 5678"
-            value="Available"
-          />
-
-          <StatusLine
-            label="AP05 GH 3456"
-            value="Available"
-          />
-
-        </DashboardSection>
-
-      </TwoColumn>
-
-    </DashboardLayout>
-  );
+function LegacyTripManagerDashboard() {
+  return <TripManagerDashboard />;
 }
 
 function DriverDashboard({
@@ -508,6 +341,8 @@ function DriverDashboard({
 
       </DashboardSection>
 
+
+      <CustomerInvoicesPanel />
 
       <DashboardSection
         title="Quick Actions"
@@ -682,163 +517,6 @@ function MaintenanceDashboard({
 }
 
 
-function FinanceDashboard({
-  user,
-  sidebarOpen,
-  setSidebarOpen,
-  logout,
-}) {
-  return (
-    <DashboardLayout
-      title="Finance Dashboard"
-      subtitle="Manage fleet expenses, fuel and billing"
-      role="FINANCE MANAGER"
-      user={user}
-      sidebarOpen={sidebarOpen}
-      setSidebarOpen={setSidebarOpen}
-      logout={logout}
-      navigation={[
-        ["Overview", LayoutDashboard],
-        ["Expenses", CircleDollarSign],
-        ["Fuel", Fuel],
-        ["Invoices", FileText],
-        ["Payments", Package],
-        ["Reports", BarChart3],
-      ]}
-    >
-
-      <section className="role-stats">
-
-        <MetricCard
-          icon={<CircleDollarSign />}
-          title="Total Expenses"
-          value="₹3,42,500"
-        />
-
-        <MetricCard
-          icon={<Fuel />}
-          title="Fuel Expenses"
-          value="₹1,84,500"
-        />
-
-        <MetricCard
-          icon={<Wrench />}
-          title="Maintenance"
-          value="₹96,800"
-        />
-
-        <MetricCard
-          icon={<Clock />}
-          title="Pending Expenses"
-          value="14"
-        />
-
-        <MetricCard
-          icon={<CheckCircle />}
-          title="Approved Expenses"
-          value="86"
-        />
-
-        <MetricCard
-          icon={<FileText />}
-          title="Total Billing"
-          value="₹8,45,000"
-        />
-
-      </section>
-
-
-      <DashboardSection
-        title="Expense Review"
-      >
-
-        <SimpleTable
-          headers={[
-            "Expense ID",
-            "Vehicle",
-            "Category",
-            "Amount",
-            "Status",
-          ]}
-          rows={[
-            [
-              "EXP-1001",
-              "AP16 AB 1234",
-              "Fuel",
-              "₹8,500",
-              "Pending",
-            ],
-            [
-              "EXP-1002",
-              "AP07 CD 5678",
-              "Maintenance",
-              "₹15,000",
-              "Approved",
-            ],
-            [
-              "EXP-1003",
-              "AP05 GH 3456",
-              "Toll",
-              "₹2,500",
-              "Pending",
-            ],
-          ]}
-        />
-
-      </DashboardSection>
-
-
-      <TwoColumn>
-
-        <DashboardSection
-          title="Financial Summary"
-        >
-
-          <StatusLine
-            label="Fuel"
-            value="₹1,84,500"
-          />
-
-          <StatusLine
-            label="Maintenance"
-            value="₹96,800"
-          />
-
-          <StatusLine
-            label="Trip Expenses"
-            value="₹42,300"
-          />
-
-          <StatusLine
-            label="Other"
-            value="₹18,900"
-          />
-
-        </DashboardSection>
-
-
-        <DashboardSection
-          title="Payments"
-        >
-
-          <StatusLine
-            label="Paid"
-            value="₹6,80,000"
-          />
-
-          <StatusLine
-            label="Pending"
-            value="₹1,65,000"
-          />
-
-        </DashboardSection>
-
-      </TwoColumn>
-
-    </DashboardLayout>
-  );
-}
-
 function ViewerDashboard({
   user,
   sidebarOpen,
@@ -992,11 +670,6 @@ function ViewerDashboard({
   );
 }
 
-
-// =====================================================
-// CUSTOMER DASHBOARD
-// =====================================================
-
 function CustomerDashboard({
   user,
   sidebarOpen,
@@ -1050,7 +723,7 @@ function CustomerDashboard({
         <MetricCard
           icon={<FileText />}
           title="Pending Invoices"
-          value="2"
+          value={<CustomerPendingInvoiceCount />}
         />
 
       </section>
@@ -1169,6 +842,51 @@ function CustomerDashboard({
 
     </DashboardLayout>
   );
+}
+
+function CustomerInvoicesPanel() {
+  const [invoices, setInvoices] = useState([]);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    let active = true;
+    apiRequest("/api/finance/customer/invoices")
+      .then(data => { if (active) setInvoices(data.invoices || []); })
+      .catch(err => { if (active) setError(err.message || "Unable to load invoices."); });
+    return () => { active = false; };
+  }, []);
+  return (
+    <DashboardSection title="My Invoices">
+      {error ? <p className="muted">{error}</p> : invoices.length ? (
+        <SimpleTable
+          headers={["Invoice", "Trip", "Due Date", "Total", "Paid", "Balance", "Status"]}
+          rows={invoices.slice(0, 6).map(invoice => [
+            invoice.invoiceNumber,
+            invoice.trip?.tripId || "—",
+            invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : "—",
+            `₹${Number(invoice.totalAmount || 0).toLocaleString("en-IN")}`,
+            `₹${Number(invoice.paidAmount || 0).toLocaleString("en-IN")}`,
+            `₹${Number(invoice.balanceAmount || 0).toLocaleString("en-IN")}`,
+            invoice.status?.replaceAll("_", " ") || "—",
+          ])}
+        />
+      ) : <p className="muted">No invoices available.</p>}
+    </DashboardSection>
+  );
+}
+
+function CustomerPendingInvoiceCount() {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    let active = true;
+    apiRequest("/api/finance/customer/invoices")
+      .then(data => {
+        if (!active) return;
+        setCount((data.invoices || []).filter(invoice => Number(invoice.balanceAmount || 0) > 0 && invoice.status !== "CANCELLED").length);
+      })
+      .catch(() => { if (active) setCount(0); });
+    return () => { active = false; };
+  }, []);
+  return count;
 }
 
 function DashboardLayout({

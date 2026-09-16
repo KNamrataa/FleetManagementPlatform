@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const ROLES = [
   "SUPER_ADMIN",
   "FLEET_MANAGER",
+  "TRIP_MANAGER",
   "DISPATCHER",
   "DRIVER",
   "MAINTENANCE_MANAGER",
@@ -57,6 +58,21 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    loginFailedAttempts: { type: Number, default: 0, min: 0 },
+    loginLockedUntil: { type: Date, default: null, index: true },
+    resetPasswordTokenHash: {
+      type: String,
+      default: null,
+      select: false,
+      index: true,
+    },
+    resetPasswordExpires: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+    accessVersion: { type: Number, default: 0 },
+    forcePasswordChange: { type: Boolean, default: false },
   },
   {
     timestamps: true,

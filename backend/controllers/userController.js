@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const ALLOWED_EMPLOYEE_ROLES = [
   "FLEET_MANAGER",
+  "TRIP_MANAGER",
   "DISPATCHER",
   "DRIVER",
   "MAINTENANCE_MANAGER",

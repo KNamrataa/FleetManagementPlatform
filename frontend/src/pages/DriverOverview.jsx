@@ -31,6 +31,8 @@ export default function DriverOverview() {
     [CheckCircle, "Completed Trips", n(d.completedTrips)],
     [UserCheck, "Driver Status", d.driverStatus || "—"],
     [Gauge, "Total Distance", `${n(d.totalDistance).toLocaleString()} km`],
+    [UserCheck, "Acceptance Rate", `${n(d.acceptanceRate)}%`],
+    [CheckCircle, "Completion Rate", `${n(d.completionRate)}%`],
   ];
 
   return <DriverLayout title="Driver Overview" subtitle="Your assigned operations and trip activity">

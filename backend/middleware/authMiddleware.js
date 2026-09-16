@@ -1,6 +1,8 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const { COOKIE_NAME } = require("../utils/authCookie");
+const { permissionsForRole, hasPermission } = require("../utils/permissions");
+const RolePermission = require("../models/RolePermission");
 const authenticate = async (req, res, next) => {
   try {
     let token = null;
@@ -30,6 +32,9 @@ const authenticate = async (req, res, next) => {
         message: "User not found.",
       });
     }
+    if (Number(decoded.accessVersion || 0) !== Number(user.accessVersion || 0)) {
+      return res.status(401).json({ message: "Your session has been revoked. Please sign in again." });
+    }
     if (user.isActive === false || user.accountStatus === "INACTIVE") {
       return res.status(403).json({
         message: "Your account is inactive.",
@@ -44,6 +49,7 @@ const authenticate = async (req, res, next) => {
       });
     }
     req.user = user;
+    req.user.permissions = permissionsForRole(user.role);
     next();
   } catch (error) {
     console.error("Authentication error:", error);
@@ -75,7 +81,14 @@ const authorize = (...allowedRoles) => {
     }
   };
 };
-module.exports = {
-  authenticate,
-  authorize,
+const requirePermission = (permission) => async (req, res, next) => {
+  try {
+    if (!req.user) return res.status(401).json({ success:false, message:"Authentication required." });
+    if (req.user.role === "SUPER_ADMIN") return next();
+    const doc = await RolePermission.findOne({ role: req.user.role }).lean();
+    const allowed = doc?.permissions?.[permission];
+    if (allowed === true || (allowed === undefined && hasPermission(req.user.role, permission))) return next();
+    return res.status(403).json({ success:false, message:"Access denied. Insufficient permissions." });
+  } catch (e) { return res.status(403).json({success:false,message:"Access denied."}); }
 };
+module.exports = { authenticate, authorize, requirePermission };

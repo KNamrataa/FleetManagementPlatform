@@ -1,11 +1,13 @@
 const express = require("express");
-const { getVehicles, getVehicle, createVehicle, updateVehicle, deleteVehicle } = require("../controllers/vehicleController");
-const { authenticate, authorize } = require("../middleware/authMiddleware");
+const { getVehicles, getVehicle, getVehicleDocument, createVehicle, updateVehicle, deleteVehicle, updateVehicleApproval } = require("../controllers/vehicleController");
+const { authenticate, authorize, requirePermission } = require("../middleware/authMiddleware");
 const router = express.Router();
 const access = [authenticate, authorize("FLEET_MANAGER", "SUPER_ADMIN")];
 router.get("/", ...access, getVehicles);
+router.get("/:id/documents/:documentId", ...access, getVehicleDocument);
 router.get("/:id", ...access, getVehicle);
-router.post("/", ...access, createVehicle);
-router.put("/:id", ...access, updateVehicle);
-router.delete("/:id", ...access, deleteVehicle);
+router.post("/", ...access, requirePermission("vehicles:create"), createVehicle);
+router.put("/:id", ...access, requirePermission("vehicles:edit"), updateVehicle);
+router.patch("/:id/approval", ...access, requirePermission("vehicles:approve"), updateVehicleApproval);
+router.delete("/:id", ...access, requirePermission("vehicles:delete"), deleteVehicle);
 module.exports = router;

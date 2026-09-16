@@ -1,6 +1,7 @@
+import NotificationBell from "../components/NotificationBell";
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Activity, Car, ClipboardList, LayoutDashboard, LogOut, Menu, UserCircle, Wrench, X } from "lucide-react";
+import { Activity, Car, ClipboardList, LayoutDashboard, LogOut, Menu, UserCircle, Wrench, X, Receipt } from "lucide-react";
 import { API_URL, authFetch } from "../services/api";
 import "./DriverDashboard.css";
 
@@ -22,6 +23,7 @@ export default function DriverLayout({ title, subtitle, children }) {
     ["/driver/trips", "My Trips", Activity],
     ["/driver/history", "Trip History", ClipboardList],
     ["/driver/issues", "Vehicle Issues", Wrench],
+    ["/driver/records", "Expenses & Vehicle History", Receipt],
     ["/driver/profile", "My Profile", UserCircle],
   ];
 
@@ -40,6 +42,7 @@ export default function DriverLayout({ title, subtitle, children }) {
         <header className="driver-header">
           <button className="driver-menu" onClick={() => setOpen(true)} aria-label="Open menu"><Menu size={21} /></button>
           <div><p>DRIVER</p><h1>{title}</h1><span>{subtitle}</span></div>
+          <NotificationBell />
           <div className="driver-header-user">{user.fullName || "Driver"}</div>
         </header>
         <div className="driver-content">{children}</div>

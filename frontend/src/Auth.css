@@ -518,3 +518,41 @@
     grid-template-columns: 1fr;
   }
 }
+.auth-success-message {
+  margin-bottom: 18px;
+  padding: 11px 13px;
+  border-radius: 8px;
+  border: 1px solid #b7e4c7;
+  background: #eefaf2;
+  color: #176b3a;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.dev-reset-box {
+  margin-top: 18px;
+  padding: 13px;
+  border: 1px dashed #d9a441;
+  border-radius: 9px;
+  background: #fff9e8;
+  color: #6b5200;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.dev-reset-box strong { display: block; margin-bottom: 4px; }
+.dev-reset-box p { margin: 0 0 9px; }
+.dev-reset-link { color: #d71920; font-weight: 700; text-decoration: none; }
+.dev-reset-link:hover { text-decoration: underline; }
+
+.forgot-password-link {
+  display: block;
+  margin: -4px 0 16px;
+  text-align: right;
+  color: #d71920;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.forgot-password-link:hover { text-decoration: underline; }

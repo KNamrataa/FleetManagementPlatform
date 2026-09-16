@@ -14,7 +14,7 @@ import {
 import "../Auth.css";
 import { setAuthSession } from "../services/api";
 
-const API_URL = "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 function Login() {
   const navigate = useNavigate();
@@ -140,10 +140,7 @@ function Login() {
         ...data.user,
 
         role: data.user.role
-          ? data.user.role
-              .toString()
-              .trim()
-              .toUpperCase()
+          ? (data.user.role.toString().trim().toUpperCase() === "DISPATCHER" ? "TRIP_MANAGER" : data.user.role.toString().trim().toUpperCase())
           : "CUSTOMER",
       };
 
@@ -164,9 +161,15 @@ function Login() {
         ? "/super-admin"
         : loggedInUser.role === "FLEET_MANAGER"
           ? "/fleet-manager"
-          : loggedInUser.role === "DRIVER"
+          : loggedInUser.role === "TRIP_MANAGER"
+                ? "/trip-manager"
+                : loggedInUser.role === "DRIVER"
             ? "/driver"
-            : "/dashboard";
+            : loggedInUser.role === "MAINTENANCE_MANAGER"
+              ? "/maintenance"
+              : loggedInUser.role === "FINANCE_MANAGER"
+                ? "/finance-manager"
+                : "/dashboard";
       navigate(destination, { replace: true });
     } catch (error) {
       console.error(
@@ -361,6 +364,8 @@ function Login() {
               )}
 
             </div>
+
+            <Link to="/forgot-password" className="forgot-password-link">Forgot password?</Link>
 
             <button
               type="submit"

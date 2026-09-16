@@ -1,7 +1,19 @@
 const mongoose = require("mongoose");
 
 const vehicleSchema = new mongoose.Schema({
-  registrationNumber: { type: String, required: true, unique: true, trim: true, uppercase: true, index: true },
+  registrationNumber: { type: String, required: true, unique: true, trim: true, uppercase: true },
+  ownershipType: { type: String, enum: ["COMPANY_OWNED", "DRIVER_OWNED"], default: "COMPANY_OWNED", index: true },
+  ownerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null, index: true },
+  approvalStatus: { type: String, enum: ["PENDING_APPROVAL", "APPROVED", "REJECTED", "SUSPENDED"], default: "APPROVED", index: true },
+  approvalReason: { type: String, trim: true, default: "" },
+  documents: [{
+    documentType: { type: String, enum: ["RC", "INSURANCE", "PUC", "PERMIT", "OTHER"], required: true },
+    fileName: { type: String, required: true, trim: true },
+    data: { type: String, required: true },
+    mimeType: { type: String, default: "application/octet-stream" },
+    expiryDate: { type: Date, default: null },
+    uploadedAt: { type: Date, default: Date.now },
+  }],
   vehicleNumber: { type: String, trim: true },
   vehicleType: { type: String, required: true, trim: true },
   make: { type: String, required: true, trim: true },

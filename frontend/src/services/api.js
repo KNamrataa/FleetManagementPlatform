@@ -1,4 +1,4 @@
-export const API_URL = "http://localhost:5000";
+export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const SESSION_USER_KEY = "fleetUser";
 const SESSION_TOKEN_KEY = "fleetToken";
@@ -34,11 +34,17 @@ export async function apiRequest(path, options = {}) {
   };
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(`${API_URL}${path}`, {
-    credentials: "include",
-    ...options,
-    headers,
-  });
+  let response;
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      credentials: "include",
+      ...options,
+      headers,
+    });
+  } catch (networkError) {
+    const error = new Error("Unable to reach the FleetFlow server. Check that the backend is running and try again.");
+    error.status = 0; error.cause = networkError; throw error;
+  }
 
   let data = {};
   try { data = await response.json(); } catch { data = {}; }
