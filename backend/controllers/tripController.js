@@ -100,7 +100,15 @@ async function createTrip(req, res) {
 
     const result = await populateTrip(Trip.findById(trip._id));
     const io = req.app.get("io");
-    await safeNotify(() => notifyUsers({ io, recipients: [trip.customer], type: "TRIP_CREATED", title: "Trip Created", message: `Trip ${trip.tripId} has been created for your request.`, link: `/customer/trips/${trip._id}`, data: { tripId: trip._id, tripNumber: trip.tripId } }));
+    await safeNotify(() => 
+      notifyUsers(
+        { io, 
+          recipients: [trip.customer], 
+          type: "TRIP_CREATED",
+          title: "Trip Created", 
+          message: `Trip ${trip.tripId} has been created for your request.`,
+           link: `/customer/trips/${trip._id}`,
+            data: { tripId: trip._id, tripNumber: trip.tripId } }));
     await safeNotify(() => notifyUsers({ io, recipients: [trip.driver], type: "TRIP_ASSIGNED", title: "Trip Assigned", message: `Trip ${trip.tripId} has been assigned to you.`, link: `/driver/trips/${trip._id}`, data: { tripId: trip._id, tripNumber: trip.tripId } }));
     res.status(201).json({ success: true, message: "Trip created successfully.", trip: result });
   } catch (e) {

@@ -814,3 +814,107 @@
     padding: 18px;
   }
 }
+/* FLEETFLOW_MOBILE_RESPONSIVENESS_ADDED */
+
+/* =========================================================
+   MOBILE RESPONSIVENESS ADDITIONS
+   ========================================================= */
+@media (max-width: 900px) {
+  .role-sidebar {
+    width: min(270px, 85vw);
+  }
+
+  .role-main {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .role-header {
+    min-width: 0;
+    padding-right: 68px;
+  }
+
+  .role-header > div {
+    min-width: 0;
+  }
+
+  .role-header h1,
+  .role-header p {
+    overflow-wrap: anywhere;
+  }
+
+  .role-table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .role-table {
+    min-width: 760px;
+  }
+}
+
+@media (max-width: 600px) {
+  .role-header {
+    min-height: 72px;
+    padding: 14px 68px 14px 14px;
+    gap: 10px;
+  }
+
+  .role-header h1 {
+    font-size: 20px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .role-header p:last-child {
+    display: none;
+  }
+
+  .role-content {
+    width: 100%;
+    padding: 16px 14px 30px;
+  }
+
+  .role-section {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .role-two-column {
+    grid-template-columns: 1fr;
+  }
+
+  .current-trip {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .driver-actions {
+    flex-direction: column;
+  }
+
+  .role-table-wrapper {
+    border-radius: 10px;
+  }
+}
+
+@media (max-width: 430px) {
+  .role-content {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .role-header h1 {
+    font-size: 18px;
+  }
+
+  .role-table {
+    min-width: 680px;
+  }
+}

@@ -60,6 +60,126 @@ const signup = async (req, res) => {
     });
   }
 };
+
+const googleLogin = async (req, res) => {
+  try {
+    const credential = String(req.body?.credential || "").trim();
+
+    if (!credential) {
+      return res.status(400).json({
+        message: "Google authentication credential is required.",
+      });
+    }
+
+    const clientId = String(process.env.GOOGLE_CLIENT_ID || "").trim();
+    if (!clientId) {
+      console.error("Google login error: GOOGLE_CLIENT_ID is not configured.");
+      return res.status(500).json({
+        message: "Google login is not configured on the server.",
+      });
+    }
+    const googleResponse = await fetch(
+      `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`
+    );
+    const googleData = await googleResponse.json().catch(() => ({}));
+
+    if (!googleResponse.ok) {
+      return res.status(401).json({
+        message: "Google authentication failed. Please try again.",
+      });
+    }
+
+    const tokenAudience = String(googleData.aud || "");
+    const issuer = String(googleData.iss || "");
+    const email = String(googleData.email || "").trim().toLowerCase();
+    const googleId = String(googleData.sub || "").trim();
+    const emailVerified = String(googleData.email_verified || "").toLowerCase() === "true";
+
+    if (
+      tokenAudience !== clientId ||
+      !["accounts.google.com", "https://accounts.google.com"].includes(issuer) ||
+      !email ||
+      !googleId ||
+      !emailVerified
+    ) {
+      return res.status(401).json({
+        message: "The Google account could not be verified.",
+      });
+    }
+
+    const fullName =
+      String(googleData.name || "").trim() ||
+      String(googleData.given_name || "").trim() ||
+      email.split("@")[0];
+
+    let user = await User.findOne({
+      $or: [{ googleId }, { email }],
+    }).select("+password");
+
+    if (user) {
+      const sameGoogleAccount = user.googleId && user.googleId === googleId;
+
+      if (user.googleId && !sameGoogleAccount) {
+        return res.status(409).json({
+          message: "This email is already linked to a different Google account.",
+        });
+      }
+
+      if (!user.googleId) {
+        user.googleId = googleId;
+      }
+
+      if (!user.authProvider || user.authProvider === "LOCAL") {
+        user.authProvider = "GOOGLE";
+      }
+    } else {
+      // Google-created accounts are still given a random password so the
+      // existing User schema and local-password flow remain untouched.
+      const randomPassword = crypto.randomBytes(48).toString("hex");
+      const hashedPassword = await bcrypt.hash(randomPassword, 12);
+
+      user = new User({
+        fullName: fullName.slice(0, 100),
+        email,
+        phone: null,
+        password: hashedPassword,
+        role: "CUSTOMER",
+        googleId,
+        authProvider: "GOOGLE",
+      });
+    }
+
+    const isActive =
+      user.isActive !== false &&
+      user.accountStatus !== "INACTIVE";
+
+    if (!isActive) {
+      return res.status(403).json({
+        message: "Your account is inactive.",
+      });
+    }
+
+    user.lastLoginAt = new Date();
+    user.loginFailedAttempts = 0;
+    user.loginLockedUntil = null;
+    await user.save();
+
+    const token = generateToken(user._id, user.accessVersion);
+    res.cookie(COOKIE_NAME, token, cookieOptions);
+
+    return res.status(200).json({
+      message: "Google login successful.",
+      token,
+      user: sanitizeUser(user),
+    });
+  } catch (error) {
+    console.error("Google login error:", error);
+    return res.status(500).json({
+      message: "Server error during Google login.",
+    });
+  }
+};
+
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -155,43 +275,199 @@ const logout = (req, res) => {
     message: "Logged out successfully.",
   });
 };
+const OTP_EXPIRY_MINUTES = Number(process.env.BREVO_OTP_EXPIRY_MINUTES || 10);
+const OTP_RESEND_COOLDOWN_SECONDS = Number(process.env.BREVO_OTP_RESEND_COOLDOWN_SECONDS || 60);
+const OTP_MAX_ATTEMPTS = Number(process.env.BREVO_OTP_MAX_ATTEMPTS || 5);
+
+const hashResetValue = (value) =>
+  crypto.createHash("sha256").update(value).digest("hex");
+
+const sendPasswordResetOtpEmail = async ({ email, fullName, otp }) => {
+  const apiKey = process.env.BREVO_API_KEY;
+  const senderEmail = process.env.BREVO_SENDER_EMAIL;
+  const senderName = process.env.BREVO_SENDER_NAME || "FleetFlow";
+
+  if (!apiKey || !senderEmail) {
+    throw new Error("Brevo email configuration is missing.");
+  }
+
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      accept: "application/json",
+      "api-key": apiKey,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      sender: {
+        name: senderName,
+        email: senderEmail,
+      },
+      to: [
+        {
+          email,
+          name: fullName || undefined,
+        },
+      ],
+      subject: "Your FleetFlow password reset OTP",
+      htmlContent: `<!doctype html><html><body style="margin:0;background:#f8fafc;font-family:Arial,sans-serif;color:#172033"><div style="max-width:560px;margin:32px auto;padding:28px;background:#fff;border:1px solid #e5eaf0;border-radius:16px"><div style="font-size:24px;font-weight:800;margin-bottom:20px">Fleet<span style="color:#dc2626">Flow</span></div><h2 style="margin:0 0 10px">Password Reset OTP</h2><p style="line-height:1.6">Hello ${fullName || "there"},</p><p style="line-height:1.6">Use the following one-time password to continue resetting your FleetFlow password:</p><div style="margin:24px 0;padding:18px;text-align:center;background:#fef2f2;border:1px solid #fecaca;border-radius:12px;font-size:32px;font-weight:800;letter-spacing:8px;color:#b91c1c">${otp}</div><p style="line-height:1.6">This OTP expires in <strong>${OTP_EXPIRY_MINUTES} minutes</strong> and can only be used a limited number of times.</p><p style="line-height:1.6;color:#64748b">If you did not request this password reset, you can safely ignore this email.</p></div></body></html>`,
+    }),
+  });
+
+  if (!response.ok) {
+    const providerData = await response.json().catch(() => ({}));
+    const providerMessage = providerData?.message || `Brevo returned HTTP ${response.status}.`;
+    throw new Error(providerMessage);
+  }
+
+  return response.json().catch(() => ({}));
+};
+
 const requestPasswordReset = async (req, res) => {
   try {
     const email = String(req.body?.email || "").trim().toLowerCase();
-    const genericMessage = "If an account exists for that email, a password reset link has been generated.";
+    const genericMessage = "If an account exists for that email, a verification OTP has been sent.";
 
     if (!email) {
       return res.status(400).json({ message: "Email address is required." });
     }
 
-    const user = await User.findOne({ email }).select("+resetPasswordTokenHash +resetPasswordExpires");
-
-    // Do not reveal whether an email is registered.
+    const user = await User.findOne({ email }).select(
+      "+passwordResetOtpHash +passwordResetOtpExpires +passwordResetOtpLastSentAt"
+    );
     if (!user) {
       return res.status(200).json({ message: genericMessage });
     }
 
-    const rawToken = crypto.randomBytes(32).toString("hex");
-    const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
-    user.resetPasswordTokenHash = tokenHash;
-    user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000);
-    await user.save();
-
-    const frontendOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
-    const resetUrl = `${frontendOrigin}/reset-password?token=${rawToken}`;
-
-    // This project currently has no email provider configured. In development,
-    // return the one-time reset URL so the complete flow can be tested safely.
-    // In production, configure an email provider and replace this development
-    // delivery path rather than exposing reset tokens to clients.
-    if (process.env.NODE_ENV === "development") {
-      return res.status(200).json({ message: genericMessage, resetUrl });
+    const now = Date.now();
+    if (
+      user.passwordResetOtpLastSentAt &&
+      now - new Date(user.passwordResetOtpLastSentAt).getTime() <
+        OTP_RESEND_COOLDOWN_SECONDS * 1000
+    ) {
+      const remaining = Math.ceil(
+        (OTP_RESEND_COOLDOWN_SECONDS * 1000 -
+          (now - new Date(user.passwordResetOtpLastSentAt).getTime())) /
+          1000
+      );
+      return res.status(429).json({
+        message: `Please wait ${remaining} seconds before requesting another OTP.`,
+        retryAfterSeconds: remaining,
+      });
     }
 
-    return res.status(200).json({ message: genericMessage });
+    const otp = crypto.randomInt(100000, 1000000).toString();
+    const otpHash = hashResetValue(otp);
+    const expires = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
+
+    user.passwordResetOtpHash = otpHash;
+    user.passwordResetOtpExpires = expires;
+    user.passwordResetOtpAttempts = 0;
+    user.passwordResetOtpLastSentAt = new Date();
+    user.resetPasswordTokenHash = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+
+    try {
+      await sendPasswordResetOtpEmail({
+        email: user.email,
+        fullName: user.fullName,
+        otp,
+      });
+    } catch (emailError) {
+      user.passwordResetOtpHash = null;
+      user.passwordResetOtpExpires = null;
+      user.passwordResetOtpAttempts = 0;
+      user.passwordResetOtpLastSentAt = null;
+      await user.save().catch(() => {});
+      console.error("Brevo password reset email error:", emailError);
+      return res.status(502).json({
+        message: "We could not send the verification email right now. Please try again later.",
+      });
+    }
+
+    return res.status(200).json({
+      message: genericMessage,
+      expiresInSeconds: OTP_EXPIRY_MINUTES * 60,
+    });
   } catch (error) {
-    console.error("Password reset request error:", error);
+    console.error("Password reset OTP request error:", error);
     return res.status(500).json({ message: "Unable to process the password reset request." });
+  }
+};
+
+const verifyPasswordResetOtp = async (req, res) => {
+  try {
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    const otp = String(req.body?.otp || "").trim();
+
+    if (!email || !/^\d{6}$/.test(otp)) {
+      return res.status(400).json({ message: "Enter the 6-digit verification OTP." });
+    }
+
+    const user = await User.findOne({ email }).select(
+      "+passwordResetOtpHash +passwordResetOtpExpires"
+    );
+
+    if (!user || !user.passwordResetOtpHash || !user.passwordResetOtpExpires) {
+      return res.status(400).json({ message: "The OTP is invalid or has expired." });
+    }
+
+    if (user.passwordResetOtpExpires <= new Date()) {
+      user.passwordResetOtpHash = null;
+      user.passwordResetOtpExpires = null;
+      user.passwordResetOtpAttempts = 0;
+      user.passwordResetOtpLastSentAt = null;
+      await user.save();
+      return res.status(400).json({ message: "The OTP has expired. Please request a new OTP." });
+    }
+
+    if (Number(user.passwordResetOtpAttempts || 0) >= OTP_MAX_ATTEMPTS) {
+      user.passwordResetOtpHash = null;
+      user.passwordResetOtpExpires = null;
+      user.passwordResetOtpAttempts = 0;
+      user.passwordResetOtpLastSentAt = null;
+      await user.save();
+      return res.status(429).json({ message: "Too many incorrect OTP attempts. Please request a new OTP." });
+    }
+
+    const submittedHash = hashResetValue(otp);
+    const expectedBuffer = Buffer.from(user.passwordResetOtpHash, "hex");
+    const submittedBuffer = Buffer.from(submittedHash, "hex");
+    const matches =
+      expectedBuffer.length === submittedBuffer.length &&
+      crypto.timingSafeEqual(expectedBuffer, submittedBuffer);
+
+    if (!matches) {
+      user.passwordResetOtpAttempts = Number(user.passwordResetOtpAttempts || 0) + 1;
+      await user.save();
+      const remaining = Math.max(
+        OTP_MAX_ATTEMPTS - user.passwordResetOtpAttempts,
+        0
+      );
+      return res.status(400).json({
+        message: remaining
+          ? `Incorrect OTP. ${remaining} attempt${remaining === 1 ? "" : "s"} remaining.`
+          : "Too many incorrect OTP attempts. Please request a new OTP.",
+      });
+    }
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    user.resetPasswordTokenHash = hashResetValue(resetToken);
+    user.resetPasswordExpires = new Date(Date.now() + 10 * 60 * 1000);
+    user.passwordResetOtpHash = null;
+    user.passwordResetOtpExpires = null;
+    user.passwordResetOtpAttempts = 0;
+    user.passwordResetOtpLastSentAt = null;
+    await user.save();
+
+    return res.status(200).json({
+      message: "OTP verified successfully.",
+      resetToken,
+      expiresInSeconds: 10 * 60,
+    });
+  } catch (error) {
+    console.error("Password reset OTP verification error:", error);
+    return res.status(500).json({ message: "Unable to verify the OTP." });
   }
 };
 
@@ -209,6 +485,10 @@ const changePassword = async (req, res) => {
     user.password = await bcrypt.hash(password, 12);
     user.resetPasswordTokenHash = null;
     user.resetPasswordExpires = null;
+    user.passwordResetOtpHash = null;
+    user.passwordResetOtpExpires = null;
+    user.passwordResetOtpAttempts = 0;
+    user.passwordResetOtpLastSentAt = null;
     user.forcePasswordChange = false;
     user.accessVersion = Number(user.accessVersion || 0) + 1;
     await user.save();
@@ -242,6 +522,10 @@ const resetPassword = async (req, res) => {
     user.password = await bcrypt.hash(password, 12);
     user.resetPasswordTokenHash = null;
     user.resetPasswordExpires = null;
+    user.passwordResetOtpHash = null;
+    user.passwordResetOtpExpires = null;
+    user.passwordResetOtpAttempts = 0;
+    user.passwordResetOtpLastSentAt = null;
     user.forcePasswordChange = false;
     user.accessVersion = Number(user.accessVersion || 0) + 1;
     await user.save();
@@ -256,9 +540,11 @@ const resetPassword = async (req, res) => {
 module.exports = {
   signup,
   login,
+  googleLogin,
   getCurrentUser,
   logout,
   requestPasswordReset,
+  verifyPasswordResetOtp,
   resetPassword,
   changePassword,
 };

@@ -21,15 +21,65 @@ import {
   Zap,
 } from "lucide-react";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { apiRequest } from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 import "../App.css";
 
 function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState("");
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadDashboardData = async () => {
+      try {
+        setDashboardLoading(true);
+        setDashboardError("");
+        const response = await apiRequest("/api/public/dashboard-overview");
+        if (!cancelled) setDashboardData(response.data || null);
+      } catch (error) {
+        if (!cancelled) setDashboardError(error.message || "Unable to load dashboard data.");
+      } finally {
+        if (!cancelled) setDashboardLoading(false);
+      }
+    };
+
+    loadDashboardData();
+    const interval = window.setInterval(loadDashboardData, 60000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, []);
+
+  const dashboard = dashboardData || {
+    vehicles: { total: 0, available: 0, onTrip: 0, maintenance: 0 },
+    drivers: { total: 0, available: 0 },
+    trips: { active: 0, completedToday: 0, completedTotal: 0, recent: [], activeList: [] },
+    finance: { fuelLitresToday: 0, fuelCostMonth: 0, expensesMonth: 0, maintenanceMonth: 0 },
+    weeklyActivity: [],
+    activityTrend: 0,
+    fleetHealth: { operational: 0, total: 0, percent: 0 },
+  };
+
+  const performanceMax = useMemo(
+    () => Math.max(...dashboard.weeklyActivity.map((item) => Number(item.value || 0)), 1),
+    [dashboard.weeklyActivity]
+  );
+
+  const formatCurrency = (value) =>
+    `₹${Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+
+  const formatNumber = (value) =>
+    Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 1 });
 
   const scrollToSection = (id) => {
     const section = document.getElementById(id);
@@ -272,7 +322,7 @@ function Home() {
                     </span>
 
                     <strong>
-                      48
+                      {dashboard.vehicles.total}
                     </strong>
 
                   </div>
@@ -293,7 +343,7 @@ function Home() {
                     </span>
 
                     <strong>
-                      120
+                      {dashboard.drivers.total}
                     </strong>
 
                   </div>
@@ -314,7 +364,7 @@ function Home() {
                     </span>
 
                     <strong>
-                      24
+                      {dashboard.trips.active}
                     </strong>
 
                   </div>
@@ -358,13 +408,13 @@ function Home() {
                       </strong>
 
                       <span>
-                        19 Vehicles
+                        {dashboard.vehicles.available} Vehicles
                       </span>
 
                     </div>
 
                     <b>
-                      19
+                      {dashboard.vehicles.available}
                     </b>
 
                   </div>
@@ -381,13 +431,13 @@ function Home() {
                       </strong>
 
                       <span>
-                        24 Vehicles
+                        {dashboard.vehicles.onTrip} Vehicles
                       </span>
 
                     </div>
 
                     <b>
-                      24
+                      {dashboard.vehicles.onTrip}
                     </b>
 
                   </div>
@@ -404,13 +454,13 @@ function Home() {
                       </strong>
 
                       <span>
-                        5 Vehicles
+                        {dashboard.vehicles.maintenance} Vehicles
                       </span>
 
                     </div>
 
                     <b>
-                      5
+                      {dashboard.vehicles.maintenance}
                     </b>
 
                   </div>
@@ -438,79 +488,20 @@ function Home() {
                   </div>
 
 
-                  <div className="hero-trip">
-
-                    <div className="hero-trip-icon">
-                      <Truck size={16} />
+                  {(dashboard.trips.activeList.length ? dashboard.trips.activeList : dashboard.trips.recent.slice(0, 3)).map((trip) => (
+                    <div className="hero-trip" key={trip.id}>
+                      <div className="hero-trip-icon">
+                        <Truck size={16} />
+                      </div>
+                      <div>
+                        <strong>{trip.vehicle}</strong>
+                        <span>{trip.route}</span>
+                      </div>
+                      <small className={trip.status === "SCHEDULED" ? "scheduled-text" : ""}>
+                        {trip.status === "IN_PROGRESS" ? "Live" : trip.status.replaceAll("_", " ")}
+                      </small>
                     </div>
-
-                    <div>
-
-                      <strong>
-                        VH-1024
-                      </strong>
-
-                      <span>
-                        Guntur → Vijayawada
-                      </span>
-
-                    </div>
-
-                    <small>
-                      Live
-                    </small>
-
-                  </div>
-
-
-                  <div className="hero-trip">
-
-                    <div className="hero-trip-icon">
-                      <Truck size={16} />
-                    </div>
-
-                    <div>
-
-                      <strong>
-                        VH-1048
-                      </strong>
-
-                      <span>
-                        Hyderabad → Guntur
-                      </span>
-
-                    </div>
-
-                    <small>
-                      Live
-                    </small>
-
-                  </div>
-
-
-                  <div className="hero-trip">
-
-                    <div className="hero-trip-icon">
-                      <Truck size={16} />
-                    </div>
-
-                    <div>
-
-                      <strong>
-                        VH-1072
-                      </strong>
-
-                      <span>
-                        Guntur → Tenali
-                      </span>
-
-                    </div>
-
-                    <small className="scheduled-text">
-                      Scheduled
-                    </small>
-
-                  </div>
+                  ))}
 
                 </div>
 
@@ -523,7 +514,7 @@ function Home() {
                   </span>
 
                   <strong>
-                    ₹84,250
+                    {formatCurrency(dashboard.finance.fuelCostMonth)}
                   </strong>
 
                 </div>
@@ -536,7 +527,7 @@ function Home() {
                   </span>
 
                   <strong>
-                    ₹42,600
+                    {formatCurrency(dashboard.finance.maintenanceMonth)}
                   </strong>
 
                 </div>
@@ -549,7 +540,7 @@ function Home() {
                   </span>
 
                   <strong>
-                    126
+                    {dashboard.trips.completedToday}
                   </strong>
 
                 </div>
@@ -571,7 +562,7 @@ function Home() {
           <div className="stat-item">
 
             <strong>
-              48+
+              {dashboard.vehicles.total}+
             </strong>
 
             <span>
@@ -587,7 +578,7 @@ function Home() {
           <div className="stat-item">
 
             <strong>
-              120+
+              {dashboard.drivers.total}+
             </strong>
 
             <span>
@@ -603,7 +594,7 @@ function Home() {
           <div className="stat-item">
 
             <strong>
-              2,450+
+              {dashboard.trips.completedTotal}+
             </strong>
 
             <span>
@@ -829,13 +820,13 @@ function Home() {
                   </span>
 
                   <strong>
-                    87.4%
+                    {dashboard.fleetHealth.percent}%
                   </strong>
 
                 </div>
 
                 <div className="efficiency-badge">
-                  +12.8%
+                  {dashboard.activityTrend >= 0 ? "+" : ""}{dashboard.activityTrend}%
                 </div>
 
               </div>
@@ -845,15 +836,17 @@ function Home() {
 
                 <div className="chart-line"></div>
 
-                <div className="chart-point point-a"></div>
-
-                <div className="chart-point point-b"></div>
-
-                <div className="chart-point point-c"></div>
-
-                <div className="chart-point point-d"></div>
-
-                <div className="chart-point point-e"></div>
+                {dashboard.weeklyActivity.slice(0, 5).map((item, index) => (
+                  <div
+                    key={item.date}
+                    className={`chart-point point-${["a", "b", "c", "d", "e"][index]}`}
+                    title={`${item.label}: ${item.value} trips`}
+                    style={{
+                      left: `${8 + index * 20}%`,
+                      top: `${90 - (Number(item.value || 0) / performanceMax) * 70}%`,
+                    }}
+                  ></div>
+                ))}
 
               </div>
 
@@ -884,7 +877,7 @@ function Home() {
                 </strong>
 
                 <span>
-                  43 of 48 vehicles operational
+                  {dashboard.fleetHealth.operational} of {dashboard.fleetHealth.total} vehicles operational
                 </span>
 
               </div>
@@ -991,6 +984,11 @@ function Home() {
 
         </div>
 
+        {dashboardError && (
+          <div className="dashboard-data-message error">
+            {dashboardError}
+          </div>
+        )}
 
         <div className="main-dashboard">
 
@@ -1059,8 +1057,8 @@ function Home() {
                 icon={<Truck />}
                 iconClass="blue"
                 title="Total Vehicles"
-                value="48"
-                description="↑ 12% from last month"
+                value={dashboard.vehicles.total}
+                description={dashboardLoading ? "Loading live fleet data..." : `${dashboard.vehicles.available} available now`}
                 descriptionClass="success-text"
               />
 
@@ -1069,8 +1067,8 @@ function Home() {
                 icon={<Route />}
                 iconClass="purple"
                 title="Active Trips"
-                value="24"
-                description="8 trips starting soon"
+                value={dashboard.trips.active}
+                description={`${dashboard.trips.activeList.length} active trip records`}
                 descriptionClass="blue-text"
               />
 
@@ -1079,7 +1077,7 @@ function Home() {
                 icon={<Users />}
                 iconClass="green"
                 title="Available Drivers"
-                value="32"
+                value={dashboard.drivers.available}
                 description="Ready for assignment"
                 descriptionClass="success-text"
               />
@@ -1089,8 +1087,8 @@ function Home() {
                 icon={<Wrench />}
                 iconClass="orange"
                 title="Maintenance"
-                value="5"
-                description="Requires attention"
+                value={dashboard.vehicles.maintenance}
+                description="Vehicles requiring maintenance"
                 descriptionClass="warning-text"
               />
 
@@ -1136,28 +1134,22 @@ function Home() {
                   <div className="map-road map-road-three"></div>
 
 
-                  <div className="map-marker map-marker-one">
-                    <Truck size={14} />
-                  </div>
-
-                  <div className="map-marker map-marker-two">
-                    <Truck size={14} />
-                  </div>
-
-                  <div className="map-marker map-marker-three">
-                    <Truck size={14} />
-                  </div>
-
-                  <div className="map-marker map-marker-four">
-                    <Truck size={14} />
-                  </div>
+                  {dashboard.trips.activeList.slice(0, 4).map((trip, index) => (
+                    <div
+                      className={`map-marker map-marker-${["one", "two", "three", "four"][index]}`}
+                      key={trip.id}
+                      title={`${trip.id} · ${trip.route}`}
+                    >
+                      <Truck size={14} />
+                    </div>
+                  ))}
 
 
                   <div className="map-live-indicator">
 
                     <span></span>
 
-                    24 Vehicles Active
+                    {dashboard.trips.active} Vehicles Active
 
                   </div>
 
@@ -1189,36 +1181,25 @@ function Home() {
 
                 <div className="trip-list">
 
-                  <TripItem
-                    id="TRP-1048"
-                    route="Vijayawada → Guntur"
-                    status="Active"
-                    statusClass="active-status"
-                  />
-
-
-                  <TripItem
-                    id="TRP-1047"
-                    route="Guntur → Amaravati"
-                    status="Completed"
-                    statusClass="completed-status"
-                  />
-
-
-                  <TripItem
-                    id="TRP-1046"
-                    route="Vijayawada → Hyderabad"
-                    status="Scheduled"
-                    statusClass="scheduled-status"
-                  />
-
-
-                  <TripItem
-                    id="TRP-1045"
-                    route="Guntur → Ongole"
-                    status="Active"
-                    statusClass="active-status"
-                  />
+                  {dashboard.trips.recent.length ? (
+                    dashboard.trips.recent.map((trip) => (
+                      <TripItem
+                        key={trip.id}
+                        id={trip.id}
+                        route={trip.route}
+                        status={trip.status.replaceAll("_", " ")}
+                        statusClass={
+                          trip.status === "COMPLETED"
+                            ? "completed-status"
+                            : trip.status === "SCHEDULED"
+                              ? "scheduled-status"
+                              : "active-status"
+                        }
+                      />
+                    ))
+                  ) : (
+                    <div className="dashboard-empty-state">No trip data available yet.</div>
+                  )}
 
                 </div>
 
@@ -1246,7 +1227,7 @@ function Home() {
                   </span>
 
                   <strong>
-                    178.6 L
+                    {formatNumber(dashboard.finance.fuelLitresToday)} L
                   </strong>
 
                   <small>
@@ -1271,11 +1252,11 @@ function Home() {
                   </span>
 
                   <strong>
-                    ₹1,24,850
+                    {formatCurrency(dashboard.finance.expensesMonth)}
                   </strong>
 
                   <small>
-                    10.7% compared to last month
+                    Current month from recorded expenses
                   </small>
 
                 </div>
@@ -1298,13 +1279,13 @@ function Home() {
 
                 <div className="performance-bars">
 
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                  <span></span>
+                  {dashboard.weeklyActivity.map((item) => (
+                    <span
+                      key={item.date}
+                      title={`${item.label}: ${item.value} trips`}
+                      style={{ height: `${Math.max((Number(item.value || 0) / performanceMax) * 100, 8)}%` }}
+                    ></span>
+                  ))}
 
                 </div>
 

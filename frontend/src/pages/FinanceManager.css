@@ -3,3 +3,268 @@
 @media(max-width:800px){.finance-sidebar{transform:translateX(-100%);transition:transform .2s}.finance-sidebar.open{transform:translateX(0)}.finance-overlay{display:block;position:fixed;inset:0;border:0;background:#09132666;z-index:20}.finance-main{margin-left:0}.finance-mobile-menu{display:grid;place-items:center}.finance-header{padding:15px 18px}.finance-user{display:none}.finance-content{padding:18px}.finance-toolbar{align-items:flex-start;flex-direction:column}.finance-actions{width:100%;flex-wrap:wrap}.finance-actions button{flex:1}.finance-stats{grid-template-columns:1fr}.finance-form{grid-template-columns:1fr}.finance-form label.full,.finance-alert.full,.modal-footer.full{grid-column:auto}.modal-footer{grid-column:1}.chart-row{grid-template-columns:55px 1fr 1fr}}
 
 .finance-section-note { margin: -6px 0 16px; color: #64748b; font-size: 14px; }
+@media (max-width: 800px) {
+  .finance-sidebar {
+    width: min(250px, 85vw);
+  }
+
+  .finance-main {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .finance-header {
+    min-width: 0;
+    padding-right: 68px;
+    gap: 10px;
+  }
+
+  .finance-header > div {
+    min-width: 0;
+  }
+
+  .finance-header h1 {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .finance-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 650px) {
+  .finance-header {
+    min-height: 72px;
+    padding: 14px 68px 14px 14px;
+  }
+
+  .finance-header h1 {
+    font-size: 20px;
+    white-space: nowrap;
+  }
+
+  .finance-content {
+    width: 100%;
+    padding: 16px 14px 30px;
+  }
+
+  .finance-toolbar {
+    width: 100%;
+  }
+
+  .finance-actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .finance-actions button {
+    min-width: 0;
+  }
+
+  .finance-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .finance-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .finance-card {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .finance-form {
+    grid-template-columns: 1fr;
+  }
+
+  .finance-table-wrap {
+    border-radius: 10px;
+  }
+
+  .finance-modal-backdrop {
+    padding: 10px;
+  }
+
+  .finance-modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100vh - 20px);
+    max-height: calc(100dvh - 20px);
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .finance-content {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .finance-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .finance-header h1 {
+    font-size: 18px;
+  }
+
+  .finance-table {
+    min-width: 720px;
+  }
+}
+/* =========================================================
+   FINANCE MANAGER
+   MOBILE MODAL X BUTTON + THEME TOGGLE COLLISION FIX
+   ========================================================= */
+
+@media (max-width: 760px) {
+
+  /* ---------------------------------------------------------
+     FINANCE MODAL
+     --------------------------------------------------------- */
+
+  .finance-modal {
+    position: relative !important;
+    box-sizing: border-box !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     CLOSE / X BUTTON
+     
+     The :has() selector finds the button containing
+     the Lucide X SVG without requiring any JSX changes.
+     --------------------------------------------------------- */
+
+  .finance-modal button:has(svg.lucide-x) {
+    position: absolute !important;
+
+    /*
+     * Theme toggle occupies the far-right position.
+     * Move the X button to the left of it.
+     */
+    top: 14px !important;
+    right: 58px !important;
+
+    width: 36px !important;
+    height: 36px !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    z-index: 5100 !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     FINANCE MODAL HEADER
+     
+     Reserve enough room so the title does not run into
+     the X button.
+     --------------------------------------------------------- */
+
+  .finance-modal-head,
+  .finance-modal-header {
+    position: relative !important;
+    padding-right: 105px !important;
+    box-sizing: border-box !important;
+  }
+  .fleetflow-theme-toggle {
+    position: fixed !important;
+
+    top: 12px !important;
+    right: 14px !important;
+
+    width: 42px !important;
+    min-width: 42px !important;
+    height: 42px !important;
+
+    padding: 0 !important;
+
+    z-index: 5000 !important;
+  }
+
+  .fleetflow-theme-toggle span {
+    display: none !important;
+  }
+}
+@media (max-width: 420px) {
+
+  .finance-modal {
+    position: relative !important;
+  }
+  .finance-modal button:has(svg.lucide-x) {
+    top: 12px !important;
+    right: 54px !important;
+
+    width: 36px !important;
+    height: 36px !important;
+  }
+  .finance-modal-head,
+  .finance-modal-header {
+    padding-right: 96px !important;
+  }
+  .fleetflow-theme-toggle {
+    top: 10px !important;
+    right: 10px !important;
+
+    width: 40px !important;
+    min-width: 40px !important;
+    height: 40px !important;
+
+    padding: 0 !important;
+  }
+}
+@media (max-width: 360px) {
+
+  .finance-modal button:has(svg.lucide-x) {
+    right: 52px !important;
+    width: 34px !important;
+    height: 34px !important;
+  }
+
+  .finance-modal-head,
+  .finance-modal-header {
+    padding-right: 92px !important;
+  }
+
+  .fleetflow-theme-toggle {
+    right: 8px !important;
+    width: 38px !important;
+    min-width: 38px !important;
+    height: 38px !important;
+  }
+}
+@media (max-width: 760px) {
+  .finance-modal button:has(svg.lucide-x) {
+    position: absolute !important;
+    top: 2px !important;
+    right: 58px !important;
+
+    width: 36px !important;
+    height: 36px !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    z-index: 5100 !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .finance-modal button:has(svg.lucide-x) {
+    top: 0px !important;
+    right: 54px !important;
+    width: 36px !important;
+    height: 36px !important;
+  }
+}

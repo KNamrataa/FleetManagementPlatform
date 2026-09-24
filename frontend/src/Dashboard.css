@@ -4,7 +4,6 @@
   display: flex;
   color: #141b2d;
 }
-
 .dashboard-sidebar {
   width: 250px;
 
@@ -438,8 +437,6 @@
 
   font-weight: 700;
 }
-
-
 .status-badge.available,
 .status-badge.completed {
   background: #dcfce7;
@@ -912,7 +909,6 @@
     padding: 16px;
   }
 }
-/* ================= SUPER ADMIN LIVE FLEET VIEWS ================= */
 .admin-header-actions {
   display: flex;
   align-items: center;
@@ -1120,3 +1116,117 @@
 @media (max-width: 1200px) { .super-admin-dashboard .sa-stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 760px) { .super-admin-dashboard .sa-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .super-admin-dashboard .sa-live-grid { grid-template-columns: 1fr; } .super-admin-dashboard .dashboard-two-column { grid-template-columns: 1fr; } }
 @media (max-width: 480px) { .super-admin-dashboard .sa-stats-grid { grid-template-columns: 1fr; } }
+
+
+@media (max-width: 900px) {
+  .dashboard-sidebar {
+    width: min(250px, 85vw);
+  }
+
+  .dashboard-main {
+    min-width: 0;
+  }
+
+  .dashboard-header {
+    min-width: 0;
+    padding-right: 68px;
+    gap: 12px;
+  }
+
+  .dashboard-header > div {
+    min-width: 0;
+  }
+
+  .dashboard-header h1,
+  .dashboard-header .dashboard-subtitle {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-header-actions {
+    min-width: 0;
+  }
+
+  .table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 650px) {
+  .dashboard-main {
+    padding: 16px 14px;
+  }
+
+  .dashboard-header {
+    padding: 14px 68px 14px 0;
+    margin-bottom: 20px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 20px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .dashboard-header .dashboard-subtitle {
+    font-size: 12px;
+  }
+
+  .admin-header-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .dashboard-refresh-button {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .admin-quick-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-two-column {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-card {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .dashboard-table {
+    min-width: 720px;
+  }
+
+  .role-action-row {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-main {
+    padding: 12px;
+  }
+
+  .dashboard-header {
+    padding-right: 60px;
+  }
+
+  .dashboard-card {
+    padding: 14px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 18px;
+  }
+
+  .dashboard-table {
+    min-width: 680px;
+  }
+}

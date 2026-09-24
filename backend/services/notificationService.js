@@ -1,7 +1,10 @@
 const Notification = require("../models/Notification");
 const User = require("../models/User");
+const { sendNotificationEmail } = require("./notificationEmailService");
 
-async function createNotification({ io, recipient, type, category, title, message, link = "", data = {}, priority = "NORMAL" }) {
+async function createNotification(
+  { io, recipient, type, category, title, message, link = "", data = {}, priority = "NORMAL" }
+) {
   if (!recipient) return null;
   const inferred = category || (String(type).startsWith("TRIP") ? "TRIP" : String(type).startsWith("MAINTENANCE") || String(type).startsWith("VEHICLE") ? "MAINTENANCE" : String(type).startsWith("INVOICE") || String(type).startsWith("PAYMENT") ? "PAYMENT" : String(type).startsWith("FUEL") ? "FUEL" : "SYSTEM");
   const notification = await Notification.create({ recipient, type, category: inferred, title, message, link, data, priority });
@@ -28,6 +31,25 @@ async function createNotification({ io, recipient, type, category, title, messag
     const event = eventByType[String(type)];
     if (event) io.emit(event, payload);
   }
+  void (async () => {
+    try {
+      const user = await User.findById(recipient).select("fullName email").lean();
+      if (!user?.email) return;
+
+      await sendNotificationEmail({
+        email: user.email,
+        fullName: user.fullName,
+        title,
+        message,
+        category: inferred,
+        priority,
+        link,
+      });
+    } catch (error) {
+      console.error("Notification email error:", error.message);
+    }
+  })();
+
   return notification;
 }
 

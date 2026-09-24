@@ -115,8 +115,19 @@ async function createTripRequest(req, res) {
     });
 
     const io = req.app.get("io");
-    await safeNotify(() => notifyRoles({ io, roles: ["FLEET_MANAGER", "SUPER_ADMIN", "TRIP_MANAGER", "DISPATCHER"], type: "TRIP_REQUEST_NEW", title: "New Trip Request", message: `${req.user.fullName || "A customer"} submitted trip request ${request.requestNumber}.`, link: "/dashboard", data: { requestId: request._id, requestNumber: request.requestNumber } }));
-    await safeNotify(() => notifyUsers({ io, recipients: [request.customer], type: "TRIP_REQUEST_SUBMITTED", title: "Trip Request Submitted", message: `Your trip request ${request.requestNumber} has been submitted successfully.`, link: "/customer/trips", data: { requestId: request._id, requestNumber: request.requestNumber } }));
+    await safeNotify(
+      () => notifyRoles({ io, 
+        roles: ["FLEET_MANAGER", "SUPER_ADMIN", "TRIP_MANAGER", "DISPATCHER"],
+         type: "TRIP_REQUEST_NEW",
+          title: "New Trip Request", 
+          message: `${req.user.fullName || "A customer"} submitted trip request ${request.requestNumber}.`,
+          link: "/dashboard", data: { requestId: request._id, requestNumber: request.requestNumber } }));
+    await safeNotify(() => notifyUsers(
+      { io, recipients: [request.customer], 
+        type: "TRIP_REQUEST_SUBMITTED", 
+        title: "Trip Request Submitted",
+         message: `Your trip request ${request.requestNumber} has been submitted successfully.`, 
+         link: "/customer/trips", data: { requestId: request._id, requestNumber: request.requestNumber } }));
     return res.status(201).json({ success: true, message: "Trip request submitted successfully.", request });
   } catch (error) {
     console.error("Create customer trip request error:", error);

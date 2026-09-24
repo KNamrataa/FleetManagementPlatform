@@ -4,22 +4,22 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
+import VerifyResetOtp from "./pages/VerifyResetOtp";
 import ResetPassword from "./pages/ResetPassword";
 import ChangePassword from "./pages/ChangePassword";
-
 import ProtectedRoute from "./components/ProtectedRoute";
-
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import SuperAdminSecurity from "./pages/SuperAdminSecurity";
 import RoleDashboard from "./pages/RoleDashboard";
 import UserManagementPage from "./pages/UserManagementPage";
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
-
+import ThemeToggle from "./components/ThemeToggle";
+import { ThemeProvider } from "./context/ThemeContext";
+import "./theme.css";
 import FleetManagerDashboard from "./pages/FleetManagerDashboard";
 import FleetManagerExtras from "./pages/FleetManagerExtras";
 import VehiclesPage from "./pages/VehiclesPage";
@@ -27,7 +27,6 @@ import DriversPage from "./pages/DriversPage";
 import AssignmentsPage from "./pages/AssignmentsPage";
 import TripsPage from "./pages/TripsPage";
 import TripRequestsPage from "./pages/TripRequestsPage";
-
 import DriverOverview from "./pages/DriverOverview";
 import DriverVehicle from "./pages/DriverVehicle";
 import DriverTrips from "./pages/DriverTrips";
@@ -36,12 +35,10 @@ import DriverHistory from "./pages/DriverHistory";
 import DriverIssues from "./pages/DriverIssues";
 import DriverProfile from "./pages/DriverProfile";
 import DriverRecords from "./pages/DriverRecords";
-
 import MaintenanceManagerDashboard from "./pages/MaintenanceManagerDashboard";
 import FinanceManagerDashboard from "./pages/FinanceManagerDashboard";
 import ManagementDashboard from "./pages/ManagementDashboard";
 import TripManagerDashboard from "./pages/TripManagerDashboard";
-
 import CustomerOverview from "./pages/CustomerOverview";
 import CustomerTripRequest from "./pages/CustomerTripRequest";
 import CustomerTrips from "./pages/CustomerTrips";
@@ -53,8 +50,10 @@ import CustomerProfile from "./pages/CustomerProfile";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
+    <ThemeProvider>
+      <BrowserRouter>
+        <ThemeToggle />
+        <Routes>
 
         <Route
           path="/"
@@ -74,6 +73,11 @@ function App() {
         <Route
           path="/forgot-password"
           element={<ForgotPassword />}
+        />
+
+        <Route
+          path="/forgot-password/verify"
+          element={<VerifyResetOtp />}
         />
 
         <Route
@@ -414,10 +418,9 @@ function App() {
             />
           }
         />
-
-      </Routes>
-    </BrowserRouter>
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
-
 export default App;

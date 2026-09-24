@@ -89,20 +89,92 @@ const findUser = async (id) => {
   if (!isValidId(id)) return null;
   return User.findById(id).select("-password");
 };
-
 const getUsers = async (req, res) => {
   try {
-    const { page, limit, skip } = paginationParams(req, { limit: 25, max: 100 });
     const filter = {};
-    if (req.query.role && ALLOWED_ROLES.includes(String(req.query.role).toUpperCase())) filter.role = String(req.query.role).toUpperCase();
-    if (req.query.status) filter.accountStatus = String(req.query.status).toUpperCase() === "INACTIVE" ? "INACTIVE" : "ACTIVE";
-    if (req.query.search?.trim()) { const rx = new RegExp(escapeRegex(req.query.search.trim()), "i"); filter.$or = [{ fullName: rx }, { email: rx }, { phone: rx }]; }
-    const [total, users] = await Promise.all([
-      User.countDocuments(filter),
-      User.find(filter).select("-password -resetPasswordTokenHash -resetPasswordExpires").sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-    ]);
-    return res.status(200).json({ success: true, count: users.length, users: users.map(sanitizeUser), pagination: paginationMeta(page, limit, total) });
-  } catch (error) { console.error("Get users error:", error); return sendError(res, 500, "Unable to load users. Please try again."); }
+
+    if (
+      req.query.role &&
+      ALLOWED_ROLES.includes(
+        String(req.query.role).toUpperCase()
+      )
+    ) {
+      filter.role = String(
+        req.query.role
+      ).toUpperCase();
+    }
+
+    if (req.query.status) {
+      filter.accountStatus =
+        String(req.query.status).toUpperCase() ===
+        "INACTIVE"
+          ? "INACTIVE"
+          : "ACTIVE";
+    }
+
+    if (req.query.search?.trim()) {
+      const rx = new RegExp(
+        escapeRegex(
+          req.query.search.trim()
+        ),
+        "i"
+      );
+
+      filter.$or = [
+        {
+          fullName: rx,
+        },
+        {
+          email: rx,
+        },
+        {
+          phone: rx,
+        },
+      ];
+    }
+    const [total, users] =
+      await Promise.all([
+        User.countDocuments(filter),
+
+        User.find(filter)
+          .select(
+            "-password -resetPasswordTokenHash -resetPasswordExpires"
+          )
+          .sort({
+            createdAt: -1,
+          })
+          .lean(),
+      ]);
+    return res.status(200).json({
+      success: true,
+
+      count: users.length,
+
+      users: users.map(
+        sanitizeUser
+      ),
+
+      pagination: {
+        total,
+        page: 1,
+        limit: total,
+        totalPages: total > 0 ? 1 : 0,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      },
+    });
+  } catch (error) {
+    console.error(
+      "Get users error:",
+      error
+    );
+
+    return sendError(
+      res,
+      500,
+      "Unable to load users. Please try again."
+    );
+  }
 };
 
 const getUserById = async (req, res) => {
@@ -231,7 +303,6 @@ const assignRole = async (req, res) => {
 
     if (user.role === "SUPER_ADMIN") return sendError(res, 403, "Super Admin accounts are protected and cannot be demoted.");
     if (role === "SUPER_ADMIN") {
-      // Creating/assigning a Super Admin is intentionally allowed only through this authenticated Super Admin endpoint.
       user.role = "SUPER_ADMIN";
     } else {
       user.role = role;
@@ -360,13 +431,25 @@ const getAdminDrivers = async (req, res) => {
     return res.status(200).json({ success: true, count: result.length, drivers: result, pagination: paginationMeta(page, limit, total) });
   } catch (error) { console.error("Get admin drivers error:", error); return sendError(res, 500, "Unable to load drivers."); }
 };
-
-
 const getSuperAdminDashboardOverview = async (req, res) => {
   try {
     const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const monthStart = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      1
+    );
+    const nextMonthStart = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      1
+    );
+    const userFilter = {};
+
+    const activeUserFilter = {
+      isActive: { $ne: false },
+      accountStatus: { $ne: "INACTIVE" },
+    };
 
     const [
       totalUsers,
@@ -384,104 +467,244 @@ const getSuperAdminDashboardOverview = async (req, res) => {
       recentTrips,
       recentActivities,
     ] = await Promise.all([
-      User.countDocuments({}),
-      User.countDocuments({ isActive: { $ne: false }, accountStatus: { $ne: "INACTIVE" } }),
-      User.countDocuments({ role: "CUSTOMER" }),
+      User.countDocuments(userFilter),
+      User.countDocuments(activeUserFilter),
+      User.countDocuments({
+        role: "CUSTOMER",
+      }),
       Vehicle.countDocuments({}),
       Vehicle.aggregate([
-        { $group: { _id: "$status", count: { $sum: 1 } } },
-        { $sort: { _id: 1 } },
+        {
+          $group: {
+            _id: "$status",
+            count: { $sum: 1 },
+          },
+        },
+        {
+          $sort: {
+            _id: 1,
+          },
+        },
       ]),
-      User.countDocuments({ role: "DRIVER" }),
-      User.countDocuments({ role: "DRIVER", isActive: true, accountStatus: { $ne: "INACTIVE" } }),
+      User.countDocuments({
+        role: "DRIVER",
+      }),
+
+      User.countDocuments({
+        role: "DRIVER",
+        isActive: true,
+        accountStatus: {
+          $ne: "INACTIVE",
+        },
+      }),
       Trip.aggregate([
-        { $group: { _id: "$tripStatus", count: { $sum: 1 } } },
-        { $sort: { _id: 1 } },
+        {
+          $group: {
+            _id: "$tripStatus",
+            count: {
+              $sum: 1,
+            },
+          },
+        },
+        {
+          $sort: {
+            _id: 1,
+          },
+        },
       ]),
       MaintenanceRecord.aggregate([
-        { $match: { completionDate: { $gte: monthStart, $lt: nextMonthStart } } },
-        { $group: { _id: null, total: { $sum: "$totalCost" } } },
+        {
+          $match: {
+            completionDate: {
+              $gte: monthStart,
+              $lt: nextMonthStart,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            total: {
+              $sum: "$totalCost",
+            },
+          },
+        },
       ]),
       FuelExpense.aggregate([
-        { $match: { fuelDate: { $gte: monthStart, $lt: nextMonthStart } } },
-        { $group: { _id: null, total: { $sum: "$totalAmount" } } },
+        {
+          $match: {
+            fuelDate: {
+              $gte: monthStart,
+              $lt: nextMonthStart,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            total: {
+              $sum: "$amount",
+            },
+          },
+        },
       ]),
-      Vehicle.find({ status: { $ne: "INACTIVE" } })
-        .populate("assignedDriver", "fullName email phone isActive accountStatus")
-        .sort({ updatedAt: -1, createdAt: -1 })
-        .limit(8)
+      Vehicle.find({})
+        .populate(
+          "assignedDriver",
+          "fullName email phone"
+        )
+        .sort({
+          createdAt: -1,
+        })
+        .limit(20)
         .lean(),
-      User.find({ role: "DRIVER", isActive: true, accountStatus: { $ne: "INACTIVE" } })
-        .select("fullName email phone isActive accountStatus updatedAt")
-        .sort({ updatedAt: -1 })
-        .limit(8)
+      User.find({
+        role: "DRIVER",
+      })
+        .select(
+          "-password -resetPasswordTokenHash -resetPasswordExpires"
+        )
+        .sort({
+          createdAt: -1,
+        })
+        .limit(20)
         .lean(),
       Trip.find({})
-        .populate("customer", "fullName email")
-        .populate("vehicle", "registrationNumber vehicleNumber vehicleType status")
-        .populate("driver", "fullName email phone")
-        .sort({ createdAt: -1 })
-        .limit(8)
+        .populate(
+          "customer",
+          "fullName email"
+        )
+        .populate(
+          "driver",
+          "fullName email"
+        )
+        .populate(
+          "vehicle",
+          "registrationNumber vehicleType"
+        )
+        .sort({
+          createdAt: -1,
+        })
+        .limit(10)
         .lean(),
-      AuditLog.find({}).populate("actor", "fullName role").sort({ createdAt: -1 }).limit(8).lean(),
+      AuditLog.find({})
+        .populate(
+          "actor",
+          "fullName email"
+        )
+        .sort({
+          createdAt: -1,
+        })
+        .limit(10)
+        .lean(),
     ]);
+    const vehicleStatus = {};
 
-    const profileIds = drivers.map((driver) => driver._id);
-    const profiles = await DriverProfile.find({ user: { $in: profileIds } })
-      .populate("assignedVehicle", "registrationNumber vehicleType status")
-      .lean();
-    const profileByUser = new Map(profiles.map((profile) => [profile.user.toString(), profile]));
-
-    const normalizedDrivers = drivers.map((driver) => {
-      const profile = profileByUser.get(driver._id.toString()) || null;
-      return {
-        ...driver,
-        profile,
-        driverStatus: profile?.status || (driver.isActive ? "AVAILABLE" : "INACTIVE"),
-        assignedVehicle: profile?.assignedVehicle || null,
-      };
+    vehicleStatusAgg.forEach((item) => {
+      if (item?._id) {
+        vehicleStatus[item._id] = item.count;
+      }
     });
+    const tripStatus = {};
 
-    const vehicleStatus = Object.fromEntries(vehicleStatusAgg.map((item) => [item._id, item.count]));
-    const tripStatus = Object.fromEntries(tripStatusAgg.map((item) => [item._id, item.count]));
-    const activeTrips = (tripStatus.ASSIGNED || 0) + (tripStatus.IN_PROGRESS || 0) + (tripStatus.PAUSED || 0);
-
+    tripStatusAgg.forEach((item) => {
+      if (item?._id) {
+        tripStatus[item._id] = item.count;
+      }
+    });
+    const activeTrips =
+      (tripStatus.SCHEDULED || 0) +
+      (tripStatus.ASSIGNED || 0) +
+      (tripStatus.IN_PROGRESS || 0) +
+      (tripStatus.PAUSED || 0);
+    const normalizedDrivers = drivers.map(
+      (driver) => ({
+        ...driver,
+        fullName:
+          driver.fullName || "Unknown Driver",
+      })
+    );
     const liveFleet = vehicles
-      .filter((vehicle) => vehicle.assignedDriver || vehicle.status === "ON_TRIP")
+      .filter(
+        (vehicle) =>
+          vehicle.assignedDriver ||
+          vehicle.status === "ON_TRIP"
+      )
       .slice(0, 8)
       .map((vehicle) => ({
         _id: vehicle._id,
-        registrationNumber: vehicle.registrationNumber,
-        vehicleType: vehicle.vehicleType,
+        registrationNumber:
+          vehicle.registrationNumber,
+        vehicleType:
+          vehicle.vehicleType,
         status: vehicle.status,
-        driver: vehicle.assignedDriver || null,
+        driver:
+          vehicle.assignedDriver || null,
       }));
 
     return res.status(200).json({
       success: true,
+
       stats: {
         totalUsers,
         activeUsers,
+
         totalCustomers,
+
         totalVehicles,
-        activeVehicles: Math.max(totalVehicles - (vehicleStatus.INACTIVE || 0), 0),
+
+        activeVehicles: Math.max(
+          totalVehicles -
+            (vehicleStatus.INACTIVE || 0),
+          0
+        ),
+
         totalDrivers,
+
         activeDrivers,
+
         activeTrips,
-        maintenanceCostThisMonth: maintenanceCostAgg[0]?.total || 0,
-        fuelCostThisMonth: fuelCostAgg[0]?.total || 0,
+
+        maintenanceCostThisMonth:
+          maintenanceCostAgg[0]?.total || 0,
+
+        fuelCostThisMonth:
+          fuelCostAgg[0]?.total || 0,
       },
+
       vehicleStatus,
+
       tripStatus,
+
       drivers: normalizedDrivers,
+
       vehicles,
+
       liveFleet,
+
       recentTrips,
-      recentActivities: recentActivities.map(a => ({ title: `${a.actor?.fullName || "System"} — ${a.action}`, time: a.createdAt })),
+
+      recentActivities:
+        recentActivities.map((activity) => ({
+          title: `${
+            activity.actor?.fullName ||
+            "System"
+          } — ${activity.action}`,
+
+          time: activity.createdAt,
+        })),
     });
   } catch (error) {
-    console.error("Get Super Admin dashboard overview error:", error);
-    return sendError(res, 500, "Unable to load Super Admin dashboard data.");
+    console.error(
+      "Get Super Admin dashboard overview error:",
+      error
+    );
+
+    return sendError(
+      res,
+      500,
+      "Unable to load Super Admin dashboard data."
+    );
   }
 };
 
@@ -670,12 +893,6 @@ const getAdminSettings = async (req, res) => {
     return sendError(res, 500, "Unable to load settings data.");
   }
 };
-
-// Additive: powers the "Financial Overview / Customer Overview / Maintenance
-// Overview / Driver Overview / Live Fleet Map" panels on the Super Admin
-// overview page. The frontend already called GET /api/admin/overview-extras
-// for this data; this endpoint didn't exist yet, which is what left
-// `overviewExtras` unset and crashed the overview render.
 const getAdminOverviewExtras = async (req, res) => {
   try {
     const now = new Date();

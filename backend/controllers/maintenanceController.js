@@ -7,6 +7,7 @@ const MaintenanceWorkOrder = require("../models/MaintenanceWorkOrder");
 const MaintenanceRecord = require("../models/MaintenanceRecord");
 const MaintenanceSchedule = require("../models/MaintenanceSchedule");
 const Assignment = require("../models/Assignment");
+const DriverProfile = require("../models/DriverProfile");
 const { safeNotify, notifyRoles } = require("../services/notificationService");
 
 const validId = id => mongoose.Types.ObjectId.isValid(id);

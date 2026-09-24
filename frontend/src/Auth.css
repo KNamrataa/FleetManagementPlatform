@@ -556,3 +556,67 @@
 }
 
 .forgot-password-link:hover { text-decoration: underline; }
+
+
+.auth-otp-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.auth-text-button {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--auth-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.auth-text-button:disabled {
+  color: var(--auth-text-light);
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .auth-otp-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+
+/* Google authentication */
+.google-login-section {
+  margin-top: 2px;
+}
+
+.google-login-button {
+  min-height: 44px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.google-config-notice {
+  padding: 11px 14px;
+  border: 1px dashed var(--auth-border);
+  border-radius: 9px;
+  color: var(--auth-text-muted);
+  background: #f8fafc;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.google-config-notice strong {
+  color: var(--auth-text-main);
+}
+
+.auth-security-divider {
+  margin-top: 18px;
+}

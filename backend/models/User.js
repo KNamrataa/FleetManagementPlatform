@@ -28,6 +28,17 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    googleId: {
+      type: String,
+      default: null,
+      sparse: true,
+      index: true,
+    },
+    authProvider: {
+      type: String,
+      enum: ["LOCAL", "GOOGLE"],
+      default: "LOCAL",
+    },
     phone: {
       type: String,
       trim: true,
@@ -67,6 +78,26 @@ const userSchema = new mongoose.Schema(
       index: true,
     },
     resetPasswordExpires: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+    passwordResetOtpHash: {
+      type: String,
+      default: null,
+      select: false,
+    },
+    passwordResetOtpExpires: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+    passwordResetOtpAttempts: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    passwordResetOtpLastSentAt: {
       type: Date,
       default: null,
       select: false,

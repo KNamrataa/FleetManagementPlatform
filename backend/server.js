@@ -25,6 +25,7 @@ const customerTripRequestRoutes = require("./routes/customerTripRequestRoutes");
 const customerRoutes = require("./routes/customerRoutes");
 const trackingRoutes = require("./routes/trackingRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const publicDashboardRoutes = require("./routes/publicDashboardRoutes");
 const registerTrackingSocket = require("./realtime/trackingSocket");
 const rateLimit = require("express-rate-limit");
 const auditRequest = require("./middleware/auditMiddleware");
@@ -87,6 +88,7 @@ app.use("/api/customer", customerRoutes);
 app.use("/api/customer/trip-requests", customerTripRequestRoutes);
 app.use("/api/gps", trackingRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/public/dashboard-overview", publicDashboardRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ success: false, message: `Route not found: ${req.method} ${req.originalUrl}` });

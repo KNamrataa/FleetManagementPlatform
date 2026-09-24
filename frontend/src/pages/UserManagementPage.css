@@ -110,3 +110,62 @@
 @media (max-width: 480px) { .um-summary-grid { grid-template-columns: 1fr; } .um-toolbar { padding: 12px; } .um-filters { display: grid; grid-template-columns: 1fr 1fr; } .um-refresh-button { grid-column: 1 / -1; } .um-actions { min-width: 0; flex-wrap: wrap; } .um-modal-header, .um-form, .um-detail-layout { padding: 16px; } }
 
 .role-trip-manager { background: #ecfeff; color: #0e7490; }
+@media (max-width: 700px) {
+  .user-management-page {
+    min-width: 0;
+  }
+
+  .user-management-page .dashboard-header {
+    padding-right: 68px;
+  }
+
+  .um-toolbar,
+  .um-filters {
+    width: 100%;
+  }
+
+  .um-search {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .um-filters select,
+  .um-refresh-button {
+    min-width: 0;
+  }
+
+  .um-table-wrap,
+  .user-management-page .table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .um-table {
+    min-width: 900px;
+  }
+
+  .um-modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .um-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .um-refresh-button {
+    grid-column: auto;
+    width: 100%;
+  }
+
+  .um-table {
+    min-width: 760px;
+  }
+}

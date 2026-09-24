@@ -85,3 +85,60 @@
 @media (max-width: 1200px) { .management-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.management-report-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 900px) { .management-section-intro { align-items: flex-start; flex-direction: column; }.management-report-cards, .management-summary-grid { grid-template-columns: 1fr; }.analysis-grid { grid-template-columns: 1fr; }.performance-table { min-width: 1050px; } }
 @media (max-width: 640px) { .management-section-heading { align-items: flex-start; }.management-section-heading h2 { font-size: 19px; }.management-heading-icon { width: 38px; height: 38px; flex-basis: 38px; }.management-summary-card strong { font-size: 18px; } }
+@media (max-width: 900px) {
+  .management-dashboard .role-header {
+    padding-right: 68px;
+  }
+
+  .management-dashboard .management-section-intro {
+    width: 100%;
+  }
+
+  .management-dashboard .performance-table {
+    min-width: 1050px;
+  }
+
+  .management-dashboard .table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 640px) {
+  .management-dashboard .role-content {
+    padding: 16px 14px 30px;
+  }
+
+  .management-dashboard .management-section-heading,
+  .management-dashboard .management-section-intro {
+    min-width: 0;
+  }
+
+  .management-dashboard .management-summary-grid,
+  .management-dashboard .management-report-cards,
+  .management-dashboard .management-grid-two,
+  .management-dashboard .analysis-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .management-dashboard .management-refresh {
+    width: 100%;
+  }
+
+  .management-dashboard .performance-table {
+    min-width: 900px;
+  }
+}
+
+@media (max-width: 430px) {
+  .management-dashboard .role-content {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .management-dashboard .performance-table {
+    min-width: 820px;
+  }
+}

@@ -38,3 +38,46 @@
 @media print{.dashboard-sidebar,.dashboard-header,.customer-button,.sa-table-pager{display:none!important}.sa-data-panel{box-shadow:none!important;break-inside:avoid}.sa-section-stack{padding:0!important}.sa-table-wrap{overflow:visible!important}}
 
 .sa-admin-map{border-radius:10px;overflow:hidden;min-height:160px}.sa-live-marker{background:transparent;border:0}.sa-live-marker div{width:18px;height:18px;border-radius:50%;background:#dc2626;border:3px solid #fff;box-shadow:0 1px 8px rgba(15,23,42,.35)}
+
+
+@media (max-width: 900px) {
+  .sa-data-panel {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .sa-table-wrap,
+  .sa-data-panel .table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 620px) {
+  .sa-data-panel {
+    padding: 14px;
+  }
+
+  .sa-table-pager {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .sa-table-pager > div {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .sa-report-date {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .sa-mini-bars {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

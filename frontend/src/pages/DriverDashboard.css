@@ -2,3 +2,108 @@
 
 .driver-gps-status{margin:0 0 18px;padding:13px 15px;border:1px solid #dbe3ee;border-radius:10px;background:#f8fafc;display:flex;justify-content:space-between;align-items:center;gap:14px}.driver-gps-status>div{display:flex;align-items:center;gap:10px}.driver-gps-status p{margin:3px 0 0;color:#71839d;font-size:12px}.driver-gps-status small{color:#71839d;font-size:11px;text-align:right}.driver-gps-status.active{border-color:#b7e5c9;background:#f0fbf4}.driver-gps-status.active .driver-gps-icon{color:#137047}.driver-gps-status.warning{border-color:#f3d4a7;background:#fffaf0}.driver-gps-status.warning .driver-gps-icon{color:#9a4d00}@media(max-width:700px){.driver-gps-status{align-items:flex-start;flex-direction:column}.driver-gps-status small{text-align:left}}
 .driver-modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}.driver-modal{background:#fff;border-radius:16px;padding:22px;max-width:650px;width:100%;max-height:90vh;overflow:auto}.driver-form{display:grid;gap:14px}.driver-form label{display:grid;gap:6px;font-weight:600}.driver-form input,.driver-form select,.driver-form textarea{padding:10px;border:1px solid #dbe1ea;border-radius:8px;font:inherit}.driver-form textarea{min-height:90px}
+@media (max-width: 800px) {
+  .driver-sidebar {
+    width: min(250px, 85vw);
+  }
+
+  .driver-main {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .driver-header {
+    min-width: 0;
+    padding-right: 68px;
+    gap: 10px;
+  }
+
+  .driver-header > div {
+    min-width: 0;
+  }
+
+  .driver-header h1 {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .driver-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .driver-table {
+    min-width: 850px;
+  }
+}
+
+@media (max-width: 560px) {
+  .driver-content {
+    width: 100%;
+    padding: 16px 14px 30px;
+  }
+
+  .driver-header {
+    min-height: 72px;
+    padding: 14px 68px 14px 14px;
+  }
+
+  .driver-header h1 {
+    font-size: 20px;
+    white-space: nowrap;
+  }
+
+  .driver-toolbar {
+    width: 100%;
+  }
+
+  .driver-toolbar > * {
+    max-width: 100%;
+  }
+
+  .driver-form input,
+  .driver-form select,
+  .driver-form textarea {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .driver-table-wrap {
+    border-radius: 10px;
+  }
+
+  .driver-modal-backdrop {
+    padding: 10px;
+  }
+
+  .driver-modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100vh - 20px);
+    max-height: calc(100dvh - 20px);
+  }
+
+  .driver-gps-status {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .driver-content {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .driver-header h1 {
+    font-size: 18px;
+  }
+
+  .driver-table {
+    min-width: 700px;
+  }
+}

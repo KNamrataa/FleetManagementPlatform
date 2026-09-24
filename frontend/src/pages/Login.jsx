@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
 import {
   ArrowLeft,
   Eye,
@@ -33,6 +32,173 @@ function Login() {
 
   const [serverError, setServerError] =
     useState("");
+  const googleButtonRef = useRef(null);
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+
+  const goToDashboard = (loggedInUser) => {
+    const destination = loggedInUser.role === "SUPER_ADMIN"
+      ? "/super-admin"
+      : loggedInUser.role === "FLEET_MANAGER"
+        ? "/fleet-manager"
+        : loggedInUser.role === "TRIP_MANAGER"
+          ? "/trip-manager"
+          : loggedInUser.role === "DRIVER"
+            ? "/driver"
+            : loggedInUser.role === "MAINTENANCE_MANAGER"
+              ? "/maintenance"
+              : loggedInUser.role === "FINANCE_MANAGER"
+                ? "/finance-manager"
+                : "/dashboard";
+    navigate(destination, { replace: true });
+  };
+
+  const handleGoogleLogin = async (credential) => {
+    try {
+      setLoading(true);
+      setServerError("");
+
+      const response = await fetch(
+        `${API_URL}/api/auth/google`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ credential }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Unable to sign in with Google."
+        );
+      }
+
+      if (!data.user || !data.token) {
+        throw new Error(
+          "Google login succeeded, but the authentication session was not returned."
+        );
+      }
+
+      const loggedInUser = {
+        ...data.user,
+        role: data.user.role
+          ? (data.user.role.toString().trim().toUpperCase() === "DISPATCHER"
+            ? "TRIP_MANAGER"
+            : data.user.role.toString().trim().toUpperCase())
+          : "CUSTOMER",
+      };
+
+      setAuthSession(loggedInUser, data.token);
+      goToDashboard(loggedInUser);
+    } catch (error) {
+      console.error("Google login error:", error);
+      setServerError(
+        error.message || "Unable to sign in with Google. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+useEffect(() => {
+  if (!googleClientId || !googleButtonRef.current) {
+    return undefined;
+  }
+
+  let cancelled = false;
+
+  const initializeGoogle = () => {
+    if (
+      cancelled ||
+      !window.google?.accounts?.id ||
+      !googleButtonRef.current
+    ) {
+      return;
+    }
+
+    window.google.accounts.id.initialize({
+      client_id: googleClientId,
+      callback: (response) => {
+        if (response?.credential) {
+          handleGoogleLogin(response.credential);
+        }
+      },
+    });
+
+    googleButtonRef.current.innerHTML = "";
+
+    window.google.accounts.id.renderButton(
+      googleButtonRef.current,
+      {
+        type: "standard",
+        theme: "outline",
+        size: "large",
+        text: "signin_with",
+        shape: "rectangular",
+        width: 350,
+      }
+    );
+  };
+
+  /*
+   * Google Identity Services is already loaded.
+   */
+  if (window.google?.accounts?.id) {
+    initializeGoogle();
+
+    return () => {
+      cancelled = true;
+    };
+  }
+
+  /*
+   * Check whether the Google script was already
+   * added to the page by another component/render.
+   */
+  const existingScript = document.querySelector(
+    'script[src="https://accounts.google.com/gsi/client"]'
+  );
+
+  if (existingScript) {
+    existingScript.addEventListener(
+      "load",
+      initializeGoogle
+    );
+
+    return () => {
+      cancelled = true;
+
+      existingScript.removeEventListener(
+        "load",
+        initializeGoogle
+      );
+    };
+  }
+
+  /*
+   * Google script does not exist yet,
+   * so create it.
+   */
+  const script = document.createElement("script");
+
+  script.src =
+    "https://accounts.google.com/gsi/client";
+
+  script.async = true;
+  script.defer = true;
+
+  script.onload = initializeGoogle;
+
+  document.head.appendChild(script);
+
+  return () => {
+    cancelled = true;
+    script.onload = null;
+  };
+}, [googleClientId]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -157,20 +323,7 @@ function Login() {
         throw new Error("Login successful, but the authentication token was not returned by the server.");
       }
       setAuthSession(loggedInUser, data.token);
-      const destination = loggedInUser.role === "SUPER_ADMIN"
-        ? "/super-admin"
-        : loggedInUser.role === "FLEET_MANAGER"
-          ? "/fleet-manager"
-          : loggedInUser.role === "TRIP_MANAGER"
-                ? "/trip-manager"
-                : loggedInUser.role === "DRIVER"
-            ? "/driver"
-            : loggedInUser.role === "MAINTENANCE_MANAGER"
-              ? "/maintenance"
-              : loggedInUser.role === "FINANCE_MANAGER"
-                ? "/finance-manager"
-                : "/dashboard";
-      navigate(destination, { replace: true });
+      goToDashboard(loggedInUser);
     } catch (error) {
       console.error(
         "Login error:",
@@ -379,7 +532,29 @@ function Login() {
 
           </form>
 
-          <div className="auth-divider">
+          <div className="google-login-section">
+            <div className="auth-divider">
+              <span></span>
+              <p>OR</p>
+              <span></span>
+            </div>
+
+            {googleClientId ? (
+              <div
+                ref={googleButtonRef}
+                className="google-login-button"
+                aria-label="Continue with Google"
+              />
+            ) : (
+              <div className="google-config-notice">
+                Google sign-in is not configured yet. Add
+                <strong> VITE_GOOGLE_CLIENT_ID </strong>
+                to the frontend environment file.
+              </div>
+            )}
+          </div>
+
+          <div className="auth-divider auth-security-divider">
 
             <span></span>
 
@@ -408,5 +583,4 @@ function Login() {
     </div>
   );
 }
-
 export default Login;
