@@ -5,6 +5,8 @@ const DriverProfile = require("../models/DriverProfile");
 const Assignment = require("../models/Assignment");
 const { reservePair, releasePair, hasActiveTripForVehicle, hasActiveTripForDriver } = require("../utils/fleetHelpers");
 const { safeNotify, notifyUsers } = require("../services/notificationService");
+const { paginationParams, paginationMeta } = require("../utils/pagination");
+const { optimizeAndPersistTrip, calculateRoutePerformance } = require("../services/routeOptimizationService");
 const validId = (id) => mongoose.Types.ObjectId.isValid(id);
 const fail = (res, status, message) => res.status(status).json({ success: false, message });
 const STATUSES = ["SCHEDULED", "ASSIGNED", "IN_PROGRESS", "PAUSED", "COMPLETED", "CANCELLED"];
@@ -22,7 +24,12 @@ async function getTrips(req, res) {
     const { search = "", status = "" } = req.query; const filter = {};
     if (status) { if (!STATUSES.includes(status.toUpperCase())) return fail(res, 400, "Invalid trip status."); filter.tripStatus = status.toUpperCase(); }
     if (search.trim()) { const rx = new RegExp(escapeRx(search.trim()), "i"); filter.$or = [{ tripId: rx }, { pickupLocation: rx }, { destination: rx }, { notes: rx }]; }
-    const trips = await populateTrip(Trip.find(filter).sort({ createdAt: -1 })); res.json({ success: true, count: trips.length, trips });
+    const { page, limit, skip } = paginationParams(req, { limit: 10, max: 100 });
+    const [total, trips] = await Promise.all([
+      Trip.countDocuments(filter),
+      populateTrip(Trip.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit)),
+    ]);
+    res.json({ success: true, count: trips.length, trips, pagination: paginationMeta(page, limit, total) });
   } catch (e) { console.error(e); fail(res, 500, "Unable to load trips."); }
 }
 async function getTrip(req, res) {
@@ -98,6 +105,7 @@ async function createTrip(req, res) {
       }
     }
 
+    try { await optimizeAndPersistTrip(trip._id, { force: true }); } catch (routeError) { console.warn("Pre-trip route optimization skipped:", routeError.message); }
     const result = await populateTrip(Trip.findById(trip._id));
     const io = req.app.get("io");
     await safeNotify(() => 
@@ -131,7 +139,9 @@ async function updateTrip(req, res) {
     if (changedPair && nextVehicle) { if (await hasActiveTripForVehicle(nextVehicle, trip._id) || await hasActiveTripForDriver(nextDriver, trip._id)) return fail(res, 409, "Vehicle or driver is already on another active trip."); await releasePair(trip.vehicle, trip.driver); await reservePair(nextVehicle, nextDriver); }
     else if (changedPair) await releasePair(trip.vehicle, trip.driver);
     if (customer !== undefined) trip.customer = customer || null; if (pickupLocation !== undefined) trip.pickupLocation = pickupLocation.trim(); if (destination !== undefined) trip.destination = destination.trim(); if (scheduledStart !== undefined) { const d = new Date(scheduledStart); if (Number.isNaN(d.getTime())) return fail(res, 400, "Invalid scheduled start."); trip.scheduledStart = d; } if (scheduledEnd !== undefined) trip.scheduledEnd = scheduledEnd ? new Date(scheduledEnd) : null; if (distance !== undefined) trip.distance = Number(distance) || 0; if (notes !== undefined) trip.notes = notes.trim(); trip.vehicle = nextVehicle; trip.driver = nextDriver; trip.tripStatus = nextVehicle ? "ASSIGNED" : "SCHEDULED"; trip._statusChangedBy = req.user._id; if (changedPair) trip.driverAcceptedAt = null;
-    await trip.save(); const result = await populateTrip(Trip.findById(trip._id)); res.json({ success: true, message: "Trip updated successfully.", trip: result });
+    await trip.save();
+    try { await optimizeAndPersistTrip(trip._id, { force: true }); } catch (routeError) { console.warn("Trip route re-optimization skipped:", routeError.message); }
+    const result = await populateTrip(Trip.findById(trip._id)); res.json({ success: true, message: "Trip updated successfully.", trip: result });
   } catch (e) { console.error(e); fail(res, e.status || 500, e.message || "Failed to update trip."); }
 }
 
@@ -163,7 +173,10 @@ async function completeTrip(req, res) {
   try {
     if (!validId(req.params.id)) return fail(res, 400, "Invalid trip ID."); const trip = await Trip.findById(req.params.id); if (!trip) return fail(res, 404, "Trip not found."); if (!["IN_PROGRESS", "PAUSED"].includes(trip.tripStatus)) return fail(res, 409, "Only an in-progress or paused trip can be completed.");
     const distance = req.body.distance !== undefined ? Number(req.body.distance) : null; if (distance !== null && (Number.isNaN(distance) || distance < 0)) return fail(res, 400, "Invalid distance.");
-    trip.tripStatus = "COMPLETED"; trip._statusChangedBy = req.user._id; trip.actualEnd = new Date(); if (distance !== null) trip.distance = distance; await trip.save(); const io = req.app.get("io"); await safeNotify(() => notifyUsers({ io, recipients: [trip.customer, trip.driver], type: "TRIP_COMPLETED", title: "Trip Completed", message: `Trip ${trip.tripId} has been completed.`, link: `/customer/trips/${trip._id}`, data: { tripId: trip._id, tripNumber: trip.tripId, status: trip.tripStatus } }));
+    trip.tripStatus = "COMPLETED"; trip._statusChangedBy = req.user._id; trip.actualEnd = new Date(); if (distance !== null) trip.distance = distance;
+    const performance = calculateRoutePerformance(trip);
+    if (performance) trip.routePerformance = performance;
+    await trip.save(); const io = req.app.get("io"); await safeNotify(() => notifyUsers({ io, recipients: [trip.customer, trip.driver], type: "TRIP_COMPLETED", title: "Trip Completed", message: `Trip ${trip.tripId} has been completed. Please rate your driver and trip service from Trip Details.`, link: `/customer/trips/${trip._id}`, data: { tripId: trip._id, tripNumber: trip.tripId, status: trip.tripStatus } }));
     await Vehicle.updateOne({ _id: trip.vehicle, assignedDriver: trip.driver, status: "ON_TRIP" }, { $set: { status: "ASSIGNED" } }); await DriverProfile.updateOne({ user: trip.driver, assignedVehicle: trip.vehicle, status: "ON_TRIP" }, { $set: { status: "ASSIGNED", availability: true } });
     const result = await populateTrip(Trip.findById(trip._id)); res.json({ success: true, message: "Trip completed successfully.", trip: result });
   } catch (e) { console.error(e); fail(res, 500, "Failed to complete trip."); }

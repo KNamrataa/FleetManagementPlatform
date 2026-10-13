@@ -403,7 +403,7 @@ const getFleetOverview = async (req, res) => {
 
 const getAdminVehicles = async (req, res) => {
   try {
-    const { page, limit, skip } = paginationParams(req, { limit: 25, max: 100 });
+    const { page, limit, skip } = paginationParams(req, { limit: 10, max: 100 });
     const filter = req.query.active === "true" ? { status: { $ne: "INACTIVE" } } : {};
     if (req.query.status) filter.status = String(req.query.status).toUpperCase();
     if (req.query.search?.trim()) { const rx = new RegExp(escapeRegex(req.query.search.trim()), "i"); filter.$or = [{ registrationNumber: rx }, { vehicleNumber: rx }, { make: rx }, { model: rx }, { vehicleType: rx }]; }
@@ -418,7 +418,7 @@ const getAdminVehicles = async (req, res) => {
 
 const getAdminDrivers = async (req, res) => {
   try {
-    const { page, limit, skip } = paginationParams(req, { limit: 25, max: 100 });
+    const { page, limit, skip } = paginationParams(req, { limit: 10, max: 100 });
     const userFilter = { role: "DRIVER", ...(req.query.active === "true" ? { isActive: true, accountStatus: { $ne: "INACTIVE" } } : {}) };
     if (req.query.search?.trim()) { const rx = new RegExp(escapeRegex(req.query.search.trim()), "i"); userFilter.$or = [{ fullName: rx }, { email: rx }, { phone: rx }]; }
     const [total, drivers] = await Promise.all([
@@ -711,7 +711,7 @@ const getSuperAdminDashboardOverview = async (req, res) => {
 
 const getAdminTrips = async (req, res) => {
   try {
-    const { page, limit, skip } = paginationParams(req, { limit: 25, max: 100 });
+    const { page, limit, skip } = paginationParams(req, { limit: 10, max: 100 });
     const filter = { ...dateRange(req, "scheduledStart") };
     if (req.query.status) filter.tripStatus = String(req.query.status).toUpperCase();
     if (req.query.search?.trim()) { const rx = new RegExp(escapeRegex(req.query.search.trim()), "i"); filter.$or = [{ tripId: rx }, { pickupLocation: rx }, { destination: rx }]; }
@@ -726,7 +726,7 @@ const getAdminTrips = async (req, res) => {
 
 const getAdminTracking = async (req, res) => {
   try {
-    const { page, limit } = paginationParams(req, { limit: 50, max: 200 });
+    const { page, limit } = paginationParams(req, { limit: 10, max: 200 });
     const tracking = await TripTracking.find({}).populate("trip", "tripId tripStatus pickupLocation destination scheduledStart").populate("vehicle", "registrationNumber vehicleType status").populate("driver", "fullName phone email").sort({ recordedAt: -1 }).limit(1000).lean();
     const latestByTrip = new Map(); tracking.forEach(item => { const key = item.trip?._id?.toString() || item.trip?.toString() || item._id.toString(); if (!latestByTrip.has(key)) latestByTrip.set(key, item); });
     const rows=await getTrackingHealth([...latestByTrip.values()]); const start=(page-1)*limit; const sliced=rows.slice(start,start+limit);
@@ -737,7 +737,7 @@ const getAdminTracking = async (req, res) => {
 
 const getAdminFuel = async (req, res) => {
   try {
-    const { page, limit, skip } = paginationParams(req, { limit: 25, max: 100 });
+    const { page, limit, skip } = paginationParams(req, { limit: 10, max: 100 });
     const filter = dateRange(req, "fuelDate");
     if (req.query.vehicleId && isValidId(req.query.vehicleId)) filter.vehicle = req.query.vehicleId;
     const [totalCount, fuel] = await Promise.all([
@@ -752,7 +752,7 @@ const getAdminFuel = async (req, res) => {
 
 const getAdminMaintenance = async (req, res) => {
   try {
-    const { page, limit, skip } = paginationParams(req, { limit: 25, max: 100 });
+    const { page, limit, skip } = paginationParams(req, { limit: 10, max: 100 });
     const vehicleFilter = req.query.vehicleId && isValidId(req.query.vehicleId) ? { vehicle: req.query.vehicleId } : {};
     const [issues, workOrders, records, schedules] = await Promise.all([
       VehicleIssue.find(vehicleFilter).populate("vehicle", "registrationNumber vehicleType status").populate("reportedBy", "fullName role").sort({ createdAt:-1 }).skip(skip).limit(limit).lean(),
@@ -768,7 +768,7 @@ const getAdminMaintenance = async (req, res) => {
 
 const getAdminExpenses = async (req, res) => {
   try {
-    const { page, limit } = paginationParams(req, { limit: 25, max: 100 });
+    const { page, limit } = paginationParams(req, { limit: 10, max: 100 });
     const general=await Expense.find(dateRange(req,"expenseDate")).populate("vehicle","registrationNumber").populate("driver","fullName").populate("trip","tripId").sort({expenseDate:-1}).limit(500).lean();
     const trip=await TripExpense.find(dateRange(req,"expenseDate")).populate("vehicle","registrationNumber").populate("driver","fullName").populate("trip","tripId").sort({expenseDate:-1}).limit(500).lean();
     const driver=await DriverExpense.find(dateRange(req,"expenseDate")).populate("vehicle","registrationNumber").populate("driver","fullName").populate("trip","tripId").sort({expenseDate:-1}).limit(500).lean();
@@ -812,7 +812,7 @@ const getAdminReports = async (req, res) => {
 
 const getAdminAuditLogs = async (req, res) => {
   try {
-    const { page, limit, skip } = paginationParams(req, { limit: 30, max: 100 });
+    const { page, limit, skip } = paginationParams(req, { limit: 10, max: 100 });
     const filter = {};
     if (req.query.action?.trim()) filter.action = new RegExp(escapeRegex(req.query.action.trim()), "i");
     const [total, logs] = await Promise.all([

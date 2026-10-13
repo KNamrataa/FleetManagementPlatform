@@ -20,12 +20,14 @@ const {
   getMyIssue,
 } = require("../controllers/driverController");
 const driverRecords = require("../controllers/driverRecordsController");
+const { getDriverLiveFleet } = require("../controllers/driverLiveFleetController");
 const { authenticate, authorize } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 const access = [authenticate, authorize("DRIVER")];
 
 router.get("/dashboard", ...access, getDriverDashboard);
+router.get("/live-fleet", ...access, getDriverLiveFleet);
 router.get("/vehicle", ...access, getMyVehicle);
 router.post("/vehicle", ...access, createOwnerVehicle);
 router.put("/vehicle/:id", ...access, updateOwnerVehicle);

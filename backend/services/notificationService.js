@@ -3,7 +3,7 @@ const User = require("../models/User");
 const { sendNotificationEmail } = require("./notificationEmailService");
 
 async function createNotification(
-  { io, recipient, type, category, title, message, link = "", data = {}, priority = "NORMAL" }
+  { io, recipient, type, category, title, message, link = "", data = {}, priority = "NORMAL", awaitEmail = false }
 ) {
   if (!recipient) return null;
   const inferred = category || (String(type).startsWith("TRIP") ? "TRIP" : String(type).startsWith("MAINTENANCE") || String(type).startsWith("VEHICLE") ? "MAINTENANCE" : String(type).startsWith("INVOICE") || String(type).startsWith("PAYMENT") ? "PAYMENT" : String(type).startsWith("FUEL") ? "FUEL" : "SYSTEM");
@@ -31,32 +31,46 @@ async function createNotification(
     const event = eventByType[String(type)];
     if (event) io.emit(event, payload);
   }
-  void (async () => {
+  let emailSent = false;
+  let emailError = "";
+
+  const sendEmail = async () => {
+    const user = await User.findById(recipient).select("fullName email").lean();
+    if (!user?.email) return false;
+
+    await sendNotificationEmail({
+      email: user.email,
+      fullName: user.fullName,
+      title,
+      message,
+      category: inferred,
+      priority,
+      link,
+    });
+
+    return true;
+  };
+
+  if (awaitEmail) {
     try {
-      const user = await User.findById(recipient).select("fullName email").lean();
-      if (!user?.email) return;
-
-      await sendNotificationEmail({
-        email: user.email,
-        fullName: user.fullName,
-        title,
-        message,
-        category: inferred,
-        priority,
-        link,
-      });
+      emailSent = await sendEmail();
     } catch (error) {
-      console.error("Notification email error:", error.message);
+      emailError = String(error?.message || "Notification email failed.").slice(0, 500);
+      console.error("Notification email error:", emailError);
     }
-  })();
+  } else {
+    void sendEmail().catch((error) => {
+      console.error("Notification email error:", error.message);
+    });
+  }
 
-  return notification;
+  return awaitEmail ? { notification, emailSent, emailError } : notification;
 }
 
-async function notifyUsers({ io, recipients = [], type, title, message, link = "", data = {}, priority = "NORMAL" }) {
+async function notifyUsers({ io, recipients = [], type, title, message, link = "", data = {}, priority = "NORMAL", awaitEmail = false }) {
   const ids = [...new Set(recipients.filter(Boolean).map(String))];
   if (!ids.length) return [];
-  return Promise.all(ids.map((recipient) => createNotification({ io, recipient, type, title, message, link, data, priority })));
+  return Promise.all(ids.map((recipient) => createNotification({ io, recipient, type, title, message, link, data, priority, awaitEmail })));
 }
 
 async function notifyRoles({ io, roles = [], type, title, message, link = "", data = {}, priority = "NORMAL" }) {

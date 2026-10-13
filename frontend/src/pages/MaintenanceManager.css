@@ -360,7 +360,6 @@
 }
 
 .mm-table tbody tr:hover { background: #fbfcfe; }
-.mm-empty { padding: 42px !important; text-align: center; color: #94a3b8 !important; }
 
 .mm-badge {
   display: inline-flex;

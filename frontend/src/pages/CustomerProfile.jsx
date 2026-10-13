@@ -1,5 +1,5 @@
 import { useCallback,useEffect,useState } from "react";
-import { CheckCircle2, RefreshCw, UserCircle } from "lucide-react";
+import { CheckCircle2, RefreshCw } from "lucide-react";
 import { apiRequest } from "../services/api";
 import CustomerLayout from "./CustomerLayout";
 import "./CustomerDashboard.css";

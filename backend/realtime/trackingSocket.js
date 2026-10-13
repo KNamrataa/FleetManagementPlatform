@@ -54,7 +54,7 @@ function registerTrackingSocket(io) {
           ...payload,
         });
         io.to(`trip:${payload.tripId}`).emit("trip:gps", tracking);
-        ack({ success: true, recordedAt: tracking.recordedAt });
+        ack({ success: true, recordedAt: tracking.recordedAt, routeSuggestion: tracking.routeSuggestion || null });
       } catch (error) {
         ack({ success: false, message: error.message });
       }

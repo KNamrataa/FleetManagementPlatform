@@ -189,7 +189,7 @@ function buildTripFilter(req) {
 
 async function getCustomerTrips(req, res) {
   try {
-    const { page, limit, skip } = paginationParams(req, { limit: 20, max: 100 });
+    const { page, limit, skip } = paginationParams(req, { limit: 10, max: 100 });
     const filter = buildTripFilter(req);
     const [total, trips] = await Promise.all([
       Trip.countDocuments(filter),
@@ -246,8 +246,17 @@ async function getCustomerTracking(req, res) {
 
 async function getTripHistory(req, res) {
   try {
-    const { page, limit, skip } = paginationParams(req, { limit: 20, max: 100 });
+    const { page, limit, skip } = paginationParams(req, { limit: 10, max: 100 });
     const filter = { customer: customerId(req), tripStatus: "COMPLETED" };
+    if (req.query.search?.trim()) {
+      const rx = new RegExp(escapeRx(req.query.search.trim()), "i");
+      filter.$or = [{ tripId: rx }, { pickupLocation: rx }, { destination: rx }];
+    }
+    if (req.query.vehicle?.trim()) {
+      const vehicleRx = new RegExp(escapeRx(req.query.vehicle.trim()), "i");
+      const vehicleIds = await Vehicle.find({ $or: [{ registrationNumber: vehicleRx }, { vehicleNumber: vehicleRx }] }).select("_id").lean();
+      filter.vehicle = { $in: vehicleIds.map((v) => v._id) };
+    }
     const [total, trips] = await Promise.all([
       Trip.countDocuments(filter),
       populateTrip(Trip.find(filter).sort({ actualEnd: -1 }).skip(skip).limit(limit)).lean(),
@@ -261,10 +270,18 @@ async function getTripHistory(req, res) {
 
 async function getCustomerInvoices(req, res) {
   try {
-    const invoices = await Invoice.find({ customer: customerId(req) })
-      .populate("trip", "tripId pickupLocation destination scheduledStart scheduledEnd tripStatus")
-      .sort({ invoiceDate: -1 })
-      .lean();
+    const { page, limit, skip } = paginationParams(req, { limit: 10, max: 100 });
+    const invoiceFilter = { customer: customerId(req) };
+    const [total, invoices] = await Promise.all([
+      Invoice.countDocuments(invoiceFilter),
+      Invoice.find(invoiceFilter)
+        .populate("trip", "tripId pickupLocation destination scheduledStart scheduledEnd tripStatus")
+        .sort({ invoiceDate: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+    ]);
+    const allInvoices = await Invoice.find(invoiceFilter).select("status totalAmount paidAmount balanceAmount").lean();
     const invoiceIds = invoices.map((invoice) => invoice._id);
     const payments = invoiceIds.length
       ? await Payment.find({ invoice: { $in: invoiceIds }, type: "RECEIVED", $or: [{ customer: customerId(req) }, { customer: null }] })
@@ -278,9 +295,9 @@ async function getCustomerInvoices(req, res) {
       byInvoice.get(key).push(payment);
     }
     const data = invoices.map((invoice) => ({ ...invoiceView(invoice), payments: byInvoice.get(String(invoice._id)) || [] }));
-    const totalInvoiced = data.filter((x) => x.status !== "CANCELLED").reduce((sum, x) => sum + Number(x.totalAmount || 0), 0);
-    const totalPaid = data.filter((x) => x.status !== "CANCELLED").reduce((sum, x) => sum + Number(x.paidAmount || 0), 0);
-    return ok(res, { invoices: data, summary: { totalInvoiced, totalPaid, outstandingAmount: Math.max(0, totalInvoiced - totalPaid) } });
+    const totalInvoiced = allInvoices.filter((x) => x.status !== "CANCELLED").reduce((sum, x) => sum + Number(x.totalAmount || 0), 0);
+    const totalPaid = allInvoices.filter((x) => x.status !== "CANCELLED").reduce((sum, x) => sum + Number(x.paidAmount || 0), 0);
+    return ok(res, { invoices: data, summary: { totalInvoiced, totalPaid, outstandingAmount: Math.max(0, totalInvoiced - totalPaid) }, pagination: paginationMeta(page, limit, total) });
   } catch (error) {
     console.error("Customer invoices error:", error);
     return fail(res, 500, "Unable to load your billing information.");

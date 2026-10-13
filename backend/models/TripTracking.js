@@ -15,6 +15,7 @@ const tripTrackingSchema = new mongoose.Schema(
     distanceTravelled: { type: Number, min: 0, default: 0 },
     remainingDistance: { type: Number, min: 0, default: 0 },
     estimatedArrival: { type: Date, default: null },
+    estimatedArrivalSource: { type: String, enum: ["LIVE_SPEED", "ROUTE_ESTIMATE", "NONE"], default: "NONE" },
     recordedAt: { type: Date, default: Date.now, index: true },
   },
   { timestamps: true }

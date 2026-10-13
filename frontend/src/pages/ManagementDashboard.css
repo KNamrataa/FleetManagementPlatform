@@ -24,16 +24,13 @@
 .bar-row > div:first-child { display: flex; justify-content: space-between; font-size: 13px; color: #475569; margin-bottom: 6px; }.bar-row strong { color: #172033; }
 .bar-track { height: 9px; background: #eef2f7; border-radius: 99px; overflow: hidden; }.bar-track span { display: block; height: 100%; background: #dc2626; border-radius: inherit; transition: width .3s ease; }
 .chart-legend { display: flex; justify-content: flex-end; gap: 18px; font-size: 12px; color: #64748b; margin-bottom: 14px; }.chart-legend span { display: flex; align-items: center; gap: 6px; }.legend { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }.legend.revenue { background: #dc2626; }.legend.expense { background: #94a3b8; }
-.monthly-chart { height: 270px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; align-items: end; border-bottom: 1px solid #e2e8f0; padding: 10px 10px 0; }.month-column { height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 7px; min-width: 0; }.month-bars { width: 100%; height: 205px; display: flex; align-items: flex-end; justify-content: center; gap: 5px; }.month-bar { width: 24px; min-height: 4px; border-radius: 5px 5px 0 0; }.month-bar.revenue { background: #dc2626; }.month-bar.expense { background: #94a3b8; }.month-column strong { font-size: 12px; color: #334155; }.month-column small { font-size: 10px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-.financial-lines { display: flex; flex-direction: column; gap: 0; }.financial-lines .status-line { padding: 11px 0; border-bottom: 1px solid #eef2f7; }.financial-lines .status-line:last-child { border-bottom: 0; }
-.status-line strong.positive { color: #16a34a; }
-.maintenance-summary, .customer-kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }.metric-mini { border: 1px solid #edf0f5; background: #fafbfc; border-radius: 9px; padding: 12px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; }.metric-mini > div { width: 28px; height: 28px; border-radius: 7px; background: #fee2e2; color: #dc2626; display: grid; place-items: center; }.metric-mini span { color: #64748b; font-size: 11px; }.metric-mini strong { color: #172033; font-size: 15px; }
-.compact-list { border-top: 1px solid #edf0f5; }.compact-list > div { display: flex; justify-content: space-between; padding: 9px 0; font-size: 12px; color: #475569; border-bottom: 1px solid #f1f5f9; }.compact-list strong { color: #172033; }.receivables-note { padding: 12px; background: #fff7ed; color: #9a3412; border-radius: 9px; font-size: 13px; }.receivables-note strong { margin-left: 5px; }
-.activity-list { display: flex; flex-direction: column; }.management-activity { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid #eef2f7; }.management-activity:last-child { border-bottom: 0; }.activity-type { width: 30px; height: 30px; flex: 0 0 30px; border-radius: 8px; display: grid; place-items: center; background: #fee2e2; color: #dc2626; }.activity-type.maintenance { background: #ede9fe; color: #7c3aed; }.activity-type.expense { background: #fef3c7; color: #d97706; }.activity-type.issue { background: #fff1f2; color: #e11d48; }.management-activity strong { display: block; color: #334155; font-size: 12px; }.management-activity small { display: block; color: #94a3b8; margin-top: 3px; font-size: 10px; }
-.management-badge { display: inline-flex; padding: 5px 8px; border-radius: 999px; font-size: 10px; font-weight: 800; }.management-badge.warning { background: #ffedd5; color: #c2410c; }.empty-cell { text-align: center; color: #94a3b8; padding: 25px !important; }.empty-state { padding: 25px; text-align: center; color: #94a3b8; }
+.monthly-chart { height: 270px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; align-items: end; border-bottom: 1px solid #e2e8f0; padding: 10px 10px 0; }.month-column { height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 7px; min-width: 0; }.month-bars { width: 100%; height: 205px; display: flex; align-items: flex-end; justify-content: center; gap: 5px; }.month-bar { width: 24px; min-height: 4px; border-radius: 5px 5px 0 0; }.month-bar.revenue { background: #dc2626; }.month-bar.expense { background: #94a3b8; }.month-column strong { font-size: 12px; color: #334155; }.month-column small { font-size: 10px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }.financial-lines .status-line { padding: 11px 0; border-bottom: 1px solid #eef2f7; }.financial-lines .status-line:last-child { border-bottom: 0; }
+.status-line strong.positive { color: #16a34a; }.metric-mini { border: 1px solid #edf0f5; background: #fafbfc; border-radius: 9px; padding: 12px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; }.metric-mini > div { width: 28px; height: 28px; border-radius: 7px; background: #fee2e2; color: #dc2626; display: grid; place-items: center; }.metric-mini span { color: #64748b; font-size: 11px; }.metric-mini strong { color: #172033; font-size: 15px; }
+.compact-list { border-top: 1px solid #edf0f5; }.compact-list > div { display: flex; justify-content: space-between; padding: 9px 0; font-size: 12px; color: #475569; border-bottom: 1px solid #f1f5f9; }.compact-list strong { color: #172033; }
+.activity-list { display: flex; flex-direction: column; }.management-activity { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid #eef2f7; }.management-activity:last-child { border-bottom: 0; }.activity-type { width: 30px; height: 30px; flex: 0 0 30px; border-radius: 8px; display: grid; place-items: center; background: #fee2e2; color: #dc2626; }.activity-type.maintenance { background: #ede9fe; color: #7c3aed; }.activity-type.expense { background: #fef3c7; color: #d97706; }.activity-type.issue { background: #fff1f2; color: #e11d48; }.management-activity strong { display: block; color: #334155; font-size: 12px; }.management-activity small { display: block; color: #94a3b8; margin-top: 3px; font-size: 10px; }.empty-cell { text-align: center; color: #94a3b8; padding: 25px !important; }.empty-state { padding: 25px; text-align: center; color: #94a3b8; }
 @media (max-width: 1200px) { .management-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 900px) { .management-grid-two { grid-template-columns: 1fr; }.management-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }.fleet-status-layout { grid-template-columns: 160px 1fr; }.fleet-donut { width: 150px; height: 150px; } }
-@media (max-width: 640px) { .management-kpis { grid-template-columns: 1fr; }.fleet-status-layout { grid-template-columns: 1fr; justify-items: center; }.monthly-chart { gap: 5px; }.month-bar { width: 14px; }.management-refresh { display: none; }.maintenance-summary, .customer-kpis { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .management-kpis { grid-template-columns: 1fr; }.fleet-status-layout { grid-template-columns: 1fr; justify-items: center; }.monthly-chart { gap: 5px; }.month-bar { width: 14px; }.management-refresh { display: none; } }
 
 /* Management detail/report sections */
 .management-anchor { scroll-margin-top: 96px; margin-bottom: 28px; }
@@ -142,3 +139,24 @@
     min-width: 820px;
   }
 }
+.management-dashboard .role-eyebrow,
+.management-dashboard .management-section-kicker,
+.management-dashboard .management-section-heading > div > span { color: #b91c1c; }
+.management-dashboard .management-section-intro p,
+.management-dashboard .management-section-heading p,
+.management-dashboard .management-report-card small,
+.management-dashboard .performance-table td:first-child small,
+.management-dashboard .compact-list small,
+.management-dashboard .empty-cell,
+.management-dashboard .empty-state,
+.management-dashboard .management-activity small { color: #475569; }
+.management-dashboard .management-readonly { color: #166534; }
+.management-dashboard .management-status-badge.assigned,
+.management-dashboard .management-status-badge.scheduled,
+.management-dashboard .management-status-badge.pending,
+.management-dashboard .management-status-badge.partially-paid { color: #9a3412; }
+.management-dashboard .management-status-badge.maintenance,
+.management-dashboard .management-status-badge.on-hold { color: #5b21b6; }
+.management-dashboard .role-mobile-menu { min-width: 44px; min-height: 44px; }
+.management-dashboard .management-refresh,
+.management-dashboard .management-error button { min-height: 40px; }

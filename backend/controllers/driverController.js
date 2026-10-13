@@ -8,31 +8,131 @@ const Assignment = require("../models/Assignment");
 const VehicleIssue = require("../models/VehicleIssue");
 const { releasePair } = require("../utils/fleetHelpers");
 const { safeNotify, notifyUsers } = require("../services/notificationService");
+const { calculateRoutePerformance } = require("../services/routeOptimizationService");
+const { notifyUpdatedDriverLicenseExpiry } = require("../jobs/documentExpiryJob");
 const { paginationParams, paginationMeta } = require("../utils/pagination");
 const validId = (id) => mongoose.Types.ObjectId.isValid(id);
 const fail = (res, status, message) => res.status(status).json({ success: false, message });
 const clean = (s) => s?.trim();
+const DRIVER_DOCUMENT_MAX_LENGTH = 3_500_000;
+
+const stripDriverLicenseData = (profile) => {
+  if (!profile) return null;
+
+  const source =
+    typeof profile.toObject === "function"
+      ? profile.toObject()
+      : { ...profile };
+
+  if (source.licenseDocument) {
+    source.licenseDocument = {
+      fileName: source.licenseDocument.fileName || "",
+      mimeType:
+        source.licenseDocument.mimeType ||
+        "application/octet-stream",
+      uploadedAt: source.licenseDocument.uploadedAt || null,
+      hasDocument: Boolean(source.licenseDocument.data),
+    };
+  }
+
+  return source;
+};
 async function getDrivers(req, res) {
   try {
     const { search = "", status = "" } = req.query;
     const users = await User.find({ role: "DRIVER" }).select("fullName email phone isActive accountStatus createdAt updatedAt lastLoginAt").sort({ createdAt: -1 }).lean();
     const profiles = await DriverProfile.find({ user: { $in: users.map(u => u._id) } }).populate({ path: "assignedVehicle", select: "registrationNumber vehicleType make model status" }).lean();
-    const map = new Map(profiles.map(p => [p.user.toString(), p]));
-    let drivers = users.map(u => ({ ...u, profile: map.get(u._id.toString()) || null, status: !u.isActive || u.accountStatus === "INACTIVE" ? "INACTIVE" : (map.get(u._id.toString())?.status || "AVAILABLE"), driverType: map.get(u._id.toString())?.driverType || "COMPANY_DRIVER", assignedVehicle: map.get(u._id.toString())?.assignedVehicle || null }));
+    const map = new Map(profiles.map(p => [p.user.toString(), stripDriverLicenseData(p)]));
+    let drivers = users.map(u => 
+      ({ ...u, profile: map.get(u._id.toString()) || null, status: !u.isActive || u.accountStatus === "INACTIVE" ? "INACTIVE" : (map.get(u._id.toString())?.status || "AVAILABLE"),
+         driverType: map.get(u._id.toString())?.driverType || "COMPANY_DRIVER",
+          assignedVehicle: map.get(u._id.toString())?.assignedVehicle || null }));
     if (status) drivers = drivers.filter(d => d.status === status.toUpperCase());
     if (search.trim()) { const q = search.trim().toLowerCase(); drivers = drivers.filter(d => `${d.fullName} ${d.email} ${d.phone || ""} ${d.profile?.licenseNumber || ""}`.toLowerCase().includes(q)); }
-    res.json({ success: true, count: drivers.length, drivers });
+    const { page, limit } = paginationParams(req, { limit: 10, max: 100 });
+    const total = drivers.length;
+    const start = (page - 1) * limit;
+    res.json(
+      { success: true, count: Math.min(limit, Math.max(0, total - start)), 
+        drivers: drivers.slice(start, start + limit), pagination: paginationMeta(page, limit, total) });
   } catch (e) { console.error(e); fail(res, 500, "Unable to load drivers."); }
 }
 
 async function getDriver(req, res) {
   try {
     if (!validId(req.params.id)) return fail(res, 400, "Invalid driver ID.");
-    const user = await User.findOne({ _id: req.params.id, role: "DRIVER" }).select("-password").lean(); if (!user) return fail(res, 404, "Driver not found.");
-    const profile = await DriverProfile.findOne({ user: user._id }).populate({ path: "assignedVehicle", select: "registrationNumber vehicleType make model status" }).lean();
-    const trips = await Trip.find({ driver: user._id }).select("tripId pickupLocation destination scheduledStart actualStart actualEnd tripStatus vehicle").populate("vehicle", "registrationNumber vehicleType").sort({ createdAt: -1 }).limit(50).lean();
-    res.json({ success: true, driver: { ...user, profile, status: !user.isActive || user.accountStatus === "INACTIVE" ? "INACTIVE" : profile?.status || "AVAILABLE", driverType: profile?.driverType || "COMPANY_DRIVER", assignedVehicle: profile?.assignedVehicle || null, tripHistory: trips } });
+    const user = await User.findOne({ _id: req.params.id, role: "DRIVER" }).select("-password").lean(); 
+    if (!user) return fail(res, 404, "Driver not found.");
+    const profileRaw = await DriverProfile.findOne({ user: user._id }).
+    populate({ path: "assignedVehicle", select: "registrationNumber vehicleType make model status" }).lean();
+    const profile = stripDriverLicenseData(profileRaw);
+    const trips = await Trip.find({ driver: user._id })
+    .select("tripId pickupLocation destination scheduledStart actualStart actualEnd tripStatus vehicle")
+    .populate("vehicle", "registrationNumber vehicleType").sort({ createdAt: -1 }).limit(50).lean();
+    res.json({ success: true, driver: { ...user, profile, 
+      status: !user.isActive || user.accountStatus === "INACTIVE" ? "INACTIVE" : profile?.status || "AVAILABLE", 
+      driverType: profile?.driverType || "COMPANY_DRIVER", assignedVehicle: profile?.assignedVehicle || null, tripHistory: trips } });
   } catch (e) { console.error(e); fail(res, 500, "Unable to load driver."); }
+}
+
+async function getDriverLicenseDocument(req, res) {
+  try {
+    if (!validId(req.params.id)) return fail(res, 400, "Invalid driver ID.");
+    const driver = await User.findOne({ _id: req.params.id, role: "DRIVER" }).select("_id").lean();
+    if (!driver) return fail(res, 404, "Driver not found.");
+    const profile = await DriverProfile.findOne({ user: driver._id }).select("licenseDocument").lean();
+    const document = profile?.licenseDocument;
+    if (!document?.data) return fail(res, 404, "Driver license document not found.");
+    const dataUrl = String(document.data);
+    const match = dataUrl.match(/^data:([^;,]+)?(?:;charset=[^;,]+)?(?:;(base64))?,(.*)$/s);
+    if (!match) return fail(res, 400, "Stored driver license document has an invalid format.");
+    const mimeType = document.mimeType || match[1] || "application/octet-stream";
+    let buffer;
+    try {
+      buffer = match[2] === "base64" ? Buffer.from(match[3].replace(/\s/g, ""), "base64") : Buffer.
+      from(decodeURIComponent(match[3] || ""), "utf8");
+    } catch (decodeError) {
+      console.error("Driver license document decode error:", decodeError);
+      return fail(res, 400, "Unable to read the stored driver license document.");
+    }
+    if (!buffer.length) return fail(res, 404, "Driver license document is empty.");
+    const safeFileName = String(document.fileName || "driver-license-document")
+    .replace(/[\\/\r\n\"<>:|?*]+/g, "_").trim() || "driver-license-document";
+    res.setHeader("Content-Type", mimeType);
+    res.setHeader("Content-Disposition", `inline; filename="${safeFileName}"`);
+    res.setHeader("Cache-Control", "private, no-store, max-age=0");
+    res.setHeader("Content-Length", buffer.length);
+    return res.send(buffer);
+  } catch (e) {
+    console.error("Get driver license document error:", e);
+    return fail(res, 500, "Unable to open driver license document.");
+  }
+}
+
+async function addDriverLicenseDocument(req, res) {
+  try {
+    if (!validId(req.params.id)) return fail(res, 400, "Invalid driver ID.");
+    const driver = await User.findOne({ _id: req.params.id, role: "DRIVER" }).select("_id").lean();
+    if (!driver) return fail(res, 404, "Driver not found.");
+    const { fileName, data, mimeType = "application/octet-stream" } = req.body || {};
+    if (!String(fileName || "").trim()) return fail(res, 400, "License document file name is required.");
+    if (!String(data || "").startsWith("data:")) 
+      return fail(res, 400, "License document content must be provided as a data URL.");
+    if (String(data).length > DRIVER_DOCUMENT_MAX_LENGTH) 
+      return fail(res, 400, "License document is too large. Please upload a file smaller than about 2.5 MB.");
+    const profile = await DriverProfile.findOne({ user: driver._id });
+    if (!profile) return fail(res, 404, "Driver profile not found.");
+    profile.licenseDocument = { fileName: String(fileName).trim(), data: String(data), 
+      mimeType: String(mimeType), uploadedAt: new Date() };
+    await profile.save();
+    const io = req.app.get("io");
+    await notifyUpdatedDriverLicenseExpiry({ io, driverId: driver._id });
+    const metadata = stripDriverLicenseData(profile);
+    return res.status(201).json({ success: true, message: "Driver license document uploaded successfully.", licenseDocument: metadata });
+  } catch (e) {
+    console.error("Add driver license document error:", e);
+    return fail(res, 500, "Failed to upload driver license document.");
+  }
 }
 
 async function createDriver(req, res) {
@@ -49,6 +149,8 @@ async function createDriver(req, res) {
     try { await DriverProfile.create({ user: user._id, driverType: normalizedDriverType, licenseNumber: licenseNumber.trim().toUpperCase(), licenseExpiry: expiry, experience: Number(experience) || 0, status: "AVAILABLE", availability: true }); }
     catch (e) { await User.deleteOne({ _id: user._id }); if (e.code === 11000) return fail(res, 409, "A driver with this license number already exists."); throw e; }
     const result = await User.findById(user._id).select("-password").lean(); const profile = await DriverProfile.findOne({ user: user._id }).lean();
+    const io = req.app.get("io");
+    await notifyUpdatedDriverLicenseExpiry({ io, driverId: user._id });
     res.status(201).json({ success: true, message: "Driver created successfully.", driver: { ...result, profile, driverType: profile.driverType, status: "AVAILABLE" } });
   } catch (e) { console.error(e); if (e.code === 11000) return fail(res, 409, "An account with this email already exists."); fail(res, 500, "Failed to create driver."); }
 }
@@ -63,11 +165,16 @@ async function updateDriver(req, res) {
     if (fullName !== undefined) user.fullName = fullName.trim(); if (phone !== undefined) user.phone = phone.trim() || null;
     const profile = await DriverProfile.findOne({ user: user._id }); if (!profile) return fail(res, 404, "Driver profile not found.");
     if (licenseNumber !== undefined) { const ln = licenseNumber.trim().toUpperCase(); const dup = await DriverProfile.findOne({ licenseNumber: ln, user: { $ne: user._id } }); if (dup) return fail(res, 409, "A driver with this license number already exists."); profile.licenseNumber = ln; }
-    if (licenseExpiry !== undefined) { const d = new Date(licenseExpiry); if (Number.isNaN(d.getTime())) return fail(res, 400, "Invalid license expiry date."); profile.licenseExpiry = d; }
+    let licenseExpiryChanged = false;
+    if (licenseExpiry !== undefined) { const d = new Date(licenseExpiry); if (Number.isNaN(d.getTime())) return fail(res, 400, "Invalid license expiry date."); licenseExpiryChanged = !profile.licenseExpiry || profile.licenseExpiry.getTime() !== d.getTime(); profile.licenseExpiry = d; }
     if (experience !== undefined) { if (Number(experience) < 0) return fail(res, 400, "Experience cannot be negative."); profile.experience = Number(experience); }
     if (driverType !== undefined) { const nextDriverType = String(driverType).toUpperCase(); if (!["COMPANY_DRIVER", "OWNER_DRIVER"].includes(nextDriverType)) return fail(res, 400, "Invalid driver type."); if (nextDriverType === "COMPANY_DRIVER" && await Vehicle.exists({ ownershipType: "DRIVER_OWNED", ownerId: user._id })) return fail(res, 409, "An Owner-Driver who owns a vehicle cannot be changed to Company Driver until the owned vehicle is transferred or removed."); profile.driverType = nextDriverType; }
     if (status !== undefined) { const allowed = ["AVAILABLE", "ASSIGNED", "ON_TRIP", "OFF_DUTY", "INACTIVE"]; if (!allowed.includes(status.toUpperCase())) return fail(res, 400, "Invalid driver status."); if (status.toUpperCase() === "INACTIVE") { if (await Trip.exists({ driver: user._id, tripStatus: { $in: ["ASSIGNED", "IN_PROGRESS"] } })) return fail(res, 409, "Driver with an active trip cannot be deactivated."); user.isActive = false; user.accountStatus = "INACTIVE"; profile.status = "INACTIVE"; profile.availability = false; } else { user.isActive = true; user.accountStatus = "ACTIVE"; profile.status = status.toUpperCase(); profile.availability = !["OFF_DUTY", "ON_TRIP", "INACTIVE"].includes(status.toUpperCase()); } }
     await user.save(); await profile.save();
+    const io = req.app.get("io");
+    if (licenseExpiryChanged) {
+      await notifyUpdatedDriverLicenseExpiry({ io, driverId: user._id, force: true });
+    }
     res.json({ success: true, message: "Driver updated successfully.", driver: { ...(await User.findById(user._id).select("-password").lean()), profile: await DriverProfile.findById(profile._id).populate("assignedVehicle", "registrationNumber vehicleType status").lean() } });
   } catch (e) { console.error(e); fail(res, 500, "Failed to update driver."); }
 }
@@ -219,7 +326,7 @@ async function getMyTrips(req, res) {
       const matchingCustomers = await User.find({ role: "CUSTOMER", $or: [{ fullName: rx }, { email: rx }, { phone: rx }] }).select("_id").lean();
       filter.$or = [{ tripId: rx }, { pickupLocation: rx }, { destination: rx }, { notes: rx }, { customer: { $in: matchingCustomers.map((customer) => customer._id) } }];
     }
-    const { page, limit, skip } = paginationParams(req, { limit: 20, max: 100 });
+    const { page, limit, skip } = paginationParams(req, { limit: 10, max: 100 });
     const [total, trips] = await Promise.all([
       Trip.countDocuments(filter),
       Trip.find(filter)
@@ -434,6 +541,8 @@ async function completeMyTrip(req, res) {
       trip.actualEnd = now;
       if (distance !== undefined) trip.distance = Number(distance);
       if (notes.trim()) trip.notes = notes.trim();
+      const performance = calculateRoutePerformance(trip);
+      if (performance) trip.routePerformance = performance;
       await trip.save();
 
       if (finalOdometer !== undefined) vehicle.currentOdometer = Number(finalOdometer);
@@ -573,4 +682,4 @@ async function getMyIssue(req, res) {
   }
 }
 
-module.exports = { getDrivers, getDriver, createDriver, updateDriver, setDriverStatus, unassignDriver, getDriverDashboard, getMyVehicle, createOwnerVehicle, updateOwnerVehicle, addOwnerVehicleDocument, submitOwnerVehicleApproval, getMyTrips, getMyTrip, acceptMyTrip, startMyTrip, pauseMyTrip, resumeMyTrip, completeMyTrip, getMyProfile, updateMyProfile, createVehicleIssue, getMyIssues, getMyIssue };
+module.exports = { getDrivers, getDriver, getDriverLicenseDocument, addDriverLicenseDocument, createDriver, updateDriver, setDriverStatus, unassignDriver, getDriverDashboard, getMyVehicle, createOwnerVehicle, updateOwnerVehicle, addOwnerVehicleDocument, submitOwnerVehicleApproval, getMyTrips, getMyTrip, acceptMyTrip, startMyTrip, pauseMyTrip, resumeMyTrip, completeMyTrip, getMyProfile, updateMyProfile, createVehicleIssue, getMyIssues, getMyIssue };

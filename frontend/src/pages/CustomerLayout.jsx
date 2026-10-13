@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Activity, ClipboardList, FileText, LayoutDashboard, LogOut, Menu, MapPin, ReceiptIndianRupee, Send, UserCircle, X, Car } from "lucide-react";
+import { Activity, ClipboardList, LayoutDashboard, LogOut, Menu, MapPin, ReceiptIndianRupee, Send, UserCircle, X, Car } from "lucide-react";
 import { API_URL, authFetch, getStoredUser, clearAuthSession } from "../services/api";
 import NotificationBell from "../components/NotificationBell";
 import "./CustomerDashboard.css";

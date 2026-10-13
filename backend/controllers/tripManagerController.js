@@ -139,7 +139,7 @@ async function getOverview(req, res) {
 
 async function getRequests(req, res) {
   try {
-    const { page, limit, skip } = paginationParams(req, { limit: 20, max: 100 }); const filter = {};
+    const { page, limit, skip } = paginationParams(req, { limit: 10, max: 100 }); const filter = {};
     if (req.query.status) filter.status = String(req.query.status).toUpperCase();
     if (req.query.priority) filter.priority = String(req.query.priority).toUpperCase();
     if (req.query.customer && validId(req.query.customer)) filter.customer = req.query.customer;
@@ -161,7 +161,7 @@ async function getTrip(req, res) {
 
 async function getTrips(req, res) {
   try {
-    const { page, limit, skip } = paginationParams(req, { limit: 25, max: 100 }); const filter = {};
+    const { page, limit, skip } = paginationParams(req, { limit: 10, max: 100 }); const filter = {};
     if (req.query.status) filter.tripStatus = String(req.query.status).toUpperCase();
     if (req.query.driver && validId(req.query.driver)) filter.driver = req.query.driver;
     if (req.query.customer && validId(req.query.customer)) filter.customer = req.query.customer;
@@ -253,13 +253,13 @@ async function cancelTripManager(req, res) {
   } catch (e) { console.error(e); return fail(res, 500, "Unable to cancel trip."); }
 }
 
-async function getRescheduled(req, res) { try { const trips = await populateTrip(Trip.find({ "rescheduleHistory.0": { $exists: true } }).sort({ updatedAt: -1 }).limit(200)); return res.json({ success: true, count: trips.length, trips }); } catch (e) { return fail(res, 500, "Unable to load rescheduled trips."); } }
-async function getCancelled(req, res) { try { const trips = await populateTrip(Trip.find({ tripStatus: "CANCELLED" }).sort({ cancelledAt: -1, updatedAt: -1 }).limit(200)); return res.json({ success: true, count: trips.length, trips }); } catch (e) { return fail(res, 500, "Unable to load cancelled trips."); } }
-async function getActive(req, res) { try { const trips = await populateTrip(Trip.find({ tripStatus: { $in: ["IN_PROGRESS", "PAUSED"] } }).sort({ actualStart: -1, scheduledStart: 1 }).limit(200)); return res.json({ success: true, count: trips.length, trips }); } catch (e) { return fail(res, 500, "Unable to load active trips."); } }
+async function getRescheduled(req, res) { try { const { page, limit, skip } = paginationParams(req, { limit: 10, max: 100 }); const filter = { "rescheduleHistory.0": { $exists: true } }; const [total, trips] = await Promise.all([Trip.countDocuments(filter), populateTrip(Trip.find(filter).sort({ updatedAt: -1 }).skip(skip).limit(limit))]); return res.json({ success: true, count: trips.length, trips, pagination: paginationMeta(page, limit, total) }); } catch (e) { return fail(res, 500, "Unable to load rescheduled trips."); } }
+async function getCancelled(req, res) { try { const { page, limit, skip } = paginationParams(req, { limit: 10, max: 100 }); const filter = { tripStatus: "CANCELLED" }; const [total, trips] = await Promise.all([Trip.countDocuments(filter), populateTrip(Trip.find(filter).sort({ cancelledAt: -1, updatedAt: -1 }).skip(skip).limit(limit))]); return res.json({ success: true, count: trips.length, trips, pagination: paginationMeta(page, limit, total) }); } catch (e) { return fail(res, 500, "Unable to load cancelled trips."); } }
+async function getActive(req, res) { try { const { page, limit, skip } = paginationParams(req, { limit: 10, max: 100 }); const filter = { tripStatus: { $in: ["IN_PROGRESS", "PAUSED"] } }; const [total, trips] = await Promise.all([Trip.countDocuments(filter), populateTrip(Trip.find(filter).sort({ actualStart: -1, scheduledStart: 1 }).skip(skip).limit(limit))]); return res.json({ success: true, count: trips.length, trips, pagination: paginationMeta(page, limit, total) }); } catch (e) { return fail(res, 500, "Unable to load active trips."); } }
 async function getDelayed(req, res) { try { const trips = await populateTrip(Trip.find({ tripStatus: { $in: ["ASSIGNED", "IN_PROGRESS", "PAUSED"] }, $or: [{ notes: /delay/i }, { scheduledStart: { $lt: new Date(Date.now() - 15 * 60 * 1000) } }] }).sort({ scheduledStart: 1 }).limit(200)); return res.json({ success: true, count: trips.length, trips }); } catch (e) { return fail(res, 500, "Unable to load delayed trips."); } }
 async function getLiveTracking(req, res) { try { const rows = await TripTracking.find({}).populate("trip", "tripId tripStatus pickupLocation destination").populate("vehicle", "registrationNumber vehicleType status").populate("driver", "fullName phone").sort({ recordedAt: -1 }).limit(1000).lean(); const latest = new Map(); rows.forEach(r => { const key = String(r.trip?._id || r.trip); if (!latest.has(key)) latest.set(key, r); }); return res.json({ success: true, tracking: [...latest.values()] }); } catch (e) { return fail(res, 500, "Unable to load live tracking."); } }
 async function getConflicts(req, res) { try { const trips = await Trip.find({ tripStatus: { $in: ACTIVE_SCHEDULABLE }, driver: { $ne: null }, vehicle: { $ne: null } }).populate("driver", "fullName").populate("vehicle", "registrationNumber").sort({ scheduledStart: 1 }).lean(); const conflicts=[]; for(let i=0;i<trips.length;i++){for(let j=i+1;j<trips.length;j++){const a=trips[i],b=trips[j]; if(String(a.driver?._id||a.driver)===String(b.driver?._id||b.driver) || String(a.vehicle?._id||a.vehicle)===String(b.vehicle?._id||b.vehicle)){const aEnd=effectiveEnd(a), bEnd=effectiveEnd(b); if(new Date(a.scheduledStart)<bEnd && aEnd>new Date(b.scheduledStart)) conflicts.push({resource:String(a.driver?._id||a.driver)===String(b.driver?._id||b.driver)?"DRIVER":"VEHICLE",first:a,second:b});}}} return res.json({success:true,count:conflicts.length,conflicts}); } catch(e){ return fail(res,500,"Unable to detect trip conflicts."); } }
-async function getNotifications(req,res){ try { const Notification=require("../models/Notification"); const {page,limit,skip}=paginationParams(req,{limit:25,max:100}); const [total,notifications]=await Promise.all([Notification.countDocuments({recipient:req.user._id}),Notification.find({recipient:req.user._id}).sort({createdAt:-1}).skip(skip).limit(limit).lean()]); return res.json({success:true,count:notifications.length,notifications,pagination:paginationMeta(page,limit,total)}); } catch(e){ return fail(res,500,"Unable to load notifications."); } }
+async function getNotifications(req,res){ try { const Notification=require("../models/Notification"); const {page,limit,skip}=paginationParams(req,{limit:10,max:100}); const [total,notifications]=await Promise.all([Notification.countDocuments({recipient:req.user._id}),Notification.find({recipient:req.user._id}).sort({createdAt:-1}).skip(skip).limit(limit).lean()]); return res.json({success:true,count:notifications.length,notifications,pagination:paginationMeta(page,limit,total)}); } catch(e){ return fail(res,500,"Unable to load notifications."); } }
 
 async function nextTripId() { const latest = await Trip.findOne({ tripId: /^TRP-\d+$/ }).sort({ createdAt: -1 }).select("tripId").lean(); const n = latest ? Number(latest.tripId.split("-")[1]) + 1 : 1001; return `TRP-${String(n).padStart(4, "0")}`; }
 

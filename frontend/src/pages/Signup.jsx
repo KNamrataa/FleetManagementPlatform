@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import "../Auth.css";
+import truckImage from "../assets/login-truck-reference.png";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -199,6 +200,7 @@ function Signup() {
 
       <div className="auth-wrapper signup-wrapper">
 
+        {/* BACK HOME - retained for functionality; visually hidden in the reference layout */}
         <button
           type="button"
           className="back-home-btn"
@@ -208,441 +210,420 @@ function Signup() {
           <span>Back to Home</span>
         </button>
 
-        <div className="auth-card signup-card">
+        <div className="auth-layout auth-layout-signup">
 
-          {/* BRAND */}
-
-          <div className="auth-brand">
-
-            <div className="auth-logo-icon">
-              <Truck size={23} strokeWidth={2} />
+          {/* LEFT MARKETING PANEL */}
+          <section className="auth-marketing-panel signup-marketing-panel">
+            <div className="marketing-brand">
+              <div className="auth-logo-icon">
+                <Truck size={20} />
+              </div>
+              <span>
+                Fleet<span>Flow</span>
+              </span>
             </div>
 
-            <span>
-              Fleet<span>Flow</span>
-            </span>
+            <div className="marketing-copy">
+              <h1>
+                Get Started
+                <br />
+                with FleetFlow
+              </h1>
+            </div>
 
-          </div>
-
-          {/* HEADING */}
-
-          <div className="auth-heading">
-
-            <div className="auth-heading-icon">
-              <ShieldCheck
-                size={25}
-                strokeWidth={2}
+            <div className="signup-dashboard-visual" aria-hidden="true">
+              <img
+                className="auth-truck-image signup-truck-image"
+                src={truckImage}
+                alt="FleetFlow delivery trucks"
               />
             </div>
+          </section>
 
-            <h1>Create Your Account</h1>
+          <div className="auth-card signup-card auth-card-signup">
 
-            <p>
-              Create your FleetFlow account.
+            {/* BRAND */}
+            <div className="auth-brand">
+              <div className="auth-logo-icon">
+                <Truck size={23} strokeWidth={2} />
+              </div>
+
+              <span>
+                Fleet<span>Flow</span>
+              </span>
+            </div>
+
+            {/* EXISTING HEADING RETAINED; CSS hides it to match the reference UI */}
+            <div className="auth-heading">
+              <div className="auth-heading-icon">
+                <ShieldCheck
+                  size={25}
+                  strokeWidth={2}
+                />
+              </div>
+
+              <h1>Create Your Account</h1>
+
+              <p>
+                Create your FleetFlow account.
+              </p>
+            </div>
+
+            {/* ADMIN NOTICE - retained; existing CSS hides it */}
+            <div className="account-notice">
+              <ShieldCheck
+                size={18}
+                strokeWidth={2}
+              />
+
+              <span>
+                System roles and permissions are
+                assigned securely by the administrator.
+              </span>
+            </div>
+
+            {/* SERVER ERROR */}
+            {serverError && (
+              <div
+                className="auth-server-error"
+                role="alert"
+              >
+                {serverError}
+              </div>
+            )}
+
+            {/* FORM */}
+            <form
+              className="auth-form"
+              onSubmit={handleSubmit}
+              noValidate
+            >
+
+              {/* FULL NAME */}
+              <div className="auth-field">
+                <label htmlFor="fullName">
+                  Full Name
+                </label>
+
+                <div
+                  className={`auth-input ${
+                    errors.fullName
+                      ? "input-error"
+                      : ""
+                  }`}
+                >
+                  <User
+                    size={18}
+                    strokeWidth={2}
+                  />
+
+                  <input
+                    id="fullName"
+                    name="fullName"
+                    type="text"
+                    autoComplete="name"
+                    placeholder="Enter your full name"
+                    value={formData.fullName}
+                    onChange={handleChange}
+                    disabled={loading}
+                  />
+                </div>
+
+                {errors.fullName && (
+                  <span className="field-error">
+                    {errors.fullName}
+                  </span>
+                )}
+              </div>
+
+              {/* EMAIL */}
+              <div className="auth-field">
+                <label htmlFor="email">
+                  Email Address
+                </label>
+
+                <div
+                  className={`auth-input ${
+                    errors.email
+                      ? "input-error"
+                      : ""
+                  }`}
+                >
+                  <Mail
+                    size={18}
+                    strokeWidth={2}
+                  />
+
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="Enter your email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    disabled={loading}
+                  />
+                </div>
+
+                {errors.email && (
+                  <span className="field-error">
+                    {errors.email}
+                  </span>
+                )}
+              </div>
+
+              {/* PHONE */}
+              <div className="auth-field">
+                <label htmlFor="phone">
+                  <span>Phone Number</span>
+                  <span className="optional-label">
+                    Optional
+                  </span>
+                </label>
+
+                <div
+                  className={`auth-input ${
+                    errors.phone
+                      ? "input-error"
+                      : ""
+                  }`}
+                >
+                  <Phone
+                    size={18}
+                    strokeWidth={2}
+                  />
+
+                  <input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    autoComplete="tel"
+                    placeholder="Enter your phone number"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    disabled={loading}
+                  />
+                </div>
+
+                {errors.phone && (
+                  <span className="field-error">
+                    {errors.phone}
+                  </span>
+                )}
+              </div>
+
+              {/* PASSWORD */}
+              <div className="auth-field">
+                <label htmlFor="password">
+                  Password
+                </label>
+
+                <div
+                  className={`auth-input ${
+                    errors.password
+                      ? "input-error"
+                      : ""
+                  }`}
+                >
+                  <Lock
+                    size={18}
+                    strokeWidth={2}
+                  />
+
+                  <input
+                    id="password"
+                    name="password"
+                    type={
+                      showPassword
+                        ? "text"
+                        : "password"
+                    }
+                    autoComplete="new-password"
+                    placeholder="Create a strong password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    disabled={loading}
+                  />
+
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() =>
+                      setShowPassword(
+                        (previous) => !previous
+                      )
+                    }
+                    aria-label={
+                      showPassword
+                        ? "Hide password"
+                        : "Show password"
+                    }
+                  >
+                    {showPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+                </div>
+
+                {errors.password && (
+                  <span className="field-error">
+                    {errors.password}
+                  </span>
+                )}
+              </div>
+
+              {/* PASSWORD REQUIREMENTS - retained; existing CSS hides it */}
+              <div className="password-requirements">
+                <PasswordRule
+                  valid={
+                    passwordRequirements.minLength
+                  }
+                  text="At least 8 characters"
+                />
+
+                <PasswordRule
+                  valid={
+                    passwordRequirements.uppercase
+                  }
+                  text="One uppercase letter"
+                />
+
+                <PasswordRule
+                  valid={
+                    passwordRequirements.lowercase
+                  }
+                  text="One lowercase letter"
+                />
+
+                <PasswordRule
+                  valid={
+                    passwordRequirements.number
+                  }
+                  text="One number"
+                />
+
+                <PasswordRule
+                  valid={
+                    passwordRequirements.specialCharacter
+                  }
+                  text="One special character"
+                />
+              </div>
+
+              {/* CONFIRM PASSWORD */}
+              <div className="auth-field">
+                <label htmlFor="confirmPassword">
+                  Confirm Password
+                </label>
+
+                <div
+                  className={`auth-input ${
+                    errors.confirmPassword
+                      ? "input-error"
+                      : ""
+                  }`}
+                >
+                  <Lock
+                    size={18}
+                    strokeWidth={2}
+                  />
+
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={
+                      showConfirmPassword
+                        ? "text"
+                        : "password"
+                    }
+                    autoComplete="new-password"
+                    placeholder="Confirm your password"
+                    value={
+                      formData.confirmPassword
+                    }
+                    onChange={handleChange}
+                    disabled={loading}
+                  />
+
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() =>
+                      setShowConfirmPassword(
+                        (previous) => !previous
+                      )
+                    }
+                    aria-label={
+                      showConfirmPassword
+                        ? "Hide password"
+                        : "Show password"
+                    }
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+                </div>
+
+                {errors.confirmPassword && (
+                  <span className="field-error">
+                    {errors.confirmPassword}
+                  </span>
+                )}
+              </div>
+
+              {/* TERMS */}
+              <div className="terms-container">
+                <label className="terms-label">
+                  <input
+                    type="checkbox"
+                    name="agreeTerms"
+                    checked={
+                      formData.agreeTerms
+                    }
+                    onChange={handleChange}
+                    disabled={loading}
+                  />
+
+                  <span>
+                    I agree to the Terms of Service
+                    and Privacy Policy.
+                  </span>
+                </label>
+
+                {errors.agreeTerms && (
+                  <span className="field-error">
+                    {errors.agreeTerms}
+                  </span>
+                )}
+              </div>
+
+              {/* SUBMIT */}
+              <button
+                type="submit"
+                className="auth-submit-btn"
+                disabled={loading}
+              >
+                {loading
+                  ? "Creating Account..."
+                  : "Create Account"}
+              </button>
+            </form>
+
+            {/* LOGIN LINK */}
+            <p className="auth-switch">
+              Already have an account?
+              <Link to="/login">
+                Sign In
+              </Link>
             </p>
 
           </div>
-
-          {/* ADMIN NOTICE */}
-
-          <div className="account-notice">
-
-            <ShieldCheck
-              size={18}
-              strokeWidth={2}
-            />
-
-            <span>
-              System roles and permissions are
-              assigned securely by the administrator.
-            </span>
-
-          </div>
-
-          {/* SERVER ERROR */}
-
-          {serverError && (
-            <div
-              className="auth-server-error"
-              role="alert"
-            >
-              {serverError}
-            </div>
-          )}
-
-          {/* FORM */}
-
-          <form
-            className="auth-form"
-            onSubmit={handleSubmit}
-            noValidate
-          >
-
-            {/* FULL NAME */}
-
-            <div className="auth-field">
-
-              <label htmlFor="fullName">
-                Full Name
-              </label>
-
-              <div
-                className={`auth-input ${
-                  errors.fullName
-                    ? "input-error"
-                    : ""
-                }`}
-              >
-
-                <User
-                  size={18}
-                  strokeWidth={2}
-                />
-
-                <input
-                  id="fullName"
-                  name="fullName"
-                  type="text"
-                  autoComplete="name"
-                  placeholder="Enter your full name"
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  disabled={loading}
-                />
-
-              </div>
-
-              {errors.fullName && (
-                <span className="field-error">
-                  {errors.fullName}
-                </span>
-              )}
-
-            </div>
-
-            {/* EMAIL */}
-
-            <div className="auth-field">
-
-              <label htmlFor="email">
-                Email Address
-              </label>
-
-              <div
-                className={`auth-input ${
-                  errors.email
-                    ? "input-error"
-                    : ""
-                }`}
-              >
-
-                <Mail
-                  size={18}
-                  strokeWidth={2}
-                />
-
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  placeholder="Enter your email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  disabled={loading}
-                />
-
-              </div>
-
-              {errors.email && (
-                <span className="field-error">
-                  {errors.email}
-                </span>
-              )}
-
-            </div>
-
-            {/* PHONE */}
-
-            <div className="auth-field">
-
-              <label htmlFor="phone">
-
-                <span>Phone Number</span>
-
-                <span className="optional-label">
-                  Optional
-                </span>
-
-              </label>
-
-              <div
-                className={`auth-input ${
-                  errors.phone
-                    ? "input-error"
-                    : ""
-                }`}
-              >
-
-                <Phone
-                  size={18}
-                  strokeWidth={2}
-                />
-
-                <input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  autoComplete="tel"
-                  placeholder="Enter your phone number"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  disabled={loading}
-                />
-
-              </div>
-
-              {errors.phone && (
-                <span className="field-error">
-                  {errors.phone}
-                </span>
-              )}
-
-            </div>
-
-            {/* PASSWORD */}
-
-            <div className="auth-field">
-
-              <label htmlFor="password">
-                Password
-              </label>
-
-              <div
-                className={`auth-input ${
-                  errors.password
-                    ? "input-error"
-                    : ""
-                }`}
-              >
-
-                <Lock
-                  size={18}
-                  strokeWidth={2}
-                />
-
-                <input
-                  id="password"
-                  name="password"
-                  type={
-                    showPassword
-                      ? "text"
-                      : "password"
-                  }
-                  autoComplete="new-password"
-                  placeholder="Create a strong password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  disabled={loading}
-                />
-
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() =>
-                    setShowPassword(
-                      (previous) => !previous
-                    )
-                  }
-                  aria-label={
-                    showPassword
-                      ? "Hide password"
-                      : "Show password"
-                  }
-                >
-                  {showPassword ? (
-                    <EyeOff size={18} />
-                  ) : (
-                    <Eye size={18} />
-                  )}
-                </button>
-
-              </div>
-
-              {errors.password && (
-                <span className="field-error">
-                  {errors.password}
-                </span>
-              )}
-
-            </div>
-
-            {/* PASSWORD REQUIREMENTS */}
-
-            <div className="password-requirements">
-
-              <PasswordRule
-                valid={
-                  passwordRequirements.minLength
-                }
-                text="At least 8 characters"
-              />
-
-              <PasswordRule
-                valid={
-                  passwordRequirements.uppercase
-                }
-                text="One uppercase letter"
-              />
-
-              <PasswordRule
-                valid={
-                  passwordRequirements.lowercase
-                }
-                text="One lowercase letter"
-              />
-
-              <PasswordRule
-                valid={
-                  passwordRequirements.number
-                }
-                text="One number"
-              />
-
-              <PasswordRule
-                valid={
-                  passwordRequirements.specialCharacter
-                }
-                text="One special character"
-              />
-
-            </div>
-
-            {/* CONFIRM PASSWORD */}
-
-            <div className="auth-field">
-
-              <label htmlFor="confirmPassword">
-                Confirm Password
-              </label>
-
-              <div
-                className={`auth-input ${
-                  errors.confirmPassword
-                    ? "input-error"
-                    : ""
-                }`}
-              >
-
-                <Lock
-                  size={18}
-                  strokeWidth={2}
-                />
-
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={
-                    showConfirmPassword
-                      ? "text"
-                      : "password"
-                  }
-                  autoComplete="new-password"
-                  placeholder="Confirm your password"
-                  value={
-                    formData.confirmPassword
-                  }
-                  onChange={handleChange}
-                  disabled={loading}
-                />
-
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() =>
-                    setShowConfirmPassword(
-                      (previous) => !previous
-                    )
-                  }
-                  aria-label={
-                    showConfirmPassword
-                      ? "Hide password"
-                      : "Show password"
-                  }
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff size={18} />
-                  ) : (
-                    <Eye size={18} />
-                  )}
-                </button>
-
-              </div>
-
-              {errors.confirmPassword && (
-                <span className="field-error">
-                  {errors.confirmPassword}
-                </span>
-              )}
-
-            </div>
-
-            {/* TERMS */}
-
-            <div className="terms-container">
-
-              <label className="terms-label">
-
-                <input
-                  type="checkbox"
-                  name="agreeTerms"
-                  checked={
-                    formData.agreeTerms
-                  }
-                  onChange={handleChange}
-                  disabled={loading}
-                />
-
-                <span>
-                  I agree to the Terms of Service
-                  and Privacy Policy.
-                </span>
-
-              </label>
-
-              {errors.agreeTerms && (
-                <span className="field-error">
-                  {errors.agreeTerms}
-                </span>
-              )}
-
-            </div>
-
-            {/* SUBMIT */}
-
-            <button
-              type="submit"
-              className="auth-submit-btn"
-              disabled={loading}
-            >
-              {loading
-                ? "Creating Account..."
-                : "Create Account"}
-            </button>
-
-          </form>
-
-          {/* LOGIN LINK */}
-
-          <p className="auth-switch">
-
-            Already have an account?
-
-            <Link to="/login">
-              Sign In
-            </Link>
-
-          </p>
 
         </div>
 

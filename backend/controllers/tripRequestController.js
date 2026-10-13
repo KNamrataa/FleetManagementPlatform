@@ -6,6 +6,8 @@ const DriverProfile = require("../models/DriverProfile");
 const { reservePair, releasePair, hasActiveTripForVehicle, hasActiveTripForDriver } = require("../utils/fleetHelpers");
 const { safeNotify, notifyRoles, notifyUsers } = require("../services/notificationService");
 const { paginationParams, paginationMeta } = require("../utils/pagination");
+const { optimizeAndPersistTrip } = require("../services/routeOptimizationService");
+const { autoAssignTripRequest } = require("../services/aiTripAssignmentService");
 
 const validId = (id) => mongoose.Types.ObjectId.isValid(id);
 const fail = (res, status, message) => res.status(status).json({ success: false, message });
@@ -15,7 +17,9 @@ const populateRequest = (query) => query
   .populate("customer", "fullName email phone")
   .populate("trip", "tripId tripStatus scheduledStart scheduledEnd vehicle driver")
   .populate("acceptedBy", "fullName email")
-  .populate("scheduledBy", "fullName email");
+  .populate("scheduledBy", "fullName email")
+  .populate("aiAssignment.vehicle", "registrationNumber vehicleNumber vehicleType make model status capacity payloadCapacityKg")
+  .populate("aiAssignment.driver", "fullName email phone");
 
 async function nextRequestNumber() {
   const latest = await TripRequest.findOne({ requestNumber: /^TRQ-\d+$/ })
@@ -34,7 +38,7 @@ async function nextTripId() {
 
 async function getTripRequests(req, res) {
   try {
-    const { page, limit, skip } = paginationParams(req, { limit: 20, max: 100 });
+    const { page, limit, skip } = paginationParams(req, { limit: 10, max: 100 });
     const filter = {};
     if (req.query.status) { const status = String(req.query.status).toUpperCase(); if (!REQUEST_STATUSES.includes(status)) return fail(res,400,"Invalid trip request status."); filter.status=status; }
     if (req.query.search?.trim()) { const raw = req.query.search.trim(); const escaped = raw.replace(/[^\w\s-]/g, "\\$&"); const rx = new RegExp(escaped, "i"); const customers=await require("../models/User").find({role:"CUSTOMER",$or:[{fullName:rx},{email:rx},{phone:rx}]}).select("_id").lean(); filter.$or=[{requestNumber:rx},{pickupLocation:rx},{destination:rx},{serviceType:rx},{vehicleType:rx},...(customers.length?[{customer:{$in:customers.map(c=>c._id)}}]:[])]; }
@@ -57,7 +61,7 @@ async function getTripRequest(req, res) {
 
 async function createCustomerTripRequest(req, res) {
   try {
-    const { pickupLocation, destination, requestedDate, requestedTime = "", serviceType = "Passenger Transportation", vehicleType = "", passengerCount = 0, cargoDetails = "", cargoWeight = 0, specialInstructions = "" } = req.body;
+    const { pickupLocation, destination, requestedDate, requestedTime = "", serviceType = "Passenger Transportation", vehicleType = "", passengerCount = 0, cargoDetails = "", cargoWeight = 0, estimatedDurationMinutes = 0, specialInstructions = "" } = req.body;
     if (!pickupLocation?.trim() || !destination?.trim() || !requestedDate) return fail(res, 400, "Pickup, destination and requested date are required.");
     const date = new Date(requestedDate);
     if (Number.isNaN(date.getTime())) return fail(res, 400, "Invalid requested date.");
@@ -77,6 +81,7 @@ async function createCustomerTripRequest(req, res) {
           passengerCount: Number(passengerCount) || 0,
           cargoDetails: String(cargoDetails || "").trim(),
           cargoWeight: Number(cargoWeight) || 0,
+          estimatedDurationMinutes: Number(estimatedDurationMinutes) || 0,
           specialInstructions: String(specialInstructions || "").trim(),
           status: "PENDING",
         });
@@ -132,6 +137,61 @@ async function updateTripRequestStatus(req, res) {
   }
 }
 
+
+async function aiAssignTripRequest(req, res) {
+  try {
+    if (!validId(req.params.id)) return fail(res, 400, "Invalid trip request ID.");
+
+    const result = await autoAssignTripRequest({
+      requestId: req.params.id,
+      assignedBy: req.user._id,
+    });
+
+    const io = req.app.get("io");
+    const request = await TripRequest.findById(req.params.id).populate("customer", "fullName email phone").lean();
+
+    await safeNotify(() => notifyUsers({
+      io,
+      recipients: [request.customer?._id || request.customer],
+      type: "TRIP_SCHEDULED",
+      title: "Trip Scheduled by AI",
+      message: `Your request ${request.requestNumber} was automatically assigned a vehicle and driver.`,
+      link: `/customer/trips/${result.trip._id}`,
+      data: {
+        tripId: result.trip._id,
+        tripNumber: result.trip.tripId,
+        requestId: request._id,
+        assignmentSource: "AI",
+      },
+    }));
+
+    await safeNotify(() => notifyUsers({
+      io,
+      recipients: [result.trip.driver?._id || result.trip.driver],
+      type: "TRIP_ASSIGNED",
+      title: "New Trip Assigned by AI",
+      message: `Trip ${result.trip.tripId} has been automatically assigned to you.`,
+      link: `/driver/trips/${result.trip._id}`,
+      data: { tripId: result.trip._id, tripNumber: result.trip.tripId, assignmentSource: "AI" },
+    }));
+
+    res.status(201).json({
+      success: true,
+      message: `AI assigned ${result.trip.vehicle?.registrationNumber || "the best available vehicle"} and ${result.trip.driver?.fullName || "the best available driver"}.`,
+      trip: result.trip,
+      ai: {
+        score: result.score,
+        reasons: result.reasons,
+        vehicle: result.trip.vehicle,
+        driver: result.trip.driver,
+      },
+    });
+  } catch (e) {
+    console.error("AI assign trip request error:", e);
+    fail(res, e.status || 500, e.message || "AI could not assign this trip request.");
+  }
+}
+
 async function scheduleTripRequest(req, res) {
   let reserved = false;
   let reservedVehicle = null;
@@ -181,6 +241,8 @@ async function scheduleTripRequest(req, res) {
       }
     }
 
+    try { await optimizeAndPersistTrip(trip._id, { force: true }); } catch (routeError) { console.warn("Scheduled trip route optimization skipped:", routeError.message); }
+
     request.status = "TRIP_CREATED";
     request.trip = trip._id;
     request.scheduledBy = req.user._id;
@@ -208,4 +270,4 @@ async function scheduleTripRequest(req, res) {
   }
 }
 
-module.exports = { getTripRequests, getTripRequest, createCustomerTripRequest, updateTripRequestStatus, scheduleTripRequest };
+module.exports = { getTripRequests, getTripRequest, createCustomerTripRequest, updateTripRequestStatus, scheduleTripRequest, aiAssignTripRequest };

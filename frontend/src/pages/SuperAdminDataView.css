@@ -33,7 +33,7 @@
 .sa-settings-grid strong { display: block; color: #1e293b; font-size: 14px; word-break: break-word; }
 @media (max-width: 1000px) { .sa-data-cards { grid-template-columns: repeat(2, 1fr); } .sa-report-grid { grid-template-columns: 1fr; } }
 @media (max-width: 620px) { .sa-data-cards, .sa-settings-grid { grid-template-columns: 1fr; } .sa-data-panel { padding: 14px; } }
-.sa-table-pager{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0 0;flex-wrap:wrap}.sa-table-pager>div{display:flex;align-items:center}.sa-small-action:disabled{opacity:.45;cursor:not-allowed}.sa-mini-bars{display:flex;align-items:flex-end;gap:10px;min-height:180px;padding:10px 4px 0;overflow-x:auto}.sa-mini-bar{min-width:42px;text-align:center;display:flex;flex-direction:column;gap:6px;height:170px;justify-content:flex-end}.sa-mini-bar-track{height:140px;display:flex;align-items:flex-end;justify-content:center;border-bottom:1px solid #dbe2ea}.sa-mini-bar-track span{display:block;width:24px;border-radius:5px 5px 0 0;background:linear-gradient(to top,#2563eb,#60a5fa);min-height:4px}.sa-mini-bar small{font-size:10px;color:#64748b}
+.sa-table-pager{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0 0;flex-wrap:wrap}.sa-table-pager>div{display:flex;align-items:center}.sa-table-export-actions{display:flex;align-items:center;gap:8px}.sa-table-pager .ff-pagination{flex:1;margin-top:0;padding:0;justify-content:flex-end}.sa-small-action:disabled{opacity:.45;cursor:not-allowed}.sa-mini-bars{display:flex;align-items:flex-end;gap:10px;min-height:180px;padding:10px 4px 0;overflow-x:auto}.sa-mini-bar{min-width:42px;text-align:center;display:flex;flex-direction:column;gap:6px;height:170px;justify-content:flex-end}.sa-mini-bar-track{height:140px;display:flex;align-items:flex-end;justify-content:center;border-bottom:1px solid #dbe2ea}.sa-mini-bar-track span{display:block;width:24px;border-radius:5px 5px 0 0;background:linear-gradient(to top,#2563eb,#60a5fa);min-height:4px}.sa-mini-bar small{font-size:10px;color:#64748b}
 .sa-report-date{margin-top:6px;padding:9px 10px;border:1px solid #d8e0ea;border-radius:7px;font:inherit;color:#0f172a;background:#fff}
 @media print{.dashboard-sidebar,.dashboard-header,.customer-button,.sa-table-pager{display:none!important}.sa-data-panel{box-shadow:none!important;break-inside:avoid}.sa-section-stack{padding:0!important}.sa-table-wrap{overflow:visible!important}}
 
@@ -69,6 +69,10 @@
     width: 100%;
     flex-wrap: wrap;
     gap: 6px;
+  }
+
+  .sa-table-pager .ff-pagination {
+    width: 100%;
   }
 
   .sa-report-date {

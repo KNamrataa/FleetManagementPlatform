@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Pagination } from "../components/Pagination";
 import { getSocket } from "../services/socket";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import L from "leaflet";
@@ -16,31 +17,32 @@ function DataCard({ label, value, icon }) {
   return <div className="sa-data-card"><span>{icon}</span><div><small>{label}</small><strong>{value}</strong></div></div>;
 }
 
-function Table({ columns, rows, empty = "No data available.", pagination, onPageChange, onExport, onExportPdf }) {
-  return <div className="sa-table-wrap"><table className="sa-table"><thead><tr>{columns.map((c) => <th key={c.label}>{c.label}</th>)}</tr></thead><tbody>{rows.length ? rows.map((row, index) => <tr key={row._id || row.id || row.reference || index}>{columns.map((c) => <td key={c.label}>{c.render ? c.render(row) : row[c.key] ?? "—"}</td>)}</tr>) : <tr><td colSpan={columns.length} className="sa-empty">{empty}</td></tr>}</tbody></table>{(pagination || onExport || onExportPdf) && <div className="sa-table-pager"><button className="sa-small-action" onClick={onExport} disabled={!onExport}>Export CSV</button>{onExportPdf && <button className="sa-small-action" onClick={onExportPdf}>Export PDF</button>}{pagination && <div><button className="sa-small-action" disabled={!pagination.hasPrevPage} onClick={() => onPageChange(pagination.page - 1)}>Previous</button><span style={{margin:"0 10px"}}>Page {pagination.page} of {Math.max(1,pagination.totalPages)}</span><button className="sa-small-action" disabled={!pagination.hasNextPage} onClick={() => onPageChange(pagination.page + 1)}>Next</button></div>}</div>}</div>;
+function Table({ columns, rows, empty = "No data available.", pagination, onPageChange, onLimitChange, onExport, onExportPdf }) {
+  return <div className="sa-table-wrap"><table className="sa-table"><thead><tr>{columns.map((c) => <th key={c.label}>{c.label}</th>)}</tr></thead><tbody>{rows.length ? rows.map((row, index) => <tr key={row._id || row.id || row.reference || index}>{columns.map((c) => <td key={c.label}>{c.render ? c.render(row) : row[c.key] ?? "—"}</td>)}</tr>) : <tr><td colSpan={columns.length} className="sa-empty">{empty}</td></tr>}</tbody></table>{(pagination || onExport || onExportPdf) && <div className="sa-table-pager"><div className="sa-table-export-actions"><button className="sa-small-action" onClick={onExport} disabled={!onExport}>Export CSV</button>{onExportPdf && <button className="sa-small-action" onClick={onExportPdf}>Export PDF</button>}</div>{pagination && <Pagination page={pagination.page || 1} totalPages={pagination.totalPages || 1} total={pagination.total || rows.length} limit={pagination.limit || 10} onPageChange={onPageChange} onLimitChange={onLimitChange} />}</div>}</div>;
 }
 
-export default function SuperAdminDataView({ view, data, pagination, onPageChange, onExport, onExportPdf, reportFrom, reportTo, setReportFrom, setReportTo }) {
-  if (view === "trips") return <TripsView data={data} pagination={pagination} onPageChange={onPageChange} onExport={() => onExport("trips")} onExportPdf={() => onExportPdf("trips")} />;
-  if (view === "tracking") return <TrackingView data={data} pagination={pagination} onPageChange={onPageChange} onExport={() => onExport("tracking")} onExportPdf={() => onExportPdf("tracking")} />;
-  if (view === "fuel") return <FuelView data={data} pagination={pagination} onPageChange={onPageChange} onExport={() => onExport("fuel")} onExportPdf={() => onExportPdf("fuel")} />;
+export default function SuperAdminDataView({ view, data, pagination, onPageChange, onLimitChange, onExport, onExportPdf, reportFrom, reportTo, setReportFrom, setReportTo }) {
+  if (view === "trips") return <TripsView data={data} pagination={pagination} onPageChange={onPageChange} onLimitChange={onLimitChange} onExport={() => onExport("trips")} onExportPdf={() => onExportPdf("trips")} />;
+  if (view === "tracking") return <TrackingView data={data} pagination={pagination} onPageChange={onPageChange} onLimitChange={onLimitChange} onExport={() => onExport("tracking")} onExportPdf={() => onExportPdf("tracking")} />;
+  if (view === "fuel") return <FuelView data={data} pagination={pagination} onPageChange={onPageChange} onLimitChange={onLimitChange} onExport={() => onExport("fuel")} onExportPdf={() => onExportPdf("fuel")} />;
   if (view === "maintenance") {
   return (
     <MaintenanceView
       data={data}
       pagination={pagination}
       onPageChange={onPageChange}
+          onLimitChange={onLimitChange}
       onExport={() => onExport("maintenance")} onExportPdf={() => onExportPdf("maintenance")}
     />
   );
 }
-  if (view === "expenses") return <ExpensesView data={data} pagination={pagination} onPageChange={onPageChange} onExport={() => onExport("expenses")} onExportPdf={() => onExportPdf("expenses")} />;
+  if (view === "expenses") return <ExpensesView data={data} pagination={pagination} onPageChange={onPageChange} onLimitChange={onLimitChange} onExport={() => onExport("expenses")} onExportPdf={() => onExportPdf("expenses")} />;
   if (view === "reports") return <ReportsView data={data} reportFrom={reportFrom} reportTo={reportTo} setReportFrom={setReportFrom} setReportTo={setReportTo} onExport={onExport} />;
   if (view === "settings") return <SettingsView data={data} />;
   return null;
 }
 
-function TripsView({ data, pagination, onPageChange, onExport, onExportPdf }) {
+function TripsView({ data, pagination, onPageChange, onLimitChange, onExport, onExportPdf }) {
   const trips = data?.trips || [];
   const active = trips.filter((x) => ["ASSIGNED", "IN_PROGRESS", "PAUSED"].includes(x.tripStatus)).length;
   const completed = trips.filter((x) => x.tripStatus === "COMPLETED").length;
@@ -54,7 +56,7 @@ function TripsView({ data, pagination, onPageChange, onExport, onExportPdf }) {
       { label: "Vehicle", render: (r) => r.vehicle?.registrationNumber || "—" },
       { label: "Schedule", render: (r) => date(r.scheduledStart) },
       { label: "Status", render: (r) => <span className={`sa-status ${String(r.tripStatus || "").toLowerCase()}`}>{status(r.tripStatus)}</span> },
-    ]} rows={trips} pagination={pagination} onPageChange={onPageChange} onExport={onExport} onExportPdf={onExportPdf} /></section>
+    ]} rows={trips} pagination={pagination} onPageChange={onPageChange} onLimitChange={onLimitChange} onExport={onExport} onExportPdf={onExportPdf} /></section>
   </>;
 }
 
@@ -62,6 +64,7 @@ function TrackingView({
   data,
   pagination,
   onPageChange,
+  onLimitChange,
   onExport,
   onExportPdf,
 }) {
@@ -471,6 +474,7 @@ function TrackingView({
           rows={tracking}
           pagination={pagination}
           onPageChange={onPageChange}
+          onLimitChange={onLimitChange}
           onExport={onExport}
           onExportPdf={onExportPdf}
         />
@@ -480,7 +484,7 @@ function TrackingView({
   );
 }
 
-function FuelView({ data, pagination, onPageChange, onExport, onExportPdf }) {
+function FuelView({ data, pagination, onPageChange, onLimitChange, onExport, onExportPdf }) {
   const fuel = data?.fuel || [];
   return <>
     <div className="sa-data-cards"><DataCard label="Fuel Entries" value={fuel.length} icon={<Fuel />} /><DataCard label="Total Fuel Cost" value={money(data?.total)} icon={<CircleDollarSign />} /><DataCard label="Litres Used" value={Number(data?.litres || 0).toLocaleString()} icon={<Fuel />} /></div>
@@ -493,7 +497,7 @@ function FuelView({ data, pagination, onPageChange, onExport, onExportPdf }) {
       { label: "Litres", render: (r) => Number(r.litres || 0) },
       { label: "Amount", render: (r) => money(r.totalAmount) },
       { label: "Station", render: (r) => r.fuelStation || "—" },
-    ]} rows={fuel} pagination={pagination} onPageChange={onPageChange} onExport={onExport} onExportPdf={onExportPdf} /></section>
+    ]} rows={fuel} pagination={pagination} onPageChange={onPageChange} onLimitChange={onLimitChange} onExport={onExport} onExportPdf={onExportPdf} /></section>
   </>;
 }
 
@@ -501,6 +505,7 @@ function MaintenanceView({
   data,
   pagination,
   onPageChange,
+  onLimitChange,
   onExport,
   onExportPdf,
 }) {
@@ -621,6 +626,7 @@ function MaintenanceView({
           rows={issues}
           pagination={pagination}
           onPageChange={onPageChange}
+          onLimitChange={onLimitChange}
           onExport={onExport}
           onExportPdf={onExportPdf}
         />
@@ -713,6 +719,7 @@ function MaintenanceView({
           rows={workOrders}
           pagination={pagination}
           onPageChange={onPageChange}
+          onLimitChange={onLimitChange}
           onExport={onExport}
           onExportPdf={onExportPdf}
         />
@@ -793,6 +800,7 @@ function MaintenanceView({
           rows={records}
           pagination={pagination}
           onPageChange={onPageChange}
+          onLimitChange={onLimitChange}
           onExport={onExport}
           onExportPdf={onExportPdf}
         />
@@ -870,6 +878,7 @@ function MaintenanceView({
           rows={schedules}
           pagination={pagination}
           onPageChange={onPageChange}
+          onLimitChange={onLimitChange}
           onExport={onExport}
           onExportPdf={onExportPdf}
         />
@@ -880,7 +889,7 @@ function MaintenanceView({
   );
 }
 
-function ExpensesView({ data, pagination, onPageChange, onExport, onExportPdf }) {
+function ExpensesView({ data, pagination, onPageChange, onLimitChange, onExport, onExportPdf }) {
   const expenses = data?.expenses || [];
   const payments = data?.payments || [];
   return <div className="sa-section-stack">
@@ -893,7 +902,7 @@ function ExpensesView({ data, pagination, onPageChange, onExport, onExportPdf })
       { label: "Date", render: (r) => date(r.date) },
       { label: "Amount", render: (r) => money(r.amount) },
       { label: "Status", render: (r) => status(r.status) },
-    ]} rows={expenses} pagination={pagination} onPageChange={onPageChange} onExport={onExport} onExportPdf={onExportPdf} /></section>
+    ]} rows={expenses} pagination={pagination} onPageChange={onPageChange} onLimitChange={onLimitChange} onExport={onExport} onExportPdf={onExportPdf} /></section>
     <section className="sa-data-panel"><div className="sa-panel-heading"><h2>Payments</h2><p>Received and paid payment records.</p></div><Table columns={[
       { label: "Payment No.", render: (r) => r.paymentNumber },
       { label: "Type", render: (r) => r.type },
@@ -902,7 +911,7 @@ function ExpensesView({ data, pagination, onPageChange, onExport, onExportPdf })
       { label: "Amount", render: (r) => money(r.amount) },
       { label: "Date", render: (r) => date(r.paymentDate) },
       { label: "Status", render: (r) => status(r.status) },
-    ]} rows={payments} pagination={pagination} onPageChange={onPageChange} onExport={onExport} onExportPdf={onExportPdf} /></section>
+    ]} rows={payments} pagination={pagination} onPageChange={onPageChange} onLimitChange={onLimitChange} onExport={onExport} onExportPdf={onExportPdf} /></section>
   </div>;
 }
 

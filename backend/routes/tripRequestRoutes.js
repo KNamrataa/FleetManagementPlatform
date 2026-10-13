@@ -5,6 +5,7 @@ const {
   createCustomerTripRequest,
   updateTripRequestStatus,
   scheduleTripRequest,
+  aiAssignTripRequest,
 } = require("../controllers/tripRequestController");
 const { authenticate, authorize } = require("../middleware/authMiddleware");
 
@@ -17,9 +18,8 @@ router.get("/", ...managerAccess, getTripRequests);
 router.get("/:id", ...managerAccess, getTripRequest);
 router.patch("/:id/status", ...managerAccess, updateTripRequestStatus);
 router.post("/:id/schedule", ...managerAccess, scheduleTripRequest);
+router.post("/:id/ai-assign", ...managerAccess, aiAssignTripRequest);
 
-// Kept here so the existing Customer Dashboard can submit requests against the
-// same MongoDB collection without introducing a second request model/endpoint.
 router.post("/customer", ...customerAccess, createCustomerTripRequest);
 
 module.exports = router;

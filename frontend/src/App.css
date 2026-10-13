@@ -1,4 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap");
 :root {
   --primary: #dc2626;
   --primary-dark: #b91c1c;
@@ -57,6 +56,15 @@ button {
 .app {
   width: 100%;
   overflow: hidden;
+}
+.features-section,
+.why-section,
+.how-section,
+.dashboard-section,
+.contact-section,
+.footer {
+  content-visibility: auto;
+  contain-intrinsic-size: 700px;
 }
 .navbar {
   position: sticky;
@@ -890,61 +898,6 @@ button {
   background: var(--bg-dark);
 }
 
-.dashboard-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 8px;
-  color: white;
-  font-family: "Plus Jakarta Sans", sans-serif;
-  font-size: 18px;
-  font-weight: 800;
-}
-.dashboard-brand > span > span {
-  color: var(--blue-400);
-}
-
-.dashboard-brand-icon {
-  width: 38px;
-  height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  background: var(--primary);
-}
-.dashboard-menu {
-  margin-top: 38px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.dashboard-menu-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 9px;
-  color: var(--text-light);
-  font-size: 12px;
-  font-weight: 500;
-  transition: 0.2s;
-}
-.dashboard-menu-item svg {
-  width: 17px;
-  height: 17px;
-}
-
-.dashboard-menu-item:hover {
-  color: white;
-  background: #243047;
-}
-
-.dashboard-menu-item.active {
-  color: white;
-  background: var(--primary);
-}
-
 .dashboard-main-content {
   flex: 1;
   min-width: 0;
@@ -1693,16 +1646,6 @@ button {
     width: 75px;
   }
 
-  .dashboard-brand > span,
-  .dashboard-menu-item span {
-    display: none;
-  }
-
-  .dashboard-brand,
-  .dashboard-menu-item {
-    justify-content: center;
-  }
-
   .dashboard-stats {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -1816,24 +1759,6 @@ button {
     overflow-x: auto;
   }
 
-  .dashboard-brand {
-    display: none;
-  }
-
-  .dashboard-menu {
-    width: max-content;
-    margin-top: 0;
-    flex-direction: row;
-  }
-
-  .dashboard-menu-item span {
-    display: inline;
-  }
-
-  .dashboard-menu-item {
-    white-space: nowrap;
-  }
-
   .dashboard-main-content {
     padding: 14px;
   }
@@ -1902,12 +1827,6 @@ button {
   }
 }
 @media (max-width: 420px) {
-  .hero-card-stats strong {
-    font-size: 16px;
-  }
-  .hero-card-stats div {
-    padding: 10px;
-  }
   .stats-container {
     gap: 20px;
   }
@@ -2163,8 +2082,6 @@ button {
     width: 100%;
   }
 }
-
-/* Dynamic public dashboard data states */
 .dashboard-data-message {
   max-width: 1200px;
   margin: -30px auto 24px;
@@ -2185,4 +2102,91 @@ button {
   color: var(--text-muted);
   text-align: center;
   font-size: 13px;
+}
+
+.app .hero-dashboard-header h2.hero-dashboard-title {
+  margin: 0;
+  color: var(--text-dark);
+  font-size: 20px;
+  font-weight: 700;
+}
+.app .hero-badge,
+.app .section-tag {
+  color: #b91c1c;
+}
+
+.app .hero-dashboard-header > div > span:not(.hero-live),
+.app .hero-stat-card span,
+.app .hero-dashboard-panel .hero-panel-heading p,
+.app .hero-dashboard-footer span {
+  color: #5f6b7a;
+}
+
+.app .hero-live {
+  color: #15803d !important;
+}
+
+.app .hero-status-row span {
+  color: #5b6777;
+}
+
+.app .hero-trip span {
+  color: #5b6777;
+}
+
+.app .hero-trip small {
+  color: #137a45;
+}
+
+.app .hero-trip small.scheduled-text {
+  color: #b91c1c;
+}
+
+.app .why-card-header span,
+.app .chart-labels span,
+.app .small-info-card span,
+.app .dashboard-header p,
+.app .dashboard-card-header p,
+.app .trip-info span,
+.app .metric-card small {
+  color: #64748b;
+}
+
+.app .efficiency-badge,
+.app .completed-status {
+  color: #15803d;
+}
+
+.app .active-status {
+  color: #b91c1c;
+}
+
+.app .warning-text {
+  color: #a16207;
+}
+
+.app .dashboard-avatar {
+  color: #b91c1c;
+}
+
+.app .metric-card span {
+  color: #5f6b7a;
+}
+.app .footer-column h3 {
+  margin-bottom: 5px;
+  font-size: 12px;
+}
+.app .footer-column button {
+  min-height: 24px;
+  padding: 6px 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+.app .performance-card p {
+  color: #64748b;
+}
+
+.app .footer-bottom {
+  color: #94a3b8;
 }

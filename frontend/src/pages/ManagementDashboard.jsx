@@ -1,9 +1,9 @@
 import NotificationBell from "../components/NotificationBell";
+import { ClientPaginationTable } from "../components/Pagination";
 import {
   Activity,
   AlertTriangle,
   BarChart3,
-  Bell,
   Car,
   CheckCircle2,
   CircleDollarSign,
@@ -23,6 +23,7 @@ import { useEffect, useMemo, useState } from "react";
 import { apiRequest, clearAuthSession, getStoredUser } from "../services/api";
 import "./RoleDashboard.css";
 import "./ManagementDashboard.css";
+import AnalyticsReportPanel from "../components/AnalyticsReportPanel";
 
 const money = (value) => `₹${Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
 const number = (value) => Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 });
@@ -76,6 +77,7 @@ function ManagementDashboard() {
   };
 
   const goToSection = (id) => {
+    if (id === "analytics") { setSidebarOpen(false); navigate("/analytics"); return; }
     setActiveSection(id);
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
     setSidebarOpen(false);
@@ -115,6 +117,7 @@ function ManagementDashboard() {
     ["Financial Reports", BarChart3, "mgmt-3"],
     ["Maintenance", Wrench, "mgmt-4"],
     ["Customers", Users, "mgmt-5"],
+    ["Analytics", BarChart3, "analytics"],
   ];
 
   const fleetReportText = useMemo(() => reports.fleet || {}, [reports]);
@@ -133,7 +136,7 @@ function ManagementDashboard() {
 
       <main className="role-main">
         <header className="role-header">
-          <button className="role-mobile-menu" onClick={() => setSidebarOpen((v) => !v)}>{sidebarOpen ? <X size={22} /> : <Menu size={22} />}</button>
+          <button className="role-mobile-menu" aria-label={sidebarOpen ? "Close navigation menu" : "Open navigation menu"} aria-expanded={sidebarOpen} onClick={() => setSidebarOpen((v) => !v)}>{sidebarOpen ? <X size={22} /> : <Menu size={22} />}</button>
           <div><p className="role-eyebrow">MANAGEMENT / VIEWER</p><h1>Management Dashboard</h1><p>Fleet performance, business monitoring and read-only analytics</p></div>
           <div className="role-header-user"><NotificationBell /><span>{user.fullName}</span><button className="management-refresh" onClick={load} disabled={loading}>{loading ? "Loading…" : "Refresh"}</button></div>
         </header>
@@ -177,13 +180,13 @@ function ManagementDashboard() {
                 <SectionHeading kicker="FLEET REPORT" title="Fleet Performance" description="Vehicle-by-vehicle utilization, trip activity, distance and operating cost analysis." icon={<Truck />} />
                 <div className="management-summary-grid"><SummaryCard label="Vehicles" value={number(fleetReportText.vehicles)} /><SummaryCard label="Fleet Distance" value={`${number(fleetReportText.distance)} km`} /><SummaryCard label="Operating Cost" value={money(fleetReportText.operatingCost)} /><SummaryCard label="Maintenance Vehicles" value={number(k.vehiclesInMaintenance)} /></div>
                 <DashboardCard title="Vehicle Performance — Every Vehicle" icon={<Truck />}>
-                  <div className="role-table-wrapper"><table className="role-table performance-table"><thead><tr><th>Vehicle</th><th>Status</th><th>Trips</th><th>Completed</th><th>Distance</th><th>Fuel</th><th>Maintenance</th><th>Operating Cost</th><th>Cost/Trip</th><th>Completion</th></tr></thead><tbody>{vehiclePerformance.map((row) => <tr key={String(row.vehicleId)}><td><strong>{row.vehicleNumber || "—"}</strong><small>{row.registrationNumber || "—"}</small></td><td><StatusBadge value={row.status} /></td><td><BarValue value={row.trips} max={maxVehicleTrips} /></td><td>{row.completedTrips}</td><td>{number(row.totalDistance)} km</td><td>{money(row.fuelCost)}</td><td>{money(row.maintenanceCost)}</td><td><strong>{money(row.operatingCost)}</strong></td><td>{money(row.costPerTrip)}</td><td>{percent(row.completionRate)}</td></tr>)}{!vehiclePerformance.length && <EmptyRow colSpan="10" text="No vehicle performance data available." />}</tbody></table></div>
+                  <ClientPaginationTable className="role-table-wrapper" tableClassName="role-table performance-table" headers={["Vehicle","Status","Trips","Completed","Distance","Fuel","Maintenance","Operating Cost","Cost/Trip","Completion"]} items={vehiclePerformance} pageSize={10} empty="No vehicle performance data available." renderRow={row=><tr key={String(row.vehicleId)}><td><strong>{row.vehicleNumber || "—"}</strong><small>{row.registrationNumber || "—"}</small></td><td><StatusBadge value={row.status} /></td><td><BarValue value={row.trips} max={maxVehicleTrips} /></td><td>{row.completedTrips}</td><td>{number(row.totalDistance)} km</td><td>{money(row.fuelCost)}</td><td>{money(row.maintenanceCost)}</td><td><strong>{money(row.operatingCost)}</strong></td><td>{money(row.costPerTrip)}</td><td>{percent(row.completionRate)}</td></tr>}/>
                 </DashboardCard>
                 <DashboardCard title="Fleet Analysis" icon={<Activity />}>
                   <div className="analysis-grid"><AnalysisItem title="Most active vehicles" text={vehiclePerformance.slice(0, 3).map((v) => `${v.registrationNumber || v.vehicleNumber || "Vehicle"} (${v.trips} trips)`).join(" • ") || "No trip data"} /><AnalysisItem title="Highest operating cost" text={vehiclePerformance[0] ? `${vehiclePerformance.slice().sort((a, b) => b.operatingCost - a.operatingCost)[0].registrationNumber || "Vehicle"} — ${money(vehiclePerformance.slice().sort((a, b) => b.operatingCost - a.operatingCost)[0].operatingCost)}` : "No cost data"} /><AnalysisItem title="Fleet completion rate" text={percent(k.completedTrips && (k.completedTrips / Math.max(1, k.completedTrips + k.activeTrips + (k.scheduledTrips || 0) + (k.cancelledTrips || 0))) * 100)} /><AnalysisItem title="Vehicles requiring attention" text={`${number((k.vehiclesInMaintenance || 0) + (data.serviceDueVehicles?.length || 0))} vehicles are under maintenance or due for service.`} /></div>
                 </DashboardCard>
                 <DashboardCard title="Driver Performance — Every Driver" icon={<Users />}>
-                  <div className="role-table-wrapper"><table className="role-table performance-table"><thead><tr><th>Driver</th><th>Account</th><th>Trips</th><th>Completed</th><th>Active</th><th>Distance</th><th>Trip Expenses</th><th>Driver Expenses</th><th>Total Expense</th><th>Completion</th></tr></thead><tbody>{driverPerformance.map((row) => <tr key={String(row.driverId)}><td><strong>{row.name}</strong><small>{row.email}</small></td><td><StatusBadge value={row.accountActive ? "ACTIVE" : "INACTIVE"} /></td><td><BarValue value={row.trips} max={maxDriverTrips} /></td><td>{row.completedTrips}</td><td>{row.activeTrips}</td><td>{number(row.totalDistance)} km</td><td>{money(row.tripExpenses)}</td><td>{money(row.driverExpenses)}</td><td><strong>{money(row.totalExpense)}</strong></td><td>{percent(row.completionRate)}</td></tr>)}{!driverPerformance.length && <EmptyRow colSpan="10" text="No driver performance data available." />}</tbody></table></div>
+                  <ClientPaginationTable className="role-table-wrapper" tableClassName="role-table performance-table" headers={["Driver","Account","Trips","Completed","Active","Distance","Trip Expenses","Driver Expenses","Total Expense","Completion"]} items={driverPerformance} pageSize={10} empty="No driver performance data available." renderRow={row=><tr key={String(row.driverId)}><td><strong>{row.name}</strong><small>{row.email}</small></td><td><StatusBadge value={row.accountActive ? "ACTIVE" : "INACTIVE"} /></td><td><BarValue value={row.trips} max={maxDriverTrips} /></td><td>{row.completedTrips}</td><td>{row.activeTrips}</td><td>{number(row.totalDistance)} km</td><td>{money(row.tripExpenses)}</td><td>{money(row.driverExpenses)}</td><td><strong>{money(row.totalExpense)}</strong></td><td>{percent(row.completionRate)}</td></tr>}/>
                 </DashboardCard>
               </section>
 
@@ -191,7 +194,7 @@ function ManagementDashboard() {
                 <SectionHeading kicker="TRIP REPORT" title="Trip Performance" description="Individual trip analysis covering route, driver, vehicle, revenue, costs, distance and profitability." icon={<Route />} />
                 <div className="management-summary-grid"><SummaryCard label="Total Trips" value={number(reports.trip?.trips)} /><SummaryCard label="Completed Trips" value={number(reports.trip?.completedTrips)} /><SummaryCard label="Completion Rate" value={percent(reports.trip?.completionRate)} /><SummaryCard label="Active Trips" value={number(k.activeTrips)} /></div>
                 <DashboardCard title="Trip-by-Trip Performance" icon={<Route />}>
-                  <div className="role-table-wrapper"><table className="role-table performance-table"><thead><tr><th>Trip</th><th>Route</th><th>Driver</th><th>Vehicle</th><th>Status</th><th>Distance</th><th>Revenue</th><th>Expenses</th><th>Profit</th><th>Cost/km</th></tr></thead><tbody>{tripPerformance.map((row) => <tr key={String(row.tripObjectId)}><td><strong>{row.tripId}</strong><small>{dateText(row.scheduledStart)}</small></td><td><span className="route-cell">{row.pickup}<b>→</b>{row.destination}</span></td><td>{row.driver}</td><td>{row.vehicle}</td><td><StatusBadge value={row.status} /></td><td>{number(row.distance)} km</td><td>{money(row.revenue)}</td><td><BarValue value={row.totalExpenses} max={maxTripExpenses} moneyValue /></td><td className={row.profit >= 0 ? "profit-positive" : "profit-negative"}>{money(row.profit)}</td><td>{money(row.costPerKm)}</td></tr>)}{!tripPerformance.length && <EmptyRow colSpan="10" text="No trip performance data available." />}</tbody></table></div>
+                  <ClientPaginationTable className="role-table-wrapper" tableClassName="role-table performance-table" headers={["Trip","Route","Driver","Vehicle","Status","Distance","Revenue","Expenses","Profit","Cost/km"]} items={tripPerformance} pageSize={10} empty="No trip performance data available." renderRow={row=><tr key={String(row.tripObjectId)}><td><strong>{row.tripId}</strong><small>{dateText(row.scheduledStart)}</small></td><td><span className="route-cell">{row.pickup}<b>→</b>{row.destination}</span></td><td>{row.driver}</td><td>{row.vehicle}</td><td><StatusBadge value={row.status} /></td><td>{number(row.distance)} km</td><td>{money(row.revenue)}</td><td><BarValue value={row.totalExpenses} max={maxTripExpenses} moneyValue /></td><td className={row.profit >= 0 ? "profit-positive" : "profit-negative"}>{money(row.profit)}</td><td>{money(row.costPerKm)}</td></tr>}/>
                 </DashboardCard>
               </section>
 
@@ -224,7 +227,7 @@ function ManagementDashboard() {
                 <SectionHeading kicker="CUSTOMER REPORT" title="Customer Performance" description="Customer-level service activity, invoicing and receivables. No customer can be edited from this dashboard." icon={<Users />} />
                 <div className="management-summary-grid"><SummaryCard label="Total Customers" value={number(k.totalCustomers)} /><SummaryCard label="Active Customers" value={number(k.activeCustomers)} /><SummaryCard label="Revenue" value={money(k.revenue)} /><SummaryCard label="Receivables" value={money(k.outstandingReceivables)} /></div>
                 <DashboardCard title="Customer-by-Customer Analysis" icon={<Users />}>
-                  <div className="role-table-wrapper"><table className="role-table performance-table"><thead><tr><th>Customer</th><th>Trips</th><th>Active</th><th>Completed</th><th>Invoices</th><th>Revenue</th><th>Paid</th><th>Outstanding</th><th>Account</th></tr></thead><tbody>{customerPerformance.map((row) => <tr key={String(row.customerId)}><td><strong>{row.name}</strong><small>{row.email}</small></td><td><BarValue value={row.trips} max={Math.max(1, ...customerPerformance.map((x) => x.trips))} /></td><td>{row.activeTrips}</td><td>{row.completedTrips}</td><td>{row.invoices}</td><td><BarValue value={row.revenue} max={maxCustomerRevenue} moneyValue /></td><td>{money(row.paid)}</td><td>{money(row.outstanding)}</td><td><StatusBadge value={row.accountActive ? "ACTIVE" : "INACTIVE"} /></td></tr>)}{!customerPerformance.length && <EmptyRow colSpan="9" text="No customer performance data available." />}</tbody></table></div>
+                  <ClientPaginationTable className="role-table-wrapper" tableClassName="role-table performance-table" headers={["Customer","Trips","Active","Completed","Invoices","Revenue","Paid","Outstanding","Account"]} items={customerPerformance} pageSize={10} empty="No customer performance data available." renderRow={row=><tr key={String(row.customerId)}><td><strong>{row.name}</strong><small>{row.email}</small></td><td><BarValue value={row.trips} max={Math.max(1, ...customerPerformance.map((x) => x.trips))} /></td><td>{row.activeTrips}</td><td>{row.completedTrips}</td><td>{row.invoices}</td><td><BarValue value={row.revenue} max={maxCustomerRevenue} moneyValue /></td><td>{money(row.paid)}</td><td>{money(row.outstanding)}</td><td><StatusBadge value={row.accountActive ? "ACTIVE" : "INACTIVE"} /></td></tr>}/>
                 </DashboardCard>
               </section>
 

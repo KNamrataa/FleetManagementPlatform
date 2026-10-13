@@ -8,6 +8,7 @@ import {
   Check,
   Radio,
   MapPinned,
+  Route,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getSocket } from "../services/socket";
@@ -30,6 +31,8 @@ export default function DriverTripDetails() {
   const [finalOdometer, setFinalOdometer] = useState("");
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
+  const [routeSuggestion, setRouteSuggestion] = useState(null);
+  const [routeOptimization, setRouteOptimization] = useState(null);
 
   const watchRef = useRef(null);
   const gpsIntervalRef = useRef(null);
@@ -62,6 +65,47 @@ export default function DriverTripDetails() {
   useEffect(() => {
     load();
   }, [load]);
+
+  const loadRouteOptimization = useCallback(async () => {
+    if (!id) return;
+    try {
+      let response = await apiRequest(`/api/routes/${id}`);
+      let route = response?.route || null;
+      if (!route || route.status !== "READY") {
+        try {
+          const optimized = await apiRequest(`/api/routes/${id}/optimize`, { method: "POST", body: JSON.stringify({}) });
+          route = optimized?.route || route;
+        } catch (optimizationError) {
+          console.warn("Initial route optimization unavailable:", optimizationError.message);
+        }
+      }
+      if (route) {
+        setRouteOptimization(route);
+        if (route.recommendation?.better) {
+          setRouteSuggestion({
+            available: true,
+            timeSavedMinutes: Number(route.recommendation.timeSavedMinutes || 0),
+            distanceSavedKm: Number(route.recommendation.distanceSavedKm || 0),
+            distanceKm: route.distanceKm,
+            durationMinutes: route.durationMinutes,
+            trafficDelayMinutes: route.trafficDelayMinutes,
+            traffic: route.traffic,
+            optimizationScore: route.optimizationScore,
+            provider: route.provider,
+            geometry: route.geometry,
+            geometryPoints: route.geometryPoints,
+            alternatives: route.alternatives,
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("Unable to load route optimization:", e.message);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    loadRouteOptimization();
+  }, [loadRouteOptimization]);
 
   useEffect(() => {
     const active = ["IN_PROGRESS", "PAUSED"].includes(trip?.tripStatus);
@@ -171,6 +215,7 @@ export default function DriverTripDetails() {
           socket.emit("driver:gps", payload, (ack) => {
             if (ack?.success) {
               socketSent = true;
+              if (ack?.routeSuggestion?.available) setRouteSuggestion(ack.routeSuggestion);
 
               setGpsState((state) => ({
                 ...state,
@@ -210,6 +255,7 @@ export default function DriverTripDetails() {
           );
 
           if (response?.success) {
+            if (response?.tracking?.routeSuggestion?.available) setRouteSuggestion(response.tracking.routeSuggestion);
             setGpsState((state) => ({
               ...state,
               sharing: true,
@@ -314,6 +360,43 @@ export default function DriverTripDetails() {
 
     };
   }, [trip?.tripStatus, id]);
+
+  const recalculateRoute = async () => {
+    setBusy(true);
+    setError("");
+    try {
+      const currentPosition = gpsState.coords
+        ? { latitude: gpsState.coords.latitude, longitude: gpsState.coords.longitude }
+        : undefined;
+      const response = await apiRequest(`/api/routes/${id}/recalculate`, {
+        method: "POST",
+        body: JSON.stringify(currentPosition ? { currentPosition } : {}),
+      });
+      if (response?.route?.recommendation?.better || response?.route?.distanceKm) {
+        const route = response.route;
+        setRouteOptimization(route);
+        setRouteSuggestion({
+          available: Boolean(route.recommendation?.better),
+          timeSavedMinutes: Number(route.recommendation?.timeSavedMinutes || 0),
+          distanceSavedKm: Number(route.recommendation?.distanceSavedKm || 0),
+          distanceKm: route.distanceKm,
+          durationMinutes: route.durationMinutes,
+          trafficDelayMinutes: route.trafficDelayMinutes,
+          traffic: route.traffic,
+          optimizationScore: route.optimizationScore,
+          provider: route.provider,
+          geometry: route.geometry,
+          geometryPoints: route.geometryPoints,
+          alternatives: route.alternatives,
+        });
+      }
+      setMessage(response?.route?.recommendation?.better ? "A more efficient route was found." : "Route recalculated. The current route remains the best available option.");
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const accept = async () => {
     setBusy(true);
@@ -566,6 +649,90 @@ export default function DriverTripDetails() {
                   : ""}
               </small>
             </div>
+
+            {routeOptimization && (
+              <section className="driver-route-optimization">
+                <div className="driver-route-optimization-head">
+                  <div className="driver-inline" style={{ gap: 10 }}>
+                    <Route size={20} />
+                    <div>
+                      <strong>Route Optimization</strong>
+                      <p className="driver-muted" style={{ margin: "4px 0 0" }}>
+                        Distance, ETA and traffic-aware route efficiency for this trip.
+                      </p>
+                    </div>
+                  </div>
+                  <button className="driver-button" onClick={recalculateRoute} disabled={busy}>
+                    <RefreshCw size={15} />
+                    Recalculate Route
+                  </button>
+                </div>
+                <div className="driver-detail-grid" style={{ marginTop: 14 }}>
+                  <div className="driver-detail"><span>Optimized distance</span><strong>{routeOptimization.distanceKm != null ? `${Number(routeOptimization.distanceKm).toFixed(2)} km` : "—"}</strong></div>
+                  <div className="driver-detail"><span>Estimated travel time</span><strong>{routeOptimization.durationMinutes != null ? `${Number(routeOptimization.durationMinutes).toFixed(1)} min` : "—"}</strong></div>
+                  <div className="driver-detail"><span>Traffic delay</span><strong>{routeOptimization.traffic?.source !== "NO_TRAFFIC_DATA" && routeOptimization.trafficDelayMinutes != null ? `${Number(routeOptimization.trafficDelayMinutes).toFixed(1)} min` : "—"}</strong></div>
+                  <div className="driver-detail"><span>Optimization score</span><strong>{routeOptimization.optimizationScore != null ? `${routeOptimization.optimizationScore}/100` : "N/A (no traffic data)"}</strong></div><div className="driver-detail"><span>Fuel estimate</span><strong>{routeOptimization.fuelEstimate?.fuelUnits != null ? `${Number(routeOptimization.fuelEstimate.fuelUnits).toFixed(2)} ${routeOptimization.fuelEstimate.fuelType === "ELECTRIC" ? "kWh" : "units"}` : "—"}</strong></div><div className="driver-detail"><span>Fuel cost estimate</span><strong>{routeOptimization.fuelEstimate?.fuelCost != null ? `₹${Number(routeOptimization.fuelEstimate.fuelCost).toFixed(2)}` : "—"}</strong></div><div className="driver-detail"><span>Route reliability</span><strong>{routeOptimization.reliabilityScore != null ? `${Math.round(routeOptimization.reliabilityScore)}/100` : "—"}</strong></div>
+                  <div className="driver-detail"><span>Traffic condition</span><strong>{routeOptimization.traffic?.source === "NO_TRAFFIC_DATA" || !Number(routeOptimization.traffic?.samples || 0) ? "Unknown — no traffic data" : (routeOptimization.traffic?.label || routeOptimization.traffic?.condition || `${Math.round(routeOptimization.traffic.congestionPercent || 0)}% congestion`)}</strong></div>
+                  <div className="driver-detail"><span>Routing provider</span><strong>{routeOptimization.provider || "—"}</strong></div>
+                </div>
+                {trip.routePerformance && (
+                  <div className="driver-detail-grid" style={{ marginTop: 10 }}>
+                    <div className="driver-detail"><span>Actual duration</span><strong>{trip.routePerformance.actualDurationMinutes != null ? `${Number(trip.routePerformance.actualDurationMinutes).toFixed(1)} min` : "—"}</strong></div>
+                    <div className="driver-detail"><span>ETA accuracy</span><strong>{trip.routePerformance.durationAccuracyPercent != null ? `${Number(trip.routePerformance.durationAccuracyPercent).toFixed(1)}%` : "—"}</strong></div>
+                    <div className="driver-detail"><span>Duration variance</span><strong>{trip.routePerformance.durationVarianceMinutes != null ? `${Number(trip.routePerformance.durationVarianceMinutes).toFixed(1)} min` : "—"}</strong></div>
+                    <div className="driver-detail"><span>Distance variance</span><strong>{trip.routePerformance.distanceVarianceKm != null ? `${Number(trip.routePerformance.distanceVarianceKm).toFixed(1)} km` : "—"}</strong></div>
+                  </div>
+                )}
+                {Array.isArray(routeOptimization.alternatives) && routeOptimization.alternatives.length > 0 && (
+                  <div className="driver-route-alternatives">
+                    <strong>Alternative routes</strong>
+                    {routeOptimization.alternatives.map((alternative, index) => (
+                      <div className="driver-route-alternative" key={`${alternative.provider || "route"}-${index}`}>
+                        <span>Route {index + 2}</span>
+                        <span>{Number(alternative.distanceKm || 0).toFixed(1)} km</span>
+                        <span>{Number(alternative.durationMinutes || 0).toFixed(1)} min</span>
+                        <span>Score {alternative.optimizationScore ?? "—"}/100</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+
+            {routeSuggestion?.available && (
+              <section
+                style={{
+                  marginTop: 18,
+                  padding: 16,
+                  borderRadius: 12,
+                  border: "1px solid rgba(16, 185, 129, 0.35)",
+                  background: "rgba(16, 185, 129, 0.08)",
+                }}
+              >
+                <div className="driver-inline" style={{ gap: 10, alignItems: "center" }}>
+                  <Route size={20} />
+                  <div>
+                    <strong>Better route available</strong>
+                    <p className="driver-muted" style={{ margin: "4px 0 0" }}>
+                      Traffic-aware FleetFlow optimization found a potentially faster route.
+                    </p>
+                  </div>
+                  <button className="driver-button" onClick={recalculateRoute} disabled={busy} style={{ marginLeft: "auto" }}>
+                    <RefreshCw size={15} />
+                    Recalculate
+                  </button>
+                </div>
+                <div className="driver-detail-grid" style={{ marginTop: 14 }}>
+                  <div className="driver-detail"><span>Time saved</span><strong>{Number(routeSuggestion.timeSavedMinutes || 0).toFixed(1)} min</strong></div>
+                  <div className="driver-detail"><span>Distance saved</span><strong>{Number(routeSuggestion.distanceSavedKm || 0).toFixed(1)} km</strong></div>
+                  <div className="driver-detail"><span>New ETA</span><strong>{Number(routeSuggestion.durationMinutes || 0).toFixed(1)} min</strong></div>
+                  <div className="driver-detail"><span>Traffic delay</span><strong>{Number(routeSuggestion.trafficDelayMinutes || 0).toFixed(1)} min</strong></div>
+                  <div className="driver-detail"><span>Optimization score</span><strong>{routeSuggestion.optimizationScore ?? "—"}/100</strong></div>
+                  <div className="driver-detail"><span>Routing provider</span><strong>{routeSuggestion.provider || "—"}</strong></div>
+                </div>
+              </section>
+            )}
+
             <div className="driver-detail-grid">
               <div className="driver-detail">
                 <span>Customer</span>

@@ -9,7 +9,7 @@ const fail = (res, status, message) => res.status(status).json({ success: false,
 async function getAssignments(req, res) {
   try {
     const assignments = await syncAssignmentRecords();
-    const { page, limit } = paginationParams(req, { limit: 25, max: 100 });
+    const { page, limit } = paginationParams(req, { limit: 10, max: 100 });
     const total = assignments.length;
     const start = (page - 1) * limit;
     res.json({ success: true, count: Math.min(limit, Math.max(0, total - start)), assignments: assignments.slice(start, start + limit), pagination: paginationMeta(page, limit, total) });

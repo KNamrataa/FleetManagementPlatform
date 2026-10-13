@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Link, useNavigate } from "react-router-dom";
 
@@ -39,7 +39,6 @@ import "./UserManagementPage.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-const PAGE_SIZE = 10;
 
 const ROLES = [
   { value: "SUPER_ADMIN", label: "Super Admin" },
@@ -82,6 +81,91 @@ function normalizeUser(user) {
     isActive,
     accountStatus: isActive ? "ACTIVE" : "INACTIVE",
   };
+}
+
+function FilterDropdown({ value, onChange, options, ariaLabel }) {
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (!dropdownRef.current?.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  const selectedOption =
+    options.find((option) => option.value === value) || options[0];
+
+  const handleSelect = (nextValue) => {
+    onChange(nextValue);
+    setOpen(false);
+  };
+
+  return (
+    <div
+      className={`um-filter-dropdown${open ? " is-open" : ""}`}
+      ref={dropdownRef}
+    >
+      <button
+        type="button"
+        className="um-filter-trigger"
+        onClick={() => setOpen((current) => !current)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={ariaLabel}
+      >
+        <span>{selectedOption?.label}</span>
+        <ChevronRight
+          size={14}
+          className="um-filter-chevron"
+          aria-hidden="true"
+        />
+      </button>
+
+      {open && (
+        <div
+          className="um-filter-menu"
+          role="listbox"
+          aria-label={ariaLabel}
+        >
+          {options.map((option) => (
+            <button
+              type="button"
+              role="option"
+              aria-selected={option.value === value}
+              className={`um-filter-option${
+                option.value === value ? " selected" : ""
+              }`}
+              key={option.value}
+              onClick={() => handleSelect(option.value)}
+            >
+              <span>{option.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 async function readResponse(response) {
@@ -127,6 +211,7 @@ function UserManagementPage() {
   const [roleFilter, setRoleFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [selectedRoles, setSelectedRoles] = useState({});
   const [busy, setBusy] = useState({});
   const [modal, setModal] = useState(null);
@@ -229,7 +314,7 @@ function UserManagementPage() {
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredUsers.length / PAGE_SIZE)
+    Math.ceil(filteredUsers.length / pageSize)
   );
 
   const currentPage = Math.min(page, totalPages);
@@ -237,10 +322,10 @@ function UserManagementPage() {
   const pageUsers = useMemo(
     () =>
       filteredUsers.slice(
-        (currentPage - 1) * PAGE_SIZE,
-        currentPage * PAGE_SIZE
+        (currentPage - 1) * pageSize,
+        currentPage * pageSize
       ),
-    [filteredUsers, currentPage]
+    [filteredUsers, currentPage, pageSize]
   );
 
   const stats = useMemo(
@@ -951,46 +1036,26 @@ function UserManagementPage() {
 
             <div className="um-filters">
 
-              <select
+              <FilterDropdown
                 value={roleFilter}
-                onChange={(event) =>
-                  setRoleFilter(event.target.value)
-                }
-                aria-label="Filter by role"
-              >
-                <option value="ALL">
-                  All Roles
-                </option>
+                onChange={setRoleFilter}
+                ariaLabel="Filter by role"
+                options={[
+                  { value: "ALL", label: "All Roles" },
+                  ...ROLES,
+                ]}
+              />
 
-                {ROLES.map((role) => (
-                  <option
-                    key={role.value}
-                    value={role.value}
-                  >
-                    {role.label}
-                  </option>
-                ))}
-              </select>
-
-              <select
+              <FilterDropdown
                 value={statusFilter}
-                onChange={(event) =>
-                  setStatusFilter(event.target.value)
-                }
-                aria-label="Filter by status"
-              >
-                <option value="ALL">
-                  All Status
-                </option>
-
-                <option value="ACTIVE">
-                  Active
-                </option>
-
-                <option value="INACTIVE">
-                  Inactive
-                </option>
-              </select>
+                onChange={setStatusFilter}
+                ariaLabel="Filter by status"
+                options={[
+                  { value: "ALL", label: "All Status" },
+                  { value: "ACTIVE", label: "Active" },
+                  { value: "INACTIVE", label: "Inactive" },
+                ]}
+              />
 
               <button
                 className="um-refresh-button"
@@ -1254,6 +1319,8 @@ function UserManagementPage() {
                 totalPages={totalPages}
                 total={filteredUsers.length}
                 onPage={setPage}
+                pageSize={pageSize}
+                onPageSizeChange={(value) => { setPageSize(value); setPage(1); }}
               />
             </>
           )}
@@ -1342,11 +1409,13 @@ function Pagination({
   totalPages,
   total,
   onPage,
+  pageSize = 10,
+  onPageSizeChange,
 }) {
-  const start = (page - 1) * PAGE_SIZE + 1;
+  const start = (page - 1) * pageSize + 1;
 
   const end = Math.min(
-    page * PAGE_SIZE,
+    page * pageSize,
     total
   );
 
@@ -1367,6 +1436,8 @@ function Pagination({
       <span>
         Showing {start}–{end} of {total} users
       </span>
+
+      <label className="um-page-size">Rows <select value={pageSize} onChange={(e) => onPageSizeChange?.(Number(e.target.value))}>{[10,20,30,50].map((size) => <option key={size} value={size}>{size}</option>)}</select></label>
 
       <div className="um-page-buttons">
 

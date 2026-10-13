@@ -6,4 +6,5 @@ const a=[authenticate,authorize("FLEET_MANAGER","SUPER_ADMIN")];
 r.get("/live-fleet",...a,c.liveFleet);
 r.get("/vehicles/:id/history",...a,c.vehicleHistory);
 r.get("/drivers/performance",...a,c.driverPerformance);
+r.get("/customer-ratings",...a,c.customerRatings);
 module.exports=r;

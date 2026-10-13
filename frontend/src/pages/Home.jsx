@@ -51,12 +51,29 @@ function Home() {
       }
     };
 
-    loadDashboardData();
+    let idleId = null;
+    let timeoutId = null;
+
+    const scheduleInitialLoad = () => {
+      if ("requestIdleCallback" in window) {
+        idleId = window.requestIdleCallback(loadDashboardData, { timeout: 1500 });
+      } else {
+        timeoutId = window.setTimeout(loadDashboardData, 300);
+      }
+    };
+
+    scheduleInitialLoad();
     const interval = window.setInterval(loadDashboardData, 60000);
 
     return () => {
       cancelled = true;
       window.clearInterval(interval);
+      if (idleId !== null && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
     };
   }, []);
 
@@ -112,9 +129,11 @@ function Home() {
           </div>
 
           <nav
+            id="primary-navigation"
             className={`nav-links ${
               menuOpen ? "mobile-open" : ""
             }`}
+            aria-label="Primary navigation"
           >
 
             <button
@@ -198,6 +217,10 @@ function Home() {
 
           <button
             className="mobile-menu-btn"
+            type="button"
+            aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={menuOpen}
+            aria-controls="primary-navigation"
             onClick={() => setMenuOpen(!menuOpen)}
           >
             {menuOpen ? (
@@ -210,6 +233,7 @@ function Home() {
         </div>
       </header>
 
+      <main id="main-content">
       <section
         className="hero-section"
         id="home"
@@ -292,9 +316,9 @@ function Home() {
                 <div>
                   <span>Fleet Dashboard</span>
 
-                  <h3>
+                  <h2 className="hero-dashboard-title">
                     Fleet Overview
-                  </h3>
+                  </h2>
                 </div>
 
 
@@ -1012,14 +1036,14 @@ function Home() {
 
               <div className="dashboard-header-actions">
 
-                <button>
-                  <Search size={17} />
+                <button type="button" aria-label="Search dashboard">
+                  <Search size={17} aria-hidden="true" />
                 </button>
 
 
-                <button className="notification-button">
+                <button className="notification-button" type="button" aria-label="Notifications">
 
-                  <Bell size={17} />
+                  <Bell size={17} aria-hidden="true" />
 
                   <span></span>
 
@@ -1393,11 +1417,13 @@ function Home() {
 
                 <div className="contact-field">
 
-                  <label>
+                  <label htmlFor="contact-name">
                     Name
                   </label>
 
                   <input
+                    id="contact-name"
+                    name="name"
                     type="text"
                     placeholder="Your name"
                   />
@@ -1407,11 +1433,13 @@ function Home() {
 
                 <div className="contact-field">
 
-                  <label>
+                  <label htmlFor="contact-email">
                     Email
                   </label>
 
                   <input
+                    id="contact-email"
+                    name="email"
                     type="email"
                     placeholder="Your email"
                   />
@@ -1423,11 +1451,13 @@ function Home() {
 
               <div className="contact-field">
 
-                <label>
+                <label htmlFor="contact-subject">
                   Subject
                 </label>
 
                 <input
+                  id="contact-subject"
+                  name="subject"
                   type="text"
                   placeholder="How can we help?"
                 />
@@ -1437,11 +1467,13 @@ function Home() {
 
               <div className="contact-field">
 
-                <label>
+                <label htmlFor="contact-message">
                   Message
                 </label>
 
                 <textarea
+                  id="contact-message"
+                  name="message"
                   placeholder="Write your message..."
                 ></textarea>
 
@@ -1494,6 +1526,7 @@ function Home() {
         </div>
 
       </section>
+      </main>
       <footer className="footer">
 
         <div className="footer-container">
@@ -1527,9 +1560,9 @@ function Home() {
 
           <div className="footer-column">
 
-            <h4>
+            <h3>
               Platform
-            </h4>
+            </h3>
 
 
             <button
@@ -1557,9 +1590,9 @@ function Home() {
           </div>
           <div className="footer-column">
 
-            <h4>
+            <h3>
               Company
-            </h4>
+            </h3>
 
 
             <button
@@ -1583,9 +1616,9 @@ function Home() {
           </div>
           <div className="footer-column">
 
-            <h4>
+            <h3>
               Account
-            </h4>
+            </h3>
 
 
             <button

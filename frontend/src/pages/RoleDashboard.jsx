@@ -13,8 +13,6 @@ import {
   LogOut,
   MapPin,
   Menu,
-  Package,
-  Settings,
   ShieldCheck,
   Truck,
   Users,

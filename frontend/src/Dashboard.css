@@ -64,7 +64,18 @@
   flex-direction: column;
 
   gap: 5px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 3px 12px 0;
+  scrollbar-width: thin;
+  scrollbar-color: #475569 #101827;
 }
+
+.dashboard-nav::-webkit-scrollbar { width: 6px; }
+.dashboard-nav::-webkit-scrollbar-track { background: #101827; }
+.dashboard-nav::-webkit-scrollbar-thumb { background: #475569; border-radius: 8px; }
 
 .nav-item {
   text-decoration: none;
@@ -230,32 +241,6 @@
   margin-bottom: 20px;
 }
 
-.stat-card {
-  background: white;
-
-  border: 1px solid #e1e6ee;
-
-  border-radius: 12px;
-
-  padding: 18px;
-
-  display: flex;
-
-  gap: 13px;
-
-  align-items: center;
-
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-
-  box-shadow: 0 8px 22px rgba(20, 27, 45, 0.07);
-}
-
 .stat-icon {
   width: 40px;
   height: 40px;
@@ -271,24 +256,6 @@
   justify-content: center;
 
   flex-shrink: 0;
-}
-
-.stat-card p {
-  margin: 0;
-
-  color: #64748b;
-
-  font-size: 12px;
-}
-
-.stat-card h2 {
-  margin: 5px 0 0;
-
-  font-size: 23px;
-
-  color: #141b2d;
-
-  font-weight: 800;
 }
 
 .dashboard-two-column {
@@ -425,191 +392,6 @@
   background: #fffafa;
 }
 
-
-.status-badge {
-  display: inline-flex;
-
-  padding: 5px 8px;
-
-  border-radius: 20px;
-
-  font-size: 11px;
-
-  font-weight: 700;
-}
-.status-badge.available,
-.status-badge.completed {
-  background: #dcfce7;
-
-  color: #166534;
-}
-
-
-.status-badge.on-trip,
-.status-badge.in-progress {
-  background: #dbeafe;
-
-  color: #1d4ed8;
-}
-
-
-.status-badge.maintenance {
-  background: #fef3c7;
-
-  color: #92400e;
-}
-
-
-.status-badge.idle {
-  background: #f1f5f9;
-
-  color: #475569;
-}
-
-.status-badge.scheduled {
-  background: #ede9fe;
-
-  color: #6d28d9;
-}
-
-.gps-grid {
-  display: grid;
-
-  grid-template-columns: repeat(3, 1fr);
-
-  gap: 15px;
-}
-
-.gps-card {
-  border: 1px solid #e1e6ee;
-
-  border-radius: 10px;
-
-  padding: 15px;
-
-  background: white;
-
-  transition: 0.2s ease;
-}
-
-.gps-card:hover {
-  border-color: #f0b5b5;
-
-  background: #fffafa;
-}
-
-.gps-card-header {
-  display: flex;
-
-  justify-content: space-between;
-
-  gap: 10px;
-}
-
-.gps-card-header div {
-  display: flex;
-
-  flex-direction: column;
-
-  gap: 4px;
-}
-
-.gps-card-header span {
-  color: #64748b;
-
-  font-size: 12px;
-}
-
-.gps-info {
-  margin-top: 15px;
-
-  display: flex;
-
-  flex-direction: column;
-
-  gap: 9px;
-
-  color: #475569;
-
-  font-size: 13px;
-}
-
-.gps-info div {
-  display: flex;
-
-  align-items: center;
-
-  gap: 7px;
-}
-
-.gps-info svg {
-  color: #e52525;
-}
-
-
-.cost-value {
-  font-size: 28px;
-
-  font-weight: 800;
-
-  color: #141b2d;
-}
-
-.cost-description {
-  color: #64748b;
-
-  margin-bottom: 0;
-}
-
-
-.user-management-header {
-  display: flex;
-
-  align-items: center;
-
-  justify-content: space-between;
-
-  margin-bottom: 18px;
-}
-
-.user-management-header h3 {
-  margin: 0;
-
-  color: #141b2d;
-}
-
-.user-management-header p {
-  color: #64748b;
-
-  margin: 5px 0 0;
-
-  font-size: 13px;
-}
-
-.refresh-button {
-  border: 1px solid #dbe3ed;
-
-  background: white;
-
-  padding: 8px 12px;
-
-  border-radius: 7px;
-
-  cursor: pointer;
-
-  color: #334155;
-
-  transition: 0.2s ease;
-}
-
-.refresh-button:hover {
-  background: #fff5f5;
-
-  border-color: #f0b5b5;
-
-  color: #e52525;
-}
-
 .role-control {
   display: flex;
 
@@ -636,128 +418,10 @@
   border-color: #e52525;
 }
 
-
-.assign-button {
-  border: none;
-
-  background: #e52525;
-
-  color: white;
-
-  padding: 8px 11px;
-
-  border-radius: 6px;
-
-  cursor: pointer;
-
-  font-weight: 600;
-
-  transition: 0.2s ease;
-}
-
-.assign-button:hover {
-  background: #c91f1f;
-}
-
-.assign-button:disabled {
-  opacity: 0.5;
-
-  cursor: not-allowed;
-}
-
-.user-status {
-  display: inline-block;
-
-  padding: 5px 8px;
-
-  border-radius: 15px;
-
-  font-size: 11px;
-
-  font-weight: 700;
-}
-
-.user-status.active {
-  background: #dcfce7;
-
-  color: #166534;
-}
-
-.user-status.inactive {
-  background: #fee2e2;
-
-  color: #991b1b;
-}
-
-.protected-role {
-  display: inline-flex;
-
-  align-items: center;
-
-  gap: 5px;
-
-  color: #475569;
-
-  font-size: 12px;
-}
-
-.protected-role svg {
-  color: #e52525;
-}
-
-.deactivate-button,
-.activate-button {
-  border: none;
-
-  padding: 7px 10px;
-
-  border-radius: 6px;
-
-  cursor: pointer;
-
-  font-weight: 600;
-
-  transition: 0.2s ease;
-}
-
-.deactivate-button {
-  background: #fee2e2;
-
-  color: #991b1b;
-}
-
-.deactivate-button:hover {
-  background: #fecaca;
-}
-
-.activate-button {
-  background: #dcfce7;
-
-  color: #166534;
-}
-
-.activate-button:hover {
-  background: #bbf7d0;
-}
-
 .activity-list {
   display: flex;
 
   flex-direction: column;
-}
-
-.activity-item {
-  display: flex;
-
-  gap: 12px;
-
-  padding: 12px 0;
-
-  border-bottom: 1px solid #edf1f5;
-}
-
-.activity-item:last-child {
-  border-bottom: none;
 }
 
 .activity-dot {
@@ -773,46 +437,6 @@
   flex-shrink: 0;
 }
 
-.activity-item div:last-child {
-  display: flex;
-
-  flex-direction: column;
-
-  gap: 4px;
-}
-
-.activity-item strong {
-  font-size: 13px;
-
-  color: #141b2d;
-}
-
-.activity-item span {
-  color: #94a3b8;
-
-  font-size: 12px;
-}
-
-.dashboard-message {
-  padding: 20px;
-
-  text-align: center;
-
-  color: #64748b;
-}
-
-.dashboard-error {
-  padding: 12px;
-
-  background: #fee2e2;
-
-  color: #991b1b;
-
-  border-radius: 7px;
-
-  border: 1px solid #fecaca;
-}
-
 .mobile-menu-button {
   display: none;
 }
@@ -821,10 +445,6 @@
 
   .stats-grid {
     grid-template-columns: repeat(3, 1fr);
-  }
-
-  .gps-grid {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -958,49 +578,6 @@
   color: #b91c1c;
 }
 
-.admin-quick-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.admin-data-card {
-  border: 1px solid #dce3ee;
-  background: #fff;
-  border-radius: 12px;
-  padding: 18px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  cursor: pointer;
-  text-align: left;
-  color: #172033;
-}
-
-.admin-data-card:hover {
-  border-color: #ef4444;
-  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.07);
-}
-
-.admin-data-card svg {
-  color: #e52525;
-}
-
-.admin-data-card div {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.admin-data-card strong {
-  font-size: 25px;
-}
-
-.admin-data-card span {
-  color: #61718b;
-  font-size: 13px;
-}
-
 .role-action-row {
   display: flex;
   gap: 7px;
@@ -1042,10 +619,6 @@
     flex-wrap: wrap;
     justify-content: flex-end;
   }
-
-  .admin-quick-actions {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 650px) {
@@ -1057,12 +630,6 @@
     width: 100%;
   }
 }
-
-/* =========================================================
-   SUPER ADMIN DASHBOARD - SCREENSHOT STRUCTURE
-   Vehicle, driver and trip sections are database-driven.
-   Fuel, maintenance and recent activities remain static.
-   ========================================================= */
 .super-admin-dashboard .dashboard-main { background: #f5f7fb; }
 .super-admin-dashboard .dashboard-header { background: #fff; }
 .super-admin-dashboard .sa-overview { display: flex; flex-direction: column; gap: 12px; }
@@ -1087,6 +654,10 @@
 .super-admin-dashboard .dashboard-table td { padding: 7px 6px; }
 .super-admin-dashboard .sa-wide-table th:first-child, .super-admin-dashboard .sa-wide-table td:first-child { padding-left: 5px; }
 .super-admin-dashboard .sa-small-action { border: 1px solid #d6dfeb; background: #fff; border-radius: 7px; padding: 6px 10px; color: #1d426b; cursor: pointer; }
+.super-admin-dashboard .sa-table-pager { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px 0 0; flex-wrap:wrap; }
+.super-admin-dashboard .sa-table-export-actions { display:flex; align-items:center; gap:8px; }
+.super-admin-dashboard .sa-table-pager .ff-pagination { flex:1; margin-top:0; padding:0; justify-content:flex-end; }
+@media (max-width:620px) { .super-admin-dashboard .sa-table-pager { align-items:flex-start; flex-direction:column; } .super-admin-dashboard .sa-table-pager .ff-pagination { width:100%; } }
 .super-admin-dashboard .sa-live-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .super-admin-dashboard .sa-live-card { border: 1px solid #dce3ed; border-radius: 6px; padding: 10px; min-height: 62px; }
 .super-admin-dashboard .sa-live-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
@@ -1187,10 +758,6 @@
     justify-content: center;
   }
 
-  .admin-quick-actions {
-    grid-template-columns: 1fr;
-  }
-
   .dashboard-two-column {
     grid-template-columns: 1fr;
   }
@@ -1230,3 +797,14 @@
     min-width: 680px;
   }
 }
+/* Accessibility/performance polish for Super Admin dashboard. */
+.super-admin-dashboard .dashboard-sidebar .nav-item,
+.super-admin-dashboard .dashboard-sidebar .logout-button { min-height: 40px; }
+.super-admin-dashboard .mobile-menu-button { min-width: 44px; min-height: 44px; }
+.super-admin-dashboard .dashboard-table th,
+.super-admin-dashboard .sa-table th { color: #475569; }
+.super-admin-dashboard .table-empty,
+.super-admin-dashboard .sa-empty,
+.super-admin-dashboard .sa-live-driver { color: #475569; }
+.super-admin-dashboard .sa-lazy-loading,
+.super-admin-dashboard .sa-map-placeholder { min-height: 180px; display: flex; align-items: center; justify-content: center; }

@@ -26,6 +26,9 @@ const empty = {
   year: new Date().getFullYear(),
   fuelType: "DIESEL",
   capacity: 0,
+  payloadCapacityKg: 0,
+  fuelEfficiencyKmPerUnit: 0,
+  fuelCostPerUnit: 0,
   currentOdometer: 0,
 };
 
@@ -113,6 +116,9 @@ export default function DriverVehicle() {
       year: v.year || new Date().getFullYear(),
       fuelType: v.fuelType || "DIESEL",
       capacity: v.capacity || 0,
+      payloadCapacityKg: v.payloadCapacityKg || 0,
+      fuelEfficiencyKmPerUnit: v.fuelEfficiencyKmPerUnit || 0,
+      fuelCostPerUnit: v.fuelCostPerUnit || 0,
       currentOdometer: v.currentOdometer || 0,
     });
 
@@ -315,7 +321,10 @@ export default function DriverVehicle() {
                 ["make", "Make", "text"],
                 ["model", "Model", "text"],
                 ["year", "Year", "number"],
-                ["capacity", "Capacity", "number"],
+                ["capacity", "Passenger Capacity", "number"],
+                ["payloadCapacityKg", "Payload Capacity (kg)", "number"],
+                ["fuelEfficiencyKmPerUnit", "Fuel Efficiency (km/unit)", "number"],
+                ["fuelCostPerUnit", "Fuel/Energy Cost per Unit", "number"],
                 ["currentOdometer", "Current Odometer", "number"],
               ].map(([key, labelText, type]) => (
                 <label className="driver-detail" key={key}>

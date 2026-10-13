@@ -5,6 +5,8 @@ const DriverProfile = require("../models/DriverProfile");
 const Assignment = require("../models/Assignment");
 const { hasActiveTripForVehicle, reservePair, releasePair } = require("../utils/fleetHelpers");
 const { safeNotify, notifyRoles } = require("../services/notificationService");
+const { paginationParams, paginationMeta } = require("../utils/pagination");
+const { notifyUpdatedVehicleDocumentExpiry } = require("../jobs/documentExpiryJob");
 
 const VEHICLE_STATUSES = ["AVAILABLE", "ASSIGNED", "ON_TRIP", "MAINTENANCE", "INACTIVE"];
 const FUEL_TYPES = ["PETROL", "DIESEL", "CNG", "ELECTRIC", "HYBRID"];
@@ -23,6 +25,9 @@ const validateBody = (body) => {
   if (!FUEL_TYPES.includes(clean(body.fuelType))) return "Invalid fuel type.";
   if (Number(body.capacity) < 0 || Number.isNaN(Number(body.capacity))) return "Capacity must be a valid non-negative number.";
   if (Number(body.currentOdometer) < 0 || Number.isNaN(Number(body.currentOdometer))) return "Odometer must be a valid non-negative number.";
+  if (body.payloadCapacityKg !== undefined && (Number(body.payloadCapacityKg) < 0 || Number.isNaN(Number(body.payloadCapacityKg)))) return "Payload capacity must be a valid non-negative number.";
+  if (body.fuelEfficiencyKmPerUnit !== undefined && (Number(body.fuelEfficiencyKmPerUnit) < 0 || Number.isNaN(Number(body.fuelEfficiencyKmPerUnit)))) return "Fuel efficiency must be a valid non-negative number.";
+  if (body.fuelCostPerUnit !== undefined && (Number(body.fuelCostPerUnit) < 0 || Number.isNaN(Number(body.fuelCostPerUnit)))) return "Fuel/energy cost must be a valid non-negative number.";
   if (body.status && !VEHICLE_STATUSES.includes(clean(body.status))) return "Invalid vehicle status.";
   return null;
 };
@@ -40,12 +45,16 @@ async function getVehicles(req, res) {
       const rx = new RegExp(search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
       filter.$or = [{ registrationNumber: rx }, { vehicleNumber: rx }, { make: rx }, { model: rx }, { vehicleType: rx }];
     }
-    const vehicles = await populateVehicle(Vehicle.find(filter).sort({ createdAt: -1 }));
+    const { page, limit, skip } = paginationParams(req, { limit: 10, max: 100 });
+    const [total, vehicles] = await Promise.all([
+      Vehicle.countDocuments(filter),
+      populateVehicle(Vehicle.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit)),
+    ]);
     const lightweightVehicles = vehicles.map((vehicle) => {
       const value = vehicle.toObject ? vehicle.toObject() : vehicle;
       return { ...value, documents: (value.documents || []).map(({ data, ...document }) => document) };
     });
-    res.json({ success: true, count: lightweightVehicles.length, vehicles: lightweightVehicles });
+    res.json({ success: true, count: lightweightVehicles.length, vehicles: lightweightVehicles, pagination: paginationMeta(page, limit, total) });
   } catch (e) { console.error(e); fail(res, 500, "Unable to load vehicles."); }
 }
 
@@ -110,6 +119,33 @@ async function getVehicle(req, res) {
   } catch (e) { console.error(e); fail(res, 500, "Unable to load vehicle."); }
 }
 
+async function addVehicleDocument(req, res) {
+  try {
+    if (!validId(req.params.id)) return fail(res, 400, "Invalid vehicle ID.");
+    const vehicle = await Vehicle.findById(req.params.id);
+    if (!vehicle) return fail(res, 404, "Vehicle not found.");
+    const { documentType, fileName, data, mimeType = "application/octet-stream", expiryDate = null } = req.body || {};
+    const type = String(documentType || "").toUpperCase();
+    if (!DRIVER_OWNED_DOCUMENT_TYPES.includes(type)) return fail(res, 400, "Invalid vehicle document type.");
+    if (!String(fileName || "").trim()) return fail(res, 400, "Document file name is required.");
+    if (!String(data || "").startsWith("data:")) return fail(res, 400, "Document content must be provided as a data URL.");
+    if (String(data).length > 3_500_000) return fail(res, 400, "Document is too large. Please upload a file smaller than about 2.5 MB.");
+    const expiry = expiryDate ? new Date(expiryDate) : null;
+    if (expiryDate && Number.isNaN(expiry.getTime())) return fail(res, 400, "Invalid document expiry date.");
+    vehicle.documents = (vehicle.documents || []).filter((doc) => doc.documentType !== type);
+    vehicle.documents.push({ documentType: type, fileName: String(fileName).trim(), data: String(data), mimeType: String(mimeType), expiryDate: expiry, uploadedAt: new Date() });
+    await vehicle.save();
+    const savedDocument = vehicle.documents[vehicle.documents.length - 1];
+    const io = req.app.get("io");
+    await notifyUpdatedVehicleDocumentExpiry({ io, vehicleId: vehicle._id, documentId: savedDocument?._id });
+    const result = await populateVehicle(Vehicle.findById(vehicle._id));
+    return res.status(201).json({ success: true, message: `${type} document uploaded successfully.`, vehicle: result });
+  } catch (e) {
+    console.error("Add vehicle document error:", e);
+    return fail(res, 500, "Failed to upload vehicle document.");
+  }
+}
+
 async function createVehicle(req, res) {
   try {
     const error = validateBody(req.body); if (error) return fail(res, 400, error);
@@ -125,7 +161,7 @@ async function createVehicle(req, res) {
       assignedDriver = driver._id;
     }
     if (assignedDriver && status === "ON_TRIP") return fail(res, 400, "A newly created vehicle cannot start as ON_TRIP.");
-    const vehicle = await Vehicle.create({ ...req.body, registrationNumber, vehicleNumber: req.body.vehicleNumber?.trim() || registrationNumber, vehicleType: req.body.vehicleType.trim(), make: req.body.make.trim(), model: req.body.model.trim(), year: Number(req.body.year), fuelType: clean(req.body.fuelType), capacity: Number(req.body.capacity), currentOdometer: Number(req.body.currentOdometer || 0), status: "AVAILABLE", assignedDriver: null, ownershipType: "COMPANY_OWNED", ownerId: null, approvalStatus: "APPROVED", approvalReason: "" });
+    const vehicle = await Vehicle.create({ ...req.body, registrationNumber, vehicleNumber: req.body.vehicleNumber?.trim() || registrationNumber, vehicleType: req.body.vehicleType.trim(), make: req.body.make.trim(), model: req.body.model.trim(), year: Number(req.body.year), fuelType: clean(req.body.fuelType), capacity: Number(req.body.capacity), currentOdometer: Number(req.body.currentOdometer || 0), payloadCapacityKg: Number(req.body.payloadCapacityKg || 0), fuelEfficiencyKmPerUnit: Number(req.body.fuelEfficiencyKmPerUnit || 0), fuelCostPerUnit: Number(req.body.fuelCostPerUnit || 0), status: "AVAILABLE", assignedDriver: null, ownershipType: "COMPANY_OWNED", ownerId: null, approvalStatus: "APPROVED", approvalReason: "" });
     if (assignedDriver) {
       try {
         await reservePair(vehicle._id, assignedDriver);
@@ -163,7 +199,7 @@ async function updateVehicle(req, res) {
     }
     if (["ON_TRIP"].includes(nextStatus) && !vehicle.assignedDriver) return fail(res, 400, "An ON_TRIP vehicle must have an assigned driver.");
     const previousStatus = vehicle.status;
-    Object.assign(vehicle, { registrationNumber: nextReg, vehicleNumber: merged.vehicleNumber?.trim() || vehicle.vehicleNumber || nextReg, vehicleType: merged.vehicleType.trim(), make: merged.make.trim(), model: merged.model.trim(), year: Number(merged.year), fuelType: clean(merged.fuelType), capacity: Number(merged.capacity), currentOdometer: Number(merged.currentOdometer), status: nextStatus });
+    Object.assign(vehicle, { registrationNumber: nextReg, vehicleNumber: merged.vehicleNumber?.trim() || vehicle.vehicleNumber || nextReg, vehicleType: merged.vehicleType.trim(), make: merged.make.trim(), model: merged.model.trim(), year: Number(merged.year), fuelType: clean(merged.fuelType), capacity: Number(merged.capacity), currentOdometer: Number(merged.currentOdometer), payloadCapacityKg: Number(merged.payloadCapacityKg || 0), fuelEfficiencyKmPerUnit: Number(merged.fuelEfficiencyKmPerUnit || 0), fuelCostPerUnit: Number(merged.fuelCostPerUnit || 0), status: nextStatus });
     await vehicle.save();
     const io = req.app.get("io");
     if (nextStatus === "MAINTENANCE" && previousStatus !== "MAINTENANCE") {
@@ -203,6 +239,9 @@ async function createOwnerVehicle(req, res) {
       fuelType: clean(req.body.fuelType),
       capacity: Number(req.body.capacity),
       currentOdometer: Number(req.body.currentOdometer || 0),
+      payloadCapacityKg: Number(req.body.payloadCapacityKg || 0),
+      fuelEfficiencyKmPerUnit: Number(req.body.fuelEfficiencyKmPerUnit || 0),
+      fuelCostPerUnit: Number(req.body.fuelCostPerUnit || 0),
       status: "AVAILABLE",
       assignedDriver: null,
       ownershipType: "DRIVER_OWNED",
@@ -262,7 +301,7 @@ async function updateOwnerVehicle(req, res) {
     const duplicate = await Vehicle.findOne({ registrationNumber: nextReg, _id: { $ne: vehicle._id } });
     if (duplicate) return fail(res, 409, "A vehicle with this registration number already exists.");
 
-    const changedCoreFields = ["registrationNumber", "vehicleNumber", "vehicleType", "make", "model", "year", "fuelType", "capacity", "currentOdometer", "insurance", "registration"].some((key) => req.body[key] !== undefined);
+    const changedCoreFields = ["registrationNumber", "vehicleNumber", "vehicleType", "make", "model", "year", "fuelType", "capacity", "currentOdometer", "payloadCapacityKg", "fuelEfficiencyKmPerUnit", "fuelCostPerUnit", "insurance", "registration"].some((key) => req.body[key] !== undefined);
     Object.assign(vehicle, {
       registrationNumber: nextReg,
       vehicleNumber: merged.vehicleNumber?.trim() || vehicle.vehicleNumber || nextReg,
@@ -273,6 +312,9 @@ async function updateOwnerVehicle(req, res) {
       fuelType: clean(merged.fuelType),
       capacity: Number(merged.capacity),
       currentOdometer: Number(merged.currentOdometer),
+      payloadCapacityKg: Number(merged.payloadCapacityKg || 0),
+      fuelEfficiencyKmPerUnit: Number(merged.fuelEfficiencyKmPerUnit || 0),
+      fuelCostPerUnit: Number(merged.fuelCostPerUnit || 0),
       insurance: merged.insurance || vehicle.insurance,
       registration: merged.registration || vehicle.registration,
     });
@@ -313,6 +355,9 @@ async function addOwnerVehicleDocument(req, res) {
     vehicle.documents.push({ documentType: type, fileName: String(fileName).trim(), data: String(data), mimeType: String(mimeType), expiryDate: expiry, uploadedAt: new Date() });
     if (vehicle.approvalStatus === "REJECTED") vehicle.approvalStatus = "PENDING_APPROVAL";
     await vehicle.save();
+    const savedDocument = vehicle.documents[vehicle.documents.length - 1];
+    const io = req.app.get("io");
+    await notifyUpdatedVehicleDocumentExpiry({ io, vehicleId: vehicle._id, documentId: savedDocument?._id });
     const result = await populateVehicle(Vehicle.findById(vehicle._id));
     res.status(201).json({ success: true, message: `${type} document uploaded successfully.`, vehicle: result });
   } catch (e) {
@@ -397,4 +442,4 @@ async function deleteVehicle(req, res) {
   } catch (e) { console.error(e); fail(res, 500, "Failed to delete vehicle."); }
 }
 
-module.exports = { getVehicles, getVehicle, getVehicleDocument, createVehicle, updateVehicle, deleteVehicle, createOwnerVehicle, getOwnerVehicle, updateOwnerVehicle, addOwnerVehicleDocument, submitOwnerVehicleApproval, updateVehicleApproval };
+module.exports = { getVehicles, getVehicle, getVehicleDocument, addVehicleDocument, createVehicle, updateVehicle, deleteVehicle, createOwnerVehicle, getOwnerVehicle, updateOwnerVehicle, addOwnerVehicleDocument, submitOwnerVehicleApproval, updateVehicleApproval };

@@ -1,8 +1,10 @@
 import NotificationBell from "../components/NotificationBell";
+import { ClientPaginationTable } from "../components/Pagination";
 import { useCallback, useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
+  BarChart3,
   CalendarDays,
   Car,
   CheckCircle2,
@@ -20,6 +22,7 @@ import {
 } from "lucide-react";
 import { apiRequest, getStoredUser } from "../services/api";
 import "./MaintenanceManager.css";
+import AnalyticsReportPanel from "../components/AnalyticsReportPanel";
 
 const money = value => `₹${Number(value || 0).toLocaleString("en-IN")}`;
 const label = value => String(value || "").replaceAll("_", " ");
@@ -105,6 +108,7 @@ export default function MaintenanceManagerDashboard() {
         <nav className="mm-nav">
           {[
             ["/maintenance", "Overview", LayoutDashboard],
+            ["/analytics", "Analytics", BarChart3],
             ["/maintenance/requests", "Maintenance Requests", AlertTriangle],
             ["/maintenance/work-orders", "Work Orders", ClipboardList],
             ["/maintenance/vehicles", "Vehicles", Car],
@@ -157,6 +161,7 @@ export default function MaintenanceManagerDashboard() {
             </div>
           )}
 
+          {path === "/maintenance" && <AnalyticsReportPanel />}
           {path === "/maintenance" && (
             <Overview data={data} loading={loading} reload={loadDashboard} navigate={navigate} />
           )}
@@ -790,7 +795,7 @@ function Panel({ title, children }) {
 }
 
 function Table({ headers, rows, empty }) {
-  return <div className="mm-table-wrap"><table className="mm-table"><thead><tr>{headers.map(header => <th key={header}>{header}</th>)}</tr></thead><tbody>{rows.length ? rows.map((row, index) => <tr key={index}>{row.map((cell, cellIndex) => <td key={cellIndex}>{cell}</td>)}</tr>) : <tr><td colSpan={headers.length} className="mm-empty">{empty}</td></tr>}</tbody></table></div>;
+  return <ClientPaginationTable className="mm-table-wrap" tableClassName="mm-table" headers={headers} items={rows} pageSize={10} empty={empty} renderRow={(row, index) => <tr key={index}>{row.map((cell, cellIndex) => <td key={cellIndex}>{cell}</td>)}</tr>} />;
 }
 
 function Badge({ value }) {

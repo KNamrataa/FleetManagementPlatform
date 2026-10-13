@@ -1,5 +1,7 @@
 const Trip = require("../models/Trip");
 const TripTracking = require("../models/TripTracking");
+const { recordTrafficObservation } = require("./trafficService");
+const { optimizeAndPersistTrip } = require("./routeOptimizationService");
 
 const ACTIVE_STATUSES = new Set(["IN_PROGRESS", "PAUSED"]);
 const radians = (v) => (Number(v) * Math.PI) / 180;
@@ -14,7 +16,7 @@ function haversineKm(aLat, aLng, bLat, bLng) {
 }
 
 async function saveGpsPing({ tripId, senderUserId, source = "MOBILE_APP", latitude, longitude, speed = 0, accuracy = null, heading = null, currentLocation = "", recordedAt = new Date() }) {
-  const trip = await Trip.findById(tripId).select("driver vehicle customer tripStatus distance").lean();
+  const trip = await Trip.findById(tripId).select("driver vehicle customer tripStatus distance routeOptimization").lean();
   if (!trip) {
     const error = new Error("Trip not found.");
     error.status = 404;
@@ -42,12 +44,17 @@ async function saveGpsPing({ tripId, senderUserId, source = "MOBILE_APP", latitu
   const previous = await TripTracking.findOne({ trip: trip._id }).sort({ recordedAt: -1 }).lean();
   const increment = previous ? haversineKm(previous.latitude, previous.longitude, lat, lng) : 0;
   const distanceTravelled = Math.max(0, Number(previous?.distanceTravelled || 0) + increment);
-  const plannedDistance = Math.max(0, Number(trip.distance || 0));
+  const plannedDistance = Math.max(0, Number(trip.routeOptimization?.distanceKm || trip.distance || 0));
   const remainingDistance = plannedDistance ? Math.max(0, plannedDistance - distanceTravelled) : 0;
   const kph = Math.max(0, Number(speed || 0) * (source === "MOBILE_APP" ? 3.6 : 1));
   let estimatedArrival = null;
+  let estimatedArrivalSource = "NONE";
   if (remainingDistance > 0 && kph >= 5) {
     estimatedArrival = new Date(new Date(recordedAt).getTime() + (remainingDistance / kph) * 3600000);
+    estimatedArrivalSource = "LIVE_SPEED";
+  } else if (remainingDistance > 0 && trip.tripStatus === "IN_PROGRESS" && Number(trip.routeOptimization?.durationMinutes) > 0) {
+    estimatedArrival = new Date(new Date(recordedAt).getTime() + Number(trip.routeOptimization.durationMinutes) * 60000);
+    estimatedArrivalSource = "ROUTE_ESTIMATE";
   }
 
   const tracking = await TripTracking.create({
@@ -64,10 +71,37 @@ async function saveGpsPing({ tripId, senderUserId, source = "MOBILE_APP", latitu
     distanceTravelled,
     remainingDistance,
     estimatedArrival,
+    estimatedArrivalSource,
     recordedAt: new Date(recordedAt),
   });
 
-  return tracking.toObject();
+  // FleetFlow builds its own free traffic history from the GPS data it already receives.
+  recordTrafficObservation({ latitude: lat, longitude: lng, speedKph: kph, recordedAt: new Date(recordedAt) }).catch(() => {});
+
+  let routeSuggestion = null;
+  try {
+    const optimized = await optimizeAndPersistTrip(trip._id, { currentPosition: { latitude: lat, longitude: lng }, force: false });
+    if (optimized?.recommendation?.better) {
+      routeSuggestion = {
+        available: true,
+        timeSavedMinutes: Number(optimized.recommendation.timeSavedMinutes || 0),
+        distanceSavedKm: Number(optimized.recommendation.distanceSavedKm || 0),
+        distanceKm: optimized.distanceKm,
+        durationMinutes: optimized.durationMinutes,
+        trafficDelayMinutes: optimized.trafficDelayMinutes,
+        traffic: optimized.traffic,
+        optimizationScore: optimized.optimizationScore,
+        provider: optimized.provider,
+        geometry: optimized.geometry,
+        geometryPoints: optimized.geometryPoints,
+        alternatives: optimized.alternatives,
+      };
+    }
+  } catch (error) {
+    if (process.env.NODE_ENV !== "test") console.warn("Live route optimization skipped:", error.message);
+  }
+
+  return { ...tracking.toObject(), routeSuggestion };
 }
 
 module.exports = { ACTIVE_STATUSES, saveGpsPing };

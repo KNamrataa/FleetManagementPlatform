@@ -1,8 +1,10 @@
 import NotificationBell from "../components/NotificationBell";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import StatusFilterDropdown from "../components/StatusFilterDropdown";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Activity,
+  BarChart3,
   Car,
   CheckCircle,
   CircleDollarSign,
@@ -22,9 +24,10 @@ import {
 
 import "../Dashboard.css";
 import { authFetch } from "../services/api";
-import SuperAdminDataView from "./SuperAdminDataView";
-import LiveFleetMap from "../components/LiveFleetMap";
-import { downloadTablePdf, parseCsv } from "../utils/pdfExport";
+import { Pagination } from "../components/Pagination";
+import AnalyticsReportPanel from "../components/AnalyticsReportPanel";
+const SuperAdminDataView = lazy(() => import("./SuperAdminDataView"));
+const LiveFleetMap = lazy(() => import("../components/LiveFleetMap"));
 
 function formatStatus(status) {
   return status ? String(status).replaceAll("_", " ") : "—";
@@ -53,6 +56,14 @@ function SuperAdminDashboard() {
 
   const [vehicles, setVehicles] = useState([]);
   const [drivers, setDrivers] = useState([]);
+  const [overviewVehicles, setOverviewVehicles] = useState([]);
+  const [overviewDrivers, setOverviewDrivers] = useState([]);
+  const [overviewVehiclePage, setOverviewVehiclePage] = useState(1);
+  const [overviewVehicleLimit, setOverviewVehicleLimit] = useState(10);
+  const [overviewDriverPage, setOverviewDriverPage] = useState(1);
+  const [overviewDriverLimit, setOverviewDriverLimit] = useState(10);
+  const [overviewVehiclePagination, setOverviewVehiclePagination] = useState(null);
+  const [overviewDriverPagination, setOverviewDriverPagination] = useState(null);
   const [adminData, setAdminData] = useState(null);
 
   const [loading, setLoading] = useState(true);
@@ -62,6 +73,7 @@ function SuperAdminDashboard() {
   const [users, setUsers] = useState([]);
 
   const [viewPage, setViewPage] = useState(1);
+  const [viewLimit, setViewLimit] = useState(10);
   const [viewPagination, setViewPagination] = useState(null);
 
   const [reportFrom, setReportFrom] = useState("");
@@ -98,20 +110,26 @@ function SuperAdminDashboard() {
     return data;
   }, []);
 
-  const loadDashboard = useCallback(async () => {
+  const loadDashboard = useCallback(async (vehiclePageOverride = overviewVehiclePage, driverPageOverride = overviewDriverPage) => {
     try {
       setLoading(true);
       setError("");
 
-      const [dashboardData, userData, extrasData] = await Promise.all([
+      const [dashboardData, userData, extrasData, overviewVehicleData, overviewDriverData] = await Promise.all([
         request("/api/admin/dashboard-overview"),
         request("/api/admin/users"),
         request("/api/admin/overview-extras"),
+        request(`/api/admin/vehicles?active=true&page=${vehiclePageOverride}&limit=${overviewVehicleLimit}`),
+        request(`/api/admin/drivers?active=true&page=${driverPageOverride}&limit=${overviewDriverLimit}`),
       ]);
 
       setDashboard(dashboardData);
       setUsers(userData.users || []);
       setOverviewExtras(extrasData);
+      setOverviewVehicles(overviewVehicleData.vehicles || []);
+      setOverviewDrivers(overviewDriverData.drivers || []);
+      setOverviewVehiclePagination(overviewVehicleData.pagination || null);
+      setOverviewDriverPagination(overviewDriverData.pagination || null);
     } catch (err) {
       console.error("Super Admin dashboard error:", err);
 
@@ -121,7 +139,7 @@ function SuperAdminDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [request]);
+  }, [request, overviewVehiclePage, overviewVehicleLimit, overviewDriverPage, overviewDriverLimit]);
 
   const loadAdminView = useCallback(
     async (view, pageOverride = viewPage) => {
@@ -136,7 +154,7 @@ function SuperAdminDashboard() {
         const query = new URLSearchParams();
 
         query.set("page", pageOverride);
-        query.set("limit", view === "tracking" ? 50 : 25);
+        query.set("limit", viewLimit);
 
         if (viewSearch.trim()) {
           query.set("search", viewSearch.trim());
@@ -209,6 +227,7 @@ function SuperAdminDashboard() {
       reportTo,
       viewSearch,
       viewStatus,
+      viewLimit,
     ]
   );
 
@@ -244,6 +263,8 @@ function SuperAdminDashboard() {
 
   const openAdminView = (view) => {
     setViewPage(1);
+    setOverviewVehiclePage(1);
+    setOverviewDriverPage(1);
     setViewSearch("");
     setViewStatus("");
     setViewPagination(null);
@@ -252,7 +273,21 @@ function SuperAdminDashboard() {
   };
 
   const refresh = () => {
+    if (adminView === "overview") {
+      loadDashboard(overviewVehiclePage, overviewDriverPage);
+      return;
+    }
     loadAdminView(adminView, viewPage);
+  };
+
+  const changeOverviewVehiclePage = (nextPage) => {
+    if (nextPage < 1 || (overviewVehiclePagination?.totalPages && nextPage > overviewVehiclePagination.totalPages)) return;
+    setOverviewVehiclePage(nextPage);
+  };
+
+  const changeOverviewDriverPage = (nextPage) => {
+    if (nextPage < 1 || (overviewDriverPagination?.totalPages && nextPage > overviewDriverPagination.totalPages)) return;
+    setOverviewDriverPage(nextPage);
   };
 
   const changePage = (page) => {
@@ -336,6 +371,7 @@ function SuperAdminDashboard() {
 
       const csv = await fetchAdminExportCsv(resource);
 
+      const { parseCsv, downloadTablePdf } = await import("../utils/pdfExport");
       const parsed = parseCsv(csv);
 
       if (!parsed.length) {
@@ -533,6 +569,11 @@ function SuperAdminDashboard() {
             Reports
           </button>
 
+          <button className="nav-item" onClick={() => { setSidebarOpen(false); navigate("/analytics"); }}>
+            <BarChart3 size={18} />
+            Analytics
+          </button>
+
           <Link
             to="/super-admin/users"
             className="nav-item"
@@ -579,6 +620,8 @@ function SuperAdminDashboard() {
         <header className="dashboard-header">
           <button
             className="mobile-menu-button"
+            aria-label={sidebarOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={sidebarOpen}
             onClick={() =>
               setSidebarOpen(
                 (value) => !value
@@ -687,6 +730,7 @@ function SuperAdminDashboard() {
 
                   <input
                     className="sa-report-date"
+                    aria-label="Search current module"
                     value={viewSearch}
                     onChange={(e) =>
                       setViewSearch(
@@ -700,20 +744,11 @@ function SuperAdminDashboard() {
                 <div>
                   <small>Status</small>
 
-                  <select
-                    className="sa-report-date"
+                  <StatusFilterDropdown
+                    ariaLabel="Filter by status"
                     value={viewStatus}
-                    onChange={(e) =>
-                      setViewStatus(
-                        e.target.value
-                      )
-                    }
-                  >
-                    <option value="">
-                      All statuses
-                    </option>
-
-                    {[
+                    onChange={setViewStatus}
+                    options={[
                       "AVAILABLE",
                       "ASSIGNED",
                       "ON_TRIP",
@@ -727,18 +762,8 @@ function SuperAdminDashboard() {
                       "PENDING",
                       "ISSUED",
                       "PAID",
-                    ].map((value) => (
-                      <option
-                        key={value}
-                        value={value}
-                      >
-                        {value.replaceAll(
-                          "_",
-                          " "
-                        )}
-                      </option>
-                    ))}
-                  </select>
+                    ]}
+                  />
                 </div>
               </div>
             </div>
@@ -758,18 +783,30 @@ function SuperAdminDashboard() {
             Loading {adminView} data…
           </div>
         ) : adminView === "overview" ? (
+          <>
+          <AnalyticsReportPanel />
           <OverviewView
             dashboard={dashboard}
             overviewExtras={overviewExtras}
             stats={stats}
             loading={loading}
+            vehicles={overviewVehicles}
+            drivers={overviewDrivers}
+            vehiclePagination={overviewVehiclePagination}
+            driverPagination={overviewDriverPagination}
+            onVehiclePageChange={changeOverviewVehiclePage}
+            onDriverPageChange={changeOverviewDriverPage}
+            onVehicleLimitChange={(value) => { setOverviewVehicleLimit(value); setOverviewVehiclePage(1); }}
+            onDriverLimitChange={(value) => { setOverviewDriverLimit(value); setOverviewDriverPage(1); }}
           />
+          </>
         ) : adminView === "vehicles" ? (
           <AdminVehiclesView
             vehicles={vehicles}
             loading={viewLoading}
             pagination={viewPagination}
             onPageChange={changePage}
+            onLimitChange={(value) => { setViewLimit(value); setViewPage(1); }}
             onExport={() =>
               exportCsv("vehicles")
             }
@@ -783,6 +820,7 @@ function SuperAdminDashboard() {
             loading={viewLoading}
             pagination={viewPagination}
             onPageChange={changePage}
+            onLimitChange={(value) => { setViewLimit(value); setViewPage(1); }}
             onExport={() =>
               exportCsv("drivers")
             }
@@ -791,22 +829,41 @@ function SuperAdminDashboard() {
             }
           />
         ) : (
-          <SuperAdminDataView
-            view={adminView}
-            data={adminData}
-            pagination={viewPagination}
-            onPageChange={changePage}
-            onExport={exportCsv}
-            onExportPdf={exportPdf}
-            reportFrom={reportFrom}
-            reportTo={reportTo}
-            setReportFrom={setReportFrom}
-            setReportTo={setReportTo}
-          />
+          <Suspense fallback={<div className="table-empty sa-lazy-loading">Loading dashboard data…</div>}>
+            <SuperAdminDataView
+              view={adminView}
+              data={adminData}
+              pagination={viewPagination}
+              onPageChange={changePage}
+              onLimitChange={(value) => { setViewLimit(value); setViewPage(1); }}
+              onExport={exportCsv}
+              onExportPdf={exportPdf}
+              reportFrom={reportFrom}
+              reportTo={reportTo}
+              setReportFrom={setReportFrom}
+              setReportTo={setReportTo}
+            />
+          </Suspense>
         )}
       </main>
     </div>
   );
+}
+
+function DeferredLiveFleetMap({ vehicles }) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    const run = () => { if (!cancelled) setReady(true); };
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(run, { timeout: 1800 });
+      return () => { cancelled = true; window.cancelIdleCallback?.(id); };
+    }
+    const id = window.setTimeout(run, 900);
+    return () => { cancelled = true; window.clearTimeout(id); };
+  }, []);
+  if (!ready) return <div className="table-empty sa-map-placeholder" aria-label="Live fleet map loading">Loading live fleet map…</div>;
+  return <Suspense fallback={<div className="table-empty sa-map-placeholder">Loading live fleet map…</div>}><LiveFleetMap vehicles={vehicles} /></Suspense>;
 }
 
 function OverviewView({
@@ -814,6 +871,14 @@ function OverviewView({
   overviewExtras,
   stats,
   loading,
+  vehicles: paginatedVehicles = [],
+  drivers: paginatedDrivers = [],
+  vehiclePagination,
+  driverPagination,
+  onVehiclePageChange,
+  onDriverPageChange,
+  onVehicleLimitChange,
+  onDriverLimitChange,
 }) {
   const vehicleStatus =
     dashboard?.vehicleStatus || {};
@@ -1000,7 +1065,7 @@ function OverviewView({
                     Loading vehicles...
                   </td>
                 </tr>
-              ) : vehicles.length === 0 ? (
+              ) : paginatedVehicles.length === 0 ? (
                 <tr>
                   <td
                     colSpan="4"
@@ -1010,7 +1075,7 @@ function OverviewView({
                   </td>
                 </tr>
               ) : (
-                vehicles.map((vehicle) => (
+                paginatedVehicles.map((vehicle) => (
                   <tr key={vehicle._id}>
                     <td>
                       <strong>
@@ -1044,6 +1109,14 @@ function OverviewView({
             </tbody>
           </table>
         </div>
+        <Pagination
+          page={vehiclePagination?.page || 1}
+          totalPages={vehiclePagination?.totalPages || 1}
+          total={vehiclePagination?.total || paginatedVehicles.length}
+          limit={vehiclePagination?.limit || 10}
+          onPageChange={onVehiclePageChange}
+          onLimitChange={onVehicleLimitChange}
+        />
       </DashboardCard>
 
       <DashboardCard title="Live Fleet Status">
@@ -1420,10 +1493,8 @@ function OverviewView({
 
       {overviewExtras && (
         <DashboardCard title="Live Fleet Map">
-          <LiveFleetMap
-            vehicles={
-              overviewExtras.liveFleet
-            }
+          <DeferredLiveFleetMap
+            vehicles={overviewExtras.liveFleet}
           />
 
           {!overviewExtras.liveFleet?.some(
@@ -1484,6 +1555,7 @@ function AdminVehiclesView({
   loading,
   pagination,
   onPageChange,
+  onLimitChange,
   onExport,
   onExportPdf,
 }) {
@@ -1581,6 +1653,7 @@ function AdminVehiclesView({
       <TablePager
         pagination={pagination}
         onPageChange={onPageChange}
+        onLimitChange={onLimitChange}
         onExport={onExport}
         onExportPdf={onExportPdf}
       />
@@ -1593,6 +1666,7 @@ function AdminDriversView({
   loading,
   pagination,
   onPageChange,
+  onLimitChange,
   onExport,
   onExportPdf,
 }) {
@@ -1696,6 +1770,7 @@ function AdminDriversView({
       <TablePager
         pagination={pagination}
         onPageChange={onPageChange}
+        onLimitChange={onLimitChange}
         onExport={onExport}
         onExportPdf={onExportPdf}
       />
@@ -1706,75 +1781,29 @@ function AdminDriversView({
 function TablePager({
   pagination,
   onPageChange,
+  onLimitChange,
   onExport,
   onExportPdf,
 }) {
-  if (
-    !pagination &&
-    !onExport &&
-    !onExportPdf
-  ) {
-    return null;
-  }
+  if (!pagination && !onExport && !onExportPdf) return null;
 
   return (
     <div className="sa-table-pager">
-      {onExport && (
-        <button
-          className="sa-small-action"
-          onClick={onExport}
-        >
-          Export CSV
-        </button>
-      )}
-
-      {onExportPdf && (
-        <button
-          className="sa-small-action"
-          onClick={onExportPdf}
-        >
-          Export PDF
-        </button>
-      )}
-
-      {pagination && (
-        <div>
-          <button
-            className="sa-small-action"
-            disabled={!pagination.hasPrevPage}
-            onClick={() =>
-              onPageChange(
-                pagination.page - 1
-              )
-            }
-          >
-            Previous
-          </button>
-
-          <span
-            style={{
-              margin: "0 10px",
-            }}
-          >
-            Page {pagination.page} of{" "}
-            {Math.max(
-              1,
-              pagination.totalPages
-            )}
-          </span>
-
-          <button
-            className="sa-small-action"
-            disabled={!pagination.hasNextPage}
-            onClick={() =>
-              onPageChange(
-                pagination.page + 1
-              )
-            }
-          >
-            Next
-          </button>
+      {(onExport || onExportPdf) && (
+        <div className="sa-table-export-actions">
+          {onExport && <button className="sa-small-action" onClick={onExport}>Export CSV</button>}
+          {onExportPdf && <button className="sa-small-action" onClick={onExportPdf}>Export PDF</button>}
         </div>
+      )}
+      {pagination && (
+        <Pagination
+          page={pagination.page || 1}
+          totalPages={pagination.totalPages || 1}
+          total={pagination.total || 0}
+          limit={pagination.limit || 10}
+          onPageChange={onPageChange}
+          onLimitChange={onLimitChange}
+        />
       )}
     </div>
   );

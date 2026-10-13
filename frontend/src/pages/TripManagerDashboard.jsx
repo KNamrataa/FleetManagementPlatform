@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Children, isValidElement, useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Activity,
   AlertTriangle,
   Bell,
+  BarChart3,
   CalendarDays,
   Car,
   CheckCircle2,
@@ -23,9 +25,11 @@ import {
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import NotificationBell from "../components/NotificationBell";
 import { API_URL, apiRequest, authFetch } from "../services/api";
+import { Pagination } from "../components/Pagination";
 import { getSocket } from "../services/socket";
 import "./FleetManager.css";
 import "./TripManagerDashboard.css";
+import AnalyticsReportPanel from "../components/AnalyticsReportPanel";
 
 const cls = (s = "") =>
   String(s).toLowerCase().replaceAll("_", "-");
@@ -39,8 +43,166 @@ const fmt = (v) =>
 const dtValue = (v) =>
   v ? new Date(v).toISOString().slice(0, 16) : "";
 
+
+function ResponsiveSelect({
+  value,
+  onChange,
+  required = false,
+  children,
+  className = ""
+}) {
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef(null);
+  const menuRef = useRef(null);
+  const [menuStyle, setMenuStyle] = useState({});
+
+  const options = Children.toArray(children)
+    .filter((child) => isValidElement(child) && child.type === "option")
+    .map((child) => ({
+      value: child.props.value ?? "",
+      label: String(child.props.children ?? "")
+    }));
+
+  const selectedOption = options.find(
+    (option) => String(option.value) === String(value ?? "")
+  );
+
+  const reposition = useCallback(() => {
+    const trigger = triggerRef.current;
+    if (!trigger) return;
+
+    const rect = trigger.getBoundingClientRect();
+    const viewportPadding = 12;
+    const menuWidth = Math.min(
+      rect.width,
+      Math.max(0, window.innerWidth - viewportPadding * 2)
+    );
+    const left = Math.min(
+      Math.max(rect.left, viewportPadding),
+      Math.max(viewportPadding, window.innerWidth - menuWidth - viewportPadding)
+    );
+    const availableBelow = window.innerHeight - rect.bottom - viewportPadding;
+    const availableAbove = rect.top - viewportPadding;
+    const openUpward = availableBelow < 220 && availableAbove > availableBelow;
+    const maxHeight = Math.max(
+      120,
+      Math.min(320, openUpward ? availableAbove : availableBelow)
+    );
+
+    setMenuStyle({
+      position: "fixed",
+      left,
+      width: menuWidth,
+      maxHeight,
+      ...(openUpward
+        ? { bottom: window.innerHeight - rect.top + 6 }
+        : { top: rect.bottom + 6 })
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const closeOnOutsideClick = (event) => {
+      const target = event.target;
+      if (
+        !triggerRef.current?.contains(target) &&
+        !menuRef.current?.contains(target)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+
+    reposition();
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    document.addEventListener("touchstart", closeOnOutsideClick, { passive: true });
+    document.addEventListener("keydown", closeOnEscape);
+    window.addEventListener("resize", reposition);
+    window.addEventListener("scroll", reposition, true);
+
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutsideClick);
+      document.removeEventListener("touchstart", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+      window.removeEventListener("resize", reposition);
+      window.removeEventListener("scroll", reposition, true);
+    };
+  }, [open, reposition]);
+
+  const choose = (nextValue) => {
+    onChange?.({ target: { value: nextValue } });
+    setOpen(false);
+  };
+
+  return (
+    <div
+      ref={triggerRef}
+      className={`tm-responsive-select ${className}`.trim()}
+    >
+      <select
+        className="tm-responsive-select-native"
+        value={value}
+        required={required}
+        onChange={onChange}
+        tabIndex={-1}
+        aria-hidden="true"
+      >
+        {children}
+      </select>
+
+      <button
+        type="button"
+        className="tm-responsive-select-trigger"
+        onClick={() => setOpen((current) => !current)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <span className={selectedOption ? "" : "placeholder"}>
+          {selectedOption?.label || options[0]?.label || "Select"}
+        </span>
+        <span className="tm-responsive-select-chevron" aria-hidden="true">
+          ▾
+        </span>
+      </button>
+
+      {open &&
+        createPortal(
+          <div
+            ref={menuRef}
+            className="tm-responsive-select-menu"
+            style={menuStyle}
+            role="listbox"
+          >
+            {options.map((option) => (
+              <button
+                type="button"
+                role="option"
+                aria-selected={String(option.value) === String(value ?? "")}
+                key={`${option.value}-${option.label}`}
+                className={`tm-responsive-select-option ${
+                  String(option.value) === String(value ?? "") ? "selected" : ""
+                }`}
+                onClick={() => choose(option.value)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>,
+          document.body
+        )}
+    </div>
+  );
+}
+
 const NAV = [
   ["/trip-manager", "Overview", LayoutDashboard],
+  ["/analytics", "Analytics", BarChart3],
   ["/trip-manager/trip-requests", "Trip Requests", ClipboardList],
   ["/trip-manager/scheduling", "Trip Scheduling", CalendarDays],
   ["/trip-manager/driver-assignment", "Driver Assignment", UserRound],
@@ -633,6 +795,7 @@ function Requests({ onChanged }) {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [pagination, setPagination] =
     useState(null);
   const [modal, setModal] = useState(null);
@@ -648,7 +811,7 @@ function Requests({ onChanged }) {
       try {
         const q = new URLSearchParams({
           page,
-          limit: 20
+          limit
         });
 
         if (search.trim())
@@ -697,7 +860,8 @@ function Requests({ onChanged }) {
       customer,
       priority,
       from,
-      to
+      to,
+      limit
     ]
   );
 
@@ -733,7 +897,8 @@ function Requests({ onChanged }) {
       customer,
       priority,
       from,
-      to
+      to,
+      limit
     ]
   );
 
@@ -863,16 +1028,13 @@ function Requests({ onChanged }) {
             />
           </div>
 
-          <select
+          <ResponsiveSelect
             value={status}
             onChange={(e) =>
               setStatus(e.target.value)
             }
           >
-            <option value="">
-              All Status
-            </option>
-
+            <option value="">All Status</option>
             {[
               "PENDING",
               "REVIEWED",
@@ -881,22 +1043,19 @@ function Requests({ onChanged }) {
               "REJECTED",
               "CANCELLED"
             ].map((s) => (
-              <option key={s}>
+              <option key={s} value={s}>
                 {label(s)}
               </option>
             ))}
-          </select>
+          </ResponsiveSelect>
 
-          <select
+          <ResponsiveSelect
             value={customer}
             onChange={(e) =>
               setCustomer(e.target.value)
             }
           >
-            <option value="">
-              All Customers
-            </option>
-
+            <option value="">All Customers</option>
             {(resources?.customers || []).map(
               (c) => (
                 <option
@@ -907,29 +1066,26 @@ function Requests({ onChanged }) {
                 </option>
               )
             )}
-          </select>
+          </ResponsiveSelect>
 
-          <select
+          <ResponsiveSelect
             value={priority}
             onChange={(e) =>
               setPriority(e.target.value)
             }
           >
-            <option value="">
-              All Priorities
-            </option>
-
+            <option value="">All Priorities</option>
             {[
               "LOW",
               "NORMAL",
               "HIGH",
               "URGENT"
             ].map((s) => (
-              <option key={s}>
+              <option key={s} value={s}>
                 {s}
               </option>
             ))}
-          </select>
+          </ResponsiveSelect>
 
           <label>
             From{" "}
@@ -1124,13 +1280,14 @@ function Requests({ onChanged }) {
           </Table>
         )}
 
-        {pagination && (
-          <Pager
-            pagination={pagination}
-            page={page}
-            setPage={setPage}
-          />
-        )}
+        <Pagination
+          page={pagination?.page || page}
+          totalPages={pagination?.totalPages || 1}
+          total={pagination?.total || requests.length}
+          limit={pagination?.limit || 10}
+          onPageChange={setPage}
+          onLimitChange={(value) => { setLimit(value); setPage(1); }}
+        />
       </div>
 
       {modal && (
@@ -1272,7 +1429,7 @@ function Requests({ onChanged }) {
                 <label>
                   Driver
 
-                  <select
+                  <ResponsiveSelect
                     required
                     value={
                       modal.form
@@ -1313,13 +1470,13 @@ function Requests({ onChanged }) {
                           {d.status}
                         </option>
                       ))}
-                  </select>
+                  </ResponsiveSelect>
                 </label>
 
                 <label>
                   Vehicle
 
-                  <select
+                  <ResponsiveSelect
                     required
                     value={
                       modal.form
@@ -1376,7 +1533,7 @@ function Requests({ onChanged }) {
                           {v.capacity}
                         </option>
                       ))}
-                  </select>
+                  </ResponsiveSelect>
                 </label>
 
                 <label>
@@ -1516,6 +1673,10 @@ function TripsWorkspace({ mode }) {
   const [to, setTo] =
     useState("");
 
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [pagination, setPagination] = useState(null);
+
   const [calendarView, setCalendarView] =
     useState("day");
 
@@ -1538,10 +1699,13 @@ function TripsWorkspace({ mode }) {
       setError("");
 
       try {
+        const paginatedMode = ["driver", "vehicle", "board"].includes(mode);
         const q =
-          new URLSearchParams({
-            limit: 200
-          });
+          new URLSearchParams(
+            paginatedMode
+              ? { page, limit }
+              : { limit: 100 }
+          );
 
         if (search.trim())
           q.set(
@@ -1581,6 +1745,7 @@ function TripsWorkspace({ mode }) {
           ]);
 
         setTrips(t.trips || []);
+        setPagination(paginatedMode ? (t.pagination || null) : null);
         setResources(r);
       } catch (e) {
         setError(e.message);
@@ -1594,9 +1759,16 @@ function TripsWorkspace({ mode }) {
       customer,
       priority,
       from,
-      to
+      to,
+      page,
+      mode,
+      limit
     ]
   );
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, status, customer, priority, from, to, mode]);
 
   useEffect(() => {
     const t = setTimeout(
@@ -1830,16 +2002,13 @@ function TripsWorkspace({ mode }) {
             />
           </div>
 
-          <select
+          <ResponsiveSelect
             value={status}
             onChange={(e) =>
               setStatus(e.target.value)
             }
           >
-            <option value="">
-              All Trip Statuses
-            </option>
-
+            <option value="">All Trip Statuses</option>
             {[
               "SCHEDULED",
               "ASSIGNED",
@@ -1848,22 +2017,19 @@ function TripsWorkspace({ mode }) {
               "COMPLETED",
               "CANCELLED"
             ].map((s) => (
-              <option key={s}>
+              <option key={s} value={s}>
                 {label(s)}
               </option>
             ))}
-          </select>
+          </ResponsiveSelect>
 
-          <select
+          <ResponsiveSelect
             value={customer}
             onChange={(e) =>
               setCustomer(e.target.value)
             }
           >
-            <option value="">
-              All Customers
-            </option>
-
+            <option value="">All Customers</option>
             {(resources.customers ||
               []
             ).map((c) => (
@@ -1874,29 +2040,26 @@ function TripsWorkspace({ mode }) {
                 {c.fullName}
               </option>
             ))}
-          </select>
+          </ResponsiveSelect>
 
-          <select
+          <ResponsiveSelect
             value={priority}
             onChange={(e) =>
               setPriority(e.target.value)
             }
           >
-            <option value="">
-              All Priorities
-            </option>
-
+            <option value="">All Priorities</option>
             {[
               "LOW",
               "NORMAL",
               "HIGH",
               "URGENT"
             ].map((s) => (
-              <option key={s}>
+              <option key={s} value={s}>
                 {s}
               </option>
             ))}
-          </select>
+          </ResponsiveSelect>
 
           <label>
             From{" "}
@@ -2161,6 +2324,17 @@ function TripsWorkspace({ mode }) {
             </tbody>
           </Table>
         )}
+
+        {pagination && (
+          <Pagination
+            page={pagination.page || page}
+            totalPages={pagination.totalPages || 1}
+            total={pagination.total || trips.length}
+            limit={pagination.limit || 10}
+            onPageChange={setPage}
+            onLimitChange={(value) => { setLimit(value); setPage(1); }}
+          />
+        )}
       </div>
 
       {modal && (
@@ -2293,7 +2467,7 @@ function TripsWorkspace({ mode }) {
                     ? "Eligible Driver"
                     : "Eligible Vehicle"}
 
-                  <select
+                  <ResponsiveSelect
                     required
                     value={
                       modal.value
@@ -2330,7 +2504,7 @@ function TripsWorkspace({ mode }) {
                             : `${x.registrationNumber} — ${x.vehicleType} — cap ${x.capacity}`}
                         </option>
                       ))}
-                  </select>
+                  </ResponsiveSelect>
                 </label>
               ) : modal.action ===
                 "reschedule" ? (
@@ -2470,6 +2644,10 @@ function TripListEndpoint({
   const [error, setError] =
     useState("");
 
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [pagination, setPagination] = useState(null);
+
   const load = useCallback(
     async () => {
       setLoading(true);
@@ -2478,19 +2656,20 @@ function TripListEndpoint({
       try {
         const r =
           await apiRequest(
-            `/api/trip-manager/${endpoint}`
+            `/api/trip-manager/${endpoint}?page=${page}&limit=${limit}`
           );
 
         setTrips(
           r.trips || []
         );
+        setPagination(r.pagination || null);
       } catch (e) {
         setError(e.message);
       } finally {
         setLoading(false);
       }
     },
-    [endpoint]
+    [endpoint, page, limit]
   );
 
   useEffect(() => {
@@ -2607,6 +2786,14 @@ function TripListEndpoint({
             </tbody>
           </Table>
         )}
+        <Pagination
+          page={pagination?.page || page}
+          totalPages={pagination?.totalPages || 1}
+          total={pagination?.total || trips.length}
+          limit={pagination?.limit || 10}
+          onPageChange={setPage}
+          onLimitChange={(value) => { setLimit(value); setPage(1); }}
+        />
       </div>
     </>
   );
@@ -2751,7 +2938,7 @@ function Notifications() {
       try {
         setData(
           await apiRequest(
-            "/api/trip-manager/notifications?limit=50"
+            "/api/trip-manager/notifications?limit=10"
           )
         );
       } catch (e) {

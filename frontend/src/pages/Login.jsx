@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import "../Auth.css";
+import truckImage from "../assets/login-truck-reference.png";
 import { setAuthSession } from "../services/api";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -292,11 +293,6 @@ useEffect(() => {
         );
       }
 
-      console.log(
-        "Login response:",
-        data
-      );
-
       if (!data.user) {
         throw new Error(
           "Login successful, but user information was not returned by the server."
@@ -310,15 +306,6 @@ useEffect(() => {
           : "CUSTOMER",
       };
 
-      console.log(
-        "Logged in user:",
-        loggedInUser
-      );
-
-      console.log(
-        "Logged in role:",
-        loggedInUser.role
-      );
       if (!data.token) {
         throw new Error("Login successful, but the authentication token was not returned by the server.");
       }
@@ -345,236 +332,236 @@ useEffect(() => {
 
       <div className="auth-wrapper">
 
-        {/* BACK HOME */}
-
+        {/* BACK HOME - retained for functionality; visually hidden in the reference layout */}
         <button
           type="button"
           className="back-home-btn"
-          onClick={() =>
-            navigate("/")
-          }
+          onClick={() => navigate("/")}
         >
           <ArrowLeft size={18} />
           Back to Home
         </button>
 
-        {/* LOGIN CARD */}
+        <div className="auth-layout auth-layout-login">
 
-        <div className="auth-card">
-
-          {/* BRAND */}
-
-          <div className="auth-brand">
-
-            <div className="auth-logo-icon">
-              <Truck size={23} />
-            </div>
-
-            <span>
-              Fleet
-              <span>Flow</span>
-            </span>
-
-          </div>
-
-          {/* HEADING */}
-
-          <div className="auth-heading">
-
-            <div className="auth-heading-icon">
-              <ShieldCheck size={25} />
-            </div>
-
-            <h1>
-              Welcome Back
-            </h1>
-
-            <p>
-              Sign in to access your fleet
-              management workspace.
-            </p>
-
-          </div>
-
-          {/* SERVER ERROR */}
-
-          {serverError && (
-            <div
-              className="auth-server-error"
-              role="alert"
-            >
-              {serverError}
-            </div>
-          )}
-
-          {/* FORM */}
-
-          <form
-            className="auth-form"
-            onSubmit={handleSubmit}
-            noValidate
-          >
-
-            {/* EMAIL */}
-
-            <div className="auth-field">
-
-              <label htmlFor="email">
-                Email Address
-              </label>
-
-              <div
-                className={`auth-input ${
-                  errors.email
-                    ? "input-error"
-                    : ""
-                }`}
-              >
-
-                <Mail size={18} />
-
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  placeholder="Enter your email"
-                  value={formData.email}
-                  onChange={handleChange}
-                />
-
+          {/* LEFT MARKETING PANEL */}
+          <section className="auth-marketing-panel login-marketing-panel">
+            <div className="marketing-brand">
+              <div className="auth-logo-icon">
+                <Truck size={20} />
               </div>
-
-              {errors.email && (
-                <span className="field-error">
-                  {errors.email}
-                </span>
-              )}
-
+              <span>
+                Fleet<span>Flow</span>
+              </span>
             </div>
 
-            {/* PASSWORD */}
-
-            <div className="auth-field">
-
-              <label htmlFor="password">
-                Password
-              </label>
-
-              <div
-                className={`auth-input ${
-                  errors.password
-                    ? "input-error"
-                    : ""
-                }`}
-              >
-
-                <Lock size={18} />
-
-                <input
-                  id="password"
-                  name="password"
-                  type={
-                    showPassword
-                      ? "text"
-                      : "password"
-                  }
-                  autoComplete="current-password"
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={handleChange}
-                />
-
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() =>
-                    setShowPassword(
-                      !showPassword
-                    )
-                  }
-                  aria-label={
-                    showPassword
-                      ? "Hide password"
-                      : "Show password"
-                  }
-                >
-
-                  {showPassword ? (
-                    <EyeOff size={18} />
-                  ) : (
-                    <Eye size={18} />
-                  )}
-
-                </button>
-
-              </div>
-
-              {errors.password && (
-                <span className="field-error">
-                  {errors.password}
-                </span>
-              )}
-
+            <div className="marketing-copy">
+              <h1>
+                Smarter Fleet
+                <br />
+                Management
+              </h1>
             </div>
 
-            <Link to="/forgot-password" className="forgot-password-link">Forgot password?</Link>
-
-            <button
-              type="submit"
-              className="auth-submit-btn"
-              disabled={loading}
-            >
-              {loading
-                ? "Signing In..."
-                : "Sign In"}
-            </button>
-
-          </form>
-
-          <div className="google-login-section">
-            <div className="auth-divider">
-              <span></span>
-              <p>OR</p>
-              <span></span>
-            </div>
-
-            {googleClientId ? (
-              <div
-                ref={googleButtonRef}
-                className="google-login-button"
-                aria-label="Continue with Google"
+            <div className="marketing-road-scene" aria-hidden="true">
+              <img
+                className="auth-truck-image login-truck-image"
+                src={truckImage}
+                alt="FleetFlow delivery trucks"
               />
-            ) : (
-              <div className="google-config-notice">
-                Google sign-in is not configured yet. Add
-                <strong> VITE_GOOGLE_CLIENT_ID </strong>
-                to the frontend environment file.
+            </div>
+          </section>
+
+          {/* LOGIN CARD */}
+          <div className="auth-card auth-card-login">
+
+            {/* BRAND */}
+            <div className="auth-brand">
+              <div className="auth-logo-icon">
+                <Truck size={23} />
+              </div>
+
+              <span>
+                Fleet
+                <span>Flow</span>
+              </span>
+            </div>
+
+            {/* EXISTING HEADING RETAINED; CSS hides it to match the reference UI */}
+            <div className="auth-heading">
+              <div className="auth-heading-icon">
+                <ShieldCheck size={25} />
+              </div>
+
+              <h1>
+                Welcome Back
+              </h1>
+
+              <p>
+                Sign in to access your fleet
+                management workspace.
+              </p>
+            </div>
+
+            {/* SERVER ERROR */}
+            {serverError && (
+              <div
+                className="auth-server-error"
+                role="alert"
+              >
+                {serverError}
               </div>
             )}
-          </div>
 
-          <div className="auth-divider auth-security-divider">
+            {/* FORM */}
+            <form
+              className="auth-form"
+              onSubmit={handleSubmit}
+              noValidate
+            >
 
-            <span></span>
+              {/* EMAIL */}
+              <div className="auth-field">
+                <label htmlFor="email">
+                  Email Address
+                </label>
 
-            <p>
-              Secure Fleet Management Access
+                <div
+                  className={`auth-input ${
+                    errors.email
+                      ? "input-error"
+                      : ""
+                  }`}
+                >
+                  <Mail size={18} />
+
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="Enter your email"
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {errors.email && (
+                  <span className="field-error">
+                    {errors.email}
+                  </span>
+                )}
+              </div>
+
+              {/* PASSWORD */}
+              <div className="auth-field">
+                <label htmlFor="password">
+                  Password
+                </label>
+
+                <div
+                  className={`auth-input ${
+                    errors.password
+                      ? "input-error"
+                      : ""
+                  }`}
+                >
+                  <Lock size={18} />
+
+                  <input
+                    id="password"
+                    name="password"
+                    type={
+                      showPassword
+                        ? "text"
+                        : "password"
+                    }
+                    autoComplete="current-password"
+                    placeholder="Enter your password"
+                    value={formData.password}
+                    onChange={handleChange}
+                  />
+
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() =>
+                      setShowPassword(
+                        !showPassword
+                      )
+                    }
+                    aria-label={
+                      showPassword
+                        ? "Hide password"
+                        : "Show password"
+                    }
+                  >
+                    {showPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+                </div>
+
+                {errors.password && (
+                  <span className="field-error">
+                    {errors.password}
+                  </span>
+                )}
+              </div>
+
+              <Link to="/forgot-password" className="forgot-password-link">Forgot password?</Link>
+
+              <button
+                type="submit"
+                className="auth-submit-btn"
+                disabled={loading}
+              >
+                {loading
+                  ? "Signing In..."
+                  : "Sign In"}
+              </button>
+            </form>
+
+            <div className="google-login-section">
+              <div className="auth-divider">
+                <span></span>
+                <p>OR</p>
+                <span></span>
+              </div>
+
+              {googleClientId ? (
+                <div
+                  ref={googleButtonRef}
+                  className="google-login-button"
+                  aria-label="Continue with Google"
+                />
+              ) : (
+                <div className="google-config-notice">
+                  Google sign-in is not configured yet. Add
+                  <strong> VITE_GOOGLE_CLIENT_ID </strong>
+                  to the frontend environment file.
+                </div>
+              )}
+            </div>
+
+            <div className="auth-divider auth-security-divider">
+              <span></span>
+              <p>
+                Secure Fleet Management Access
+              </p>
+              <span></span>
+            </div>
+
+            <p className="auth-switch">
+              New to FleetFlow?
+              <Link to="/signup">
+                Create an account
+              </Link>
             </p>
 
-            <span></span>
-
           </div>
-
-          <p className="auth-switch">
-
-            New to FleetFlow?
-
-            <Link to="/signup">
-              Create an account
-            </Link>
-
-          </p>
 
         </div>
 

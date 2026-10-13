@@ -7,6 +7,7 @@ const tripRequestSchema = new mongoose.Schema({
   destination: { type: String, required: true, trim: true },
   requestedDate: { type: Date, required: true, index: true },
   requestedTime: { type: String, trim: true, default: "" },
+  estimatedDurationMinutes: { type: Number, min: 0, default: 0 },
   serviceType: { type: String, trim: true, default: "Passenger Transportation" },
   priority: { type: String, enum: ["LOW", "NORMAL", "HIGH", "URGENT"], default: "NORMAL", index: true },
   vehicleType: { type: String, trim: true, default: "" },
@@ -26,6 +27,21 @@ const tripRequestSchema = new mongoose.Schema({
   scheduledBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   scheduledAt: { type: Date, default: null },
   rejectionReason: { type: String, trim: true, default: "" },
+  assignmentSource: { type: String, enum: ["MANUAL", "AI"], default: "MANUAL", index: true },
+  aiAssignment: {
+    score: { type: Number, min: 0, max: 100, default: null },
+    vehicle: { type: mongoose.Schema.Types.ObjectId, ref: "Vehicle", default: null },
+    driver: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    reasons: [{ type: String, trim: true }],
+    assignedAt: { type: Date, default: null },
+    version: { type: String, trim: true, default: "" },
+    components: { type: mongoose.Schema.Types.Mixed, default: {} },
+    estimatedDistanceKm: { type: Number, min: 0, default: null },
+    estimatedDurationMinutes: { type: Number, min: 0, default: null },
+    estimatedCost: { type: Number, min: 0, default: null },
+    candidateCount: { type: Number, min: 0, default: 0 },
+    routeSource: { type: String, trim: true, default: "" },
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model("TripRequest", tripRequestSchema);

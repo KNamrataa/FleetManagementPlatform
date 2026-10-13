@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Bell, CheckCheck, X } from "lucide-react";
+import { Bell, CheckCheck } from "lucide-react";
 import { apiRequest } from "../services/api";
 import { getSocket } from "../services/socket";
 import "./NotificationBell.css";
@@ -63,7 +63,7 @@ export default function NotificationBell({ className = "" }) {
         {unread > 0 && <span className="notification-count">{unread > 99 ? "99+" : unread}</span>}
       </button>
       {open && <div className="notification-panel">
-        <div className="notification-panel-head"><div><strong>Notifications</strong><small>{unread ? `${unread} unread` : "All caught up"}</small></div><button onClick={markAll} disabled={!unread} title="Mark all as read"><CheckCheck size={17} /></button></div>
+        <div className="notification-panel-head"><div><strong>Notifications</strong><small>{unread ? `${unread} unread` : "All caught up"}</small></div><button onClick={markAll} disabled={!unread} title="Mark all as read" aria-label="Mark all notifications as read"><CheckCheck size={17} /></button></div>
         <div className="notification-list">
           {loading ? <div className="notification-empty">Loading notifications…</div> : items.length ? items.map((n) => (
             <button key={n._id} className={`notification-item ${n.isRead ? "read" : "unread"}`} onClick={() => openNotification(n)}>

@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   KeyRound,
   Mail,
-  ShieldCheck,
   Truck,
 } from "lucide-react";
 import "../Auth.css";

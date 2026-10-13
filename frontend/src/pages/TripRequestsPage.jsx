@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Calendar, CheckCircle, Eye, RefreshCw, Search, Truck, X, XCircle } from "lucide-react";
+import { Bot, Calendar, CheckCircle, Eye, RefreshCw, Search, Sparkles, Truck, X, XCircle } from "lucide-react";
 import FleetManagerLayout from "./FleetManagerLayout";
 import { apiRequest } from "../services/api";
+import { Pagination } from "../components/Pagination";
 
 const STATUSES = ["PENDING", "REVIEWED", "ACCEPTED", "TRIP_CREATED", "REJECTED", "CANCELLED"];
 const emptySchedule = { vehicle: "", driver: "", scheduledStart: "", scheduledEnd: "", distance: 0, notes: "" };
@@ -30,18 +31,23 @@ export default function TripRequestsPage() {
   const [success, setSuccess] = useState("");
   const [modal, setModal] = useState(null);
   const [schedule, setSchedule] = useState(emptySchedule);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [pagination, setPagination] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [aiAssigning, setAiAssigning] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
       const [r, v, d] = await Promise.all([
-        apiRequest(`/api/trip-requests?search=${encodeURIComponent(search)}&status=${status}`),
-        apiRequest("/api/vehicles?status=AVAILABLE"),
-        apiRequest("/api/drivers?status=AVAILABLE"),
+        apiRequest(`/api/trip-requests?search=${encodeURIComponent(search)}&status=${status}&page=${page}&limit=${limit}`),
+        apiRequest("/api/vehicles?status=AVAILABLE&page=1&limit=100"),
+        apiRequest("/api/drivers?status=AVAILABLE&page=1&limit=100"),
       ]);
       setRequests(r.requests || []);
+      setPagination(r.pagination || null);
       setVehicles(v.vehicles || []);
       setDrivers(d.drivers || []);
     } catch (e) {
@@ -49,7 +55,7 @@ export default function TripRequestsPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, status]);
+  }, [search, status, page, limit]);
 
   useEffect(() => {
     const timer = setTimeout(load, 250);
@@ -84,6 +90,26 @@ export default function TripRequestsPage() {
   const openSchedule = (request) => {
     setSchedule({ ...emptySchedule, scheduledStart: dateTimeValue(request), notes: request.specialInstructions || "" });
     setModal({ type: "schedule", request });
+  };
+
+  const aiAssign = async (request) => {
+    if (!request?._id || aiAssigning) return;
+    setAiAssigning(request._id);
+    setError("");
+    setSuccess("");
+    try {
+      const result = await apiRequest(`/api/trip-requests/${request._id}/ai-assign`, {
+        method: "POST",
+        body: JSON.stringify({}),
+      });
+      const score = result.ai?.score != null ? ` Match score: ${result.ai.score}/100.` : "";
+      setSuccess(`${result.message}${score}`);
+      load();
+    } catch (e) {
+      setError(e.message || "AI could not assign this trip.");
+    } finally {
+      setAiAssigning(null);
+    }
   };
 
   const submitSchedule = async (e) => {
@@ -123,8 +149,8 @@ export default function TripRequestsPage() {
 
       <div className="fm-card">
         <div className="fm-filters">
-          <div className="fm-search"><Search size={17}/><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search request, customer, pickup, destination..."/></div>
-          <select value={status} onChange={e => setStatus(e.target.value)}><option value="">All Status</option>{STATUSES.map(s => <option key={s} value={s}>{s.replaceAll("_", " ")}</option>)}</select>
+          <div className="fm-search"><Search size={17}/><input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search request, customer, pickup, destination..."/></div>
+          <select value={status} onChange={e => { setStatus(e.target.value); setPage(1); }}><option value="">All Status</option>{STATUSES.map(s => <option key={s} value={s}>{s.replaceAll("_", " ")}</option>)}</select>
         </div>
         {loading ? <div className="fm-loading"><div className="spinner"/>Loading customer requests...</div> : !requests.length ? <div className="fm-empty-state"><Calendar size={34}/><h3>No customer trip requests</h3><p>New requests submitted by customers will appear here.</p></div> : (
           <div className="fm-table-wrap"><table className="fm-table"><thead><tr><th>Request</th><th>Customer</th><th>Route</th><th>Requested</th><th>Service</th><th>Vehicle Requirement</th><th>Status</th><th>Actions</th></tr></thead>
@@ -140,11 +166,12 @@ export default function TripRequestsPage() {
                 <button title="View" onClick={() => setModal({ type: "view", request: r })}><Eye size={16}/></button>
                 {r.status === "PENDING" && <button title="Mark reviewed" onClick={() => updateStatus(r, "REVIEWED")}><Eye size={16}/></button>}
                 {!["TRIP_CREATED", "REJECTED", "CANCELLED"].includes(r.status) && <button className="activate" title="Accept" onClick={() => updateStatus(r, "ACCEPTED")}><CheckCircle size={16}/></button>}
-                {!["TRIP_CREATED", "REJECTED", "CANCELLED"].includes(r.status) && <button className="primary" title="Schedule trip" onClick={() => openSchedule(r)}><Truck size={16}/></button>}
+                {!["TRIP_CREATED", "REJECTED", "CANCELLED"].includes(r.status) && <button className="primary" title="Schedule trip manually" onClick={() => openSchedule(r)}><Truck size={16}/></button>}
+                {!["TRIP_CREATED", "REJECTED", "CANCELLED"].includes(r.status) && <button className="ai-action" title="AI auto-assign best vehicle and driver" onClick={() => aiAssign(r)} disabled={aiAssigning === r._id || !!aiAssigning}><Bot size={16}/>{aiAssigning === r._id ? <span>AI...</span> : null}</button>}
                 {!["TRIP_CREATED", "REJECTED", "CANCELLED"].includes(r.status) && <button className="danger" title="Reject" onClick={() => updateStatus(r, "REJECTED")}><XCircle size={16}/></button>}
               </div></td>
             </tr>)}</tbody>
-          </table></div>
+          </table><Pagination page={pagination?.page||page} totalPages={pagination?.totalPages||1} total={pagination?.total||requests.length} limit={pagination?.limit||10} onPageChange={setPage} onLimitChange={(value)=>{setLimit(value);setPage(1)}}/></div>
         )}
       </div>
 
@@ -154,6 +181,21 @@ export default function TripRequestsPage() {
           <div className="fm-detail-grid">
             {[['Customer', modal.request.customer?.fullName || '—'], ['Email', modal.request.customer?.email || '—'], ['Pickup', modal.request.pickupLocation], ['Destination', modal.request.destination], ['Requested', `${fmtDate(modal.request.requestedDate)} ${modal.request.requestedTime || ''}`], ['Service Type', modal.request.serviceType || '—'], ['Vehicle Requirement', modal.request.vehicleType || '—'], ['Passengers', modal.request.passengerCount || 0], ['Cargo', modal.request.cargoDetails || '—'], ['Cargo Weight', modal.request.cargoWeight ? `${modal.request.cargoWeight} kg` : '—'], ['Status', modal.request.status.replaceAll('_', ' ')], ['Special Instructions', modal.request.specialInstructions || '—']].map(([a,b]) => <div key={a}><span>{a}</span><strong>{b}</strong></div>)}
           </div>
+          {modal.request.assignmentSource === "AI" && modal.request.aiAssignment?.score != null && (
+            <div className="fm-ai-result">
+              <div className="fm-ai-result-head"><Sparkles size={17}/><strong>AI-Assisted Assignment</strong><span>{modal.request.aiAssignment.score}/100 match</span></div>
+              <div className="fm-ai-metrics">
+                <div><span>Vehicle</span><strong>{modal.request.aiAssignment.vehicle?.registrationNumber || "Assigned"}</strong></div>
+                <div><span>Driver</span><strong>{modal.request.aiAssignment.driver?.fullName || "Assigned"}</strong></div>
+                <div><span>Distance</span><strong>{modal.request.aiAssignment.estimatedDistanceKm != null ? `${Number(modal.request.aiAssignment.estimatedDistanceKm).toFixed(1)} km` : "Unavailable"}</strong></div>
+                <div><span>ETA</span><strong>{modal.request.aiAssignment.estimatedDurationMinutes != null ? `${Math.round(Number(modal.request.aiAssignment.estimatedDurationMinutes))} min` : "Unavailable"}</strong></div>
+                <div><span>Est. Cost</span><strong>{modal.request.aiAssignment.estimatedCost != null ? `₹${Math.round(Number(modal.request.aiAssignment.estimatedCost)).toLocaleString("en-IN")}` : "Unavailable"}</strong></div>
+                <div><span>Candidates</span><strong>{modal.request.aiAssignment.candidateCount || "—"}</strong></div>
+              </div>
+              {modal.request.aiAssignment.components ? <div className="fm-ai-components">{Object.entries(modal.request.aiAssignment.components).map(([key,value]) => <span key={key}>{key.replace(/([A-Z])/g," $1").replace(/^./,x=>x.toUpperCase())}: <strong>{value}</strong></span>)}</div> : null}
+              {modal.request.aiAssignment.reasons?.length ? <ul>{modal.request.aiAssignment.reasons.map((reason, index) => <li key={index}>{reason}</li>)}</ul> : null}
+            </div>
+          )}
           {modal.request.trip && <div className="fm-alert success">Trip {modal.request.trip.tripId || "created"} is already associated with this request.</div>}
         </> : <form onSubmit={submitSchedule}>
           <div className="fm-modal-head"><h2>Schedule {modal.request.requestNumber}</h2><button type="button" onClick={() => setModal(null)}><X/></button></div>

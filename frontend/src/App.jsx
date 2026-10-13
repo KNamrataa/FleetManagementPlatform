@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -5,54 +6,57 @@ import {
   Navigate,
 } from "react-router-dom";
 import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import ForgotPassword from "./pages/ForgotPassword";
-import VerifyResetOtp from "./pages/VerifyResetOtp";
-import ResetPassword from "./pages/ResetPassword";
-import ChangePassword from "./pages/ChangePassword";
+const Login = lazy(() => import("./pages/Login"));
+const Signup = lazy(() => import("./pages/Signup"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const VerifyResetOtp = lazy(() => import("./pages/VerifyResetOtp"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const ChangePassword = lazy(() => import("./pages/ChangePassword"));
 import ProtectedRoute from "./components/ProtectedRoute";
-import SuperAdminDashboard from "./pages/SuperAdminDashboard";
-import SuperAdminSecurity from "./pages/SuperAdminSecurity";
-import RoleDashboard from "./pages/RoleDashboard";
-import UserManagementPage from "./pages/UserManagementPage";
+const SuperAdminDashboard = lazy(() => import("./pages/SuperAdminDashboard"));
+const SuperAdminSecurity = lazy(() => import("./pages/SuperAdminSecurity"));
+const RoleDashboard = lazy(() => import("./pages/RoleDashboard"));
+const UserManagementPage = lazy(() => import("./pages/UserManagementPage"));
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
 import ThemeToggle from "./components/ThemeToggle";
 import { ThemeProvider } from "./context/ThemeContext";
 import "./theme.css";
-import FleetManagerDashboard from "./pages/FleetManagerDashboard";
-import FleetManagerExtras from "./pages/FleetManagerExtras";
-import VehiclesPage from "./pages/VehiclesPage";
-import DriversPage from "./pages/DriversPage";
-import AssignmentsPage from "./pages/AssignmentsPage";
-import TripsPage from "./pages/TripsPage";
-import TripRequestsPage from "./pages/TripRequestsPage";
-import DriverOverview from "./pages/DriverOverview";
-import DriverVehicle from "./pages/DriverVehicle";
-import DriverTrips from "./pages/DriverTrips";
-import DriverTripDetails from "./pages/DriverTripDetails";
-import DriverHistory from "./pages/DriverHistory";
-import DriverIssues from "./pages/DriverIssues";
-import DriverProfile from "./pages/DriverProfile";
-import DriverRecords from "./pages/DriverRecords";
-import MaintenanceManagerDashboard from "./pages/MaintenanceManagerDashboard";
-import FinanceManagerDashboard from "./pages/FinanceManagerDashboard";
-import ManagementDashboard from "./pages/ManagementDashboard";
-import TripManagerDashboard from "./pages/TripManagerDashboard";
-import CustomerOverview from "./pages/CustomerOverview";
-import CustomerTripRequest from "./pages/CustomerTripRequest";
-import CustomerTrips from "./pages/CustomerTrips";
-import CustomerTripDetails from "./pages/CustomerTripDetails";
-import CustomerTracking from "./pages/CustomerTracking";
-import CustomerHistory from "./pages/CustomerHistory";
-import CustomerBilling from "./pages/CustomerBilling";
-import CustomerProfile from "./pages/CustomerProfile";
+const FleetManagerDashboard = lazy(() => import("./pages/FleetManagerDashboard"));
+const FleetManagerExtras = lazy(() => import("./pages/FleetManagerExtras"));
+const VehiclesPage = lazy(() => import("./pages/VehiclesPage"));
+const DriversPage = lazy(() => import("./pages/DriversPage"));
+const AssignmentsPage = lazy(() => import("./pages/AssignmentsPage"));
+const TripsPage = lazy(() => import("./pages/TripsPage"));
+const TripRequestsPage = lazy(() => import("./pages/TripRequestsPage"));
+const DriverOverview = lazy(() => import("./pages/DriverOverview"));
+const DriverVehicle = lazy(() => import("./pages/DriverVehicle"));
+const DriverTrips = lazy(() => import("./pages/DriverTrips"));
+const DriverTripDetails = lazy(() => import("./pages/DriverTripDetails"));
+const DriverLiveFleetMap = lazy(() => import("./pages/DriverLiveFleetMap"));
+const DriverHistory = lazy(() => import("./pages/DriverHistory"));
+const DriverIssues = lazy(() => import("./pages/DriverIssues"));
+const DriverProfile = lazy(() => import("./pages/DriverProfile"));
+const DriverRecords = lazy(() => import("./pages/DriverRecords"));
+const MaintenanceManagerDashboard = lazy(() => import("./pages/MaintenanceManagerDashboard"));
+const FinanceManagerDashboard = lazy(() => import("./pages/FinanceManagerDashboard"));
+const ManagementDashboard = lazy(() => import("./pages/ManagementDashboard"));
+const AnalyticsDashboard = lazy(() => import("./pages/AnalyticsDashboard"));
+const TripManagerDashboard = lazy(() => import("./pages/TripManagerDashboard"));
+const CustomerOverview = lazy(() => import("./pages/CustomerOverview"));
+const CustomerTripRequest = lazy(() => import("./pages/CustomerTripRequest"));
+const CustomerTrips = lazy(() => import("./pages/CustomerTrips"));
+const CustomerTripDetails = lazy(() => import("./pages/CustomerTripDetails"));
+const CustomerTracking = lazy(() => import("./pages/CustomerTracking"));
+const CustomerHistory = lazy(() => import("./pages/CustomerHistory"));
+const CustomerBilling = lazy(() => import("./pages/CustomerBilling"));
+const CustomerProfile = lazy(() => import("./pages/CustomerProfile"));
 
 function App() {
   return (
     <ThemeProvider>
       <BrowserRouter>
         <ThemeToggle />
+        <Suspense fallback={null}>
         <Routes>
 
         <Route
@@ -255,6 +259,15 @@ function App() {
         />
 
         <Route
+          path="/driver/live-fleet"
+          element={
+            <RoleProtectedRoute allowedRoles={["DRIVER"]}>
+              <DriverLiveFleetMap />
+            </RoleProtectedRoute>
+          }
+        />
+
+        <Route
           path="/driver/history"
           element={
             <RoleProtectedRoute allowedRoles={["DRIVER"]}>
@@ -401,6 +414,15 @@ function App() {
         />
 
         <Route
+          path="/analytics"
+          element={
+            <RoleProtectedRoute allowedRoles={["SUPER_ADMIN", "VIEWER", "FLEET_MANAGER", "FINANCE_MANAGER", "MAINTENANCE_MANAGER", "TRIP_MANAGER", "DISPATCHER"]}>
+              <AnalyticsDashboard />
+            </RoleProtectedRoute>
+          }
+        />
+
+        <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
@@ -419,6 +441,7 @@ function App() {
           }
         />
         </Routes>
+        </Suspense>
       </BrowserRouter>
     </ThemeProvider>
   );

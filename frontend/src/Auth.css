@@ -36,9 +36,6 @@
 
   background: #ffffff;
 }
-
-/* Same soft radial glow used behind the hero section, so the page
-   reads as part of the same site rather than a different theme. */
 .auth-background {
   position: absolute;
 
@@ -47,27 +44,20 @@
 
   top: -250px;
   right: -180px;
-
   border-radius: 50%;
-
   background: radial-gradient(
     circle,
     var(--auth-primary-light),
     transparent 70%
   );
-
   pointer-events: none;
 }
-
 .auth-wrapper {
   position: relative;
-
   width: 100%;
   max-width: 470px;
-
   z-index: 1;
 }
-
 .signup-wrapper {
   max-width: 510px;
 }
@@ -111,8 +101,6 @@
   border: 1px solid #dfe6ef;
 
   border-radius: 20px;
-
-  /* Matches .hero-dashboard's shadow language from the landing page */
   box-shadow:
     0 25px 70px rgba(37, 67, 110, 0.12),
     0 5px 20px rgba(37, 67, 110, 0.05);
@@ -349,8 +337,6 @@
 
   font-size: 13px;
 }
-
-/* Matches .primary-btn from the landing page exactly */
 .auth-submit-btn {
   width: 100%;
   height: 51px;
@@ -528,20 +514,6 @@
   font-size: 13px;
   line-height: 1.5;
 }
-
-.dev-reset-box {
-  margin-top: 18px;
-  padding: 13px;
-  border: 1px dashed #d9a441;
-  border-radius: 9px;
-  background: #fff9e8;
-  color: #6b5200;
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.dev-reset-box strong { display: block; margin-bottom: 4px; }
-.dev-reset-box p { margin: 0 0 9px; }
 .dev-reset-link { color: #d71920; font-weight: 700; text-decoration: none; }
 .dev-reset-link:hover { text-decoration: underline; }
 
@@ -619,4 +591,2131 @@
 
 .auth-security-divider {
   margin-top: 18px;
+}
+.auth-page {
+  min-height: 100svh;
+  padding: 56px 24px 48px;
+  isolation: isolate;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.auth-page::before,
+.auth-page::after {
+  content: none;
+  display: none;
+}
+
+.auth-background {
+  display: none;
+}
+
+/* Sign Up page: hide the administrator notice without changing
+   the underlying form logic or validation. */
+.signup-card .account-notice {
+  display: none;
+}
+
+/* Sign Up page: hide the password requirement checklist while keeping
+   the existing password validation/logic unchanged. */
+.signup-card .password-requirements {
+  display: none;
+}
+
+.auth-wrapper {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.signup-wrapper {
+  max-width: 540px;
+}
+
+.back-home-btn {
+  position: relative;
+  min-height: 32px;
+  margin: 0 0 12px 2px;
+  padding: 6px 9px 6px 4px;
+  border-radius: 8px;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.back-home-btn:hover {
+  background: var(--auth-primary-soft);
+  transform: translateX(-2px);
+}
+
+.auth-card {
+  position: relative;
+  overflow: hidden;
+  padding: 40px;
+  border-radius: 22px;
+  border-color: #dfe6ef;
+  box-shadow:
+    0 32px 80px rgba(37, 67, 110, 0.12),
+    0 8px 28px rgba(37, 67, 110, 0.055);
+  transition:
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
+}
+
+.auth-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 7%;
+  right: 7%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--auth-border),
+    transparent
+  );
+}
+
+.auth-card::after {
+  content: none;
+  display: none;
+}
+
+.signup-card {
+  padding: 34px 42px 32px;
+}
+
+.auth-brand,
+.auth-heading,
+.account-notice,
+.auth-server-error,
+.auth-form,
+.google-login-section,
+.auth-switch {
+  position: relative;
+  z-index: 1;
+}
+
+.auth-brand {
+  gap: 11px;
+  margin-bottom: 26px;
+  font-size: 23px;
+  letter-spacing: -0.35px;
+}
+
+.auth-logo-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  box-shadow: 0 8px 18px var(--auth-shadow-primary);
+}
+
+.auth-heading {
+  margin-bottom: 27px;
+}
+
+.auth-heading-icon {
+  width: 54px;
+  height: 54px;
+  margin-bottom: 15px;
+  border-radius: 15px;
+  box-shadow: inset 0 0 0 1px rgba(254, 226, 226, 0.75);
+}
+
+.auth-heading h1 {
+  font-size: 27px;
+  line-height: 1.2;
+  letter-spacing: -0.65px;
+}
+
+.auth-heading p {
+  max-width: 390px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.account-notice {
+  padding: 13px 14px;
+  margin-bottom: 21px;
+  border-radius: 11px;
+  box-shadow: 0 6px 16px rgba(37, 67, 110, 0.035);
+}
+
+.auth-form {
+  gap: 17px;
+}
+
+.auth-field {
+  gap: 7px;
+}
+
+.auth-field label {
+  padding-left: 1px;
+  font-size: 12.5px;
+  letter-spacing: 0.01em;
+}
+
+.auth-input {
+  position: relative;
+  height: 52px;
+  padding: 0 14px;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(37, 67, 110, 0.025);
+}
+
+.auth-input:focus-within {
+  box-shadow:
+    0 0 0 4px var(--auth-primary-soft),
+    0 4px 14px rgba(37, 67, 110, 0.055);
+}
+
+.auth-input input {
+  font-size: 14px;
+  letter-spacing: 0.005em;
+}
+
+.auth-input input:-webkit-autofill,
+.auth-input input:-webkit-autofill:hover,
+.auth-input input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--auth-text-dark);
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+  transition: background-color 9999s ease-out;
+}
+
+.password-toggle {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  transition:
+    color 0.18s ease,
+    background 0.18s ease;
+}
+
+.password-toggle:hover {
+  background: var(--auth-primary-soft);
+  color: var(--auth-primary);
+}
+
+.field-error {
+  padding-left: 2px;
+}
+
+.auth-server-error {
+  box-shadow: 0 6px 18px rgba(37, 67, 110, 0.035);
+}
+
+.auth-submit-btn {
+  height: 52px;
+  margin-top: 3px;
+  border-radius: 10px;
+  letter-spacing: 0.01em;
+  box-shadow:
+    0 12px 28px var(--auth-shadow-primary),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.auth-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow:
+    0 15px 30px var(--auth-shadow-primary),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.auth-submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.auth-divider {
+  gap: 12px;
+  margin: 24px 0 17px;
+}
+
+.auth-divider span {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--auth-border-soft)
+  );
+}
+
+.auth-divider span:last-child {
+  background: linear-gradient(
+    90deg,
+    var(--auth-border-soft),
+    transparent
+  );
+}
+
+.google-login-section {
+  margin-top: 1px;
+}
+
+.google-login-button {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 10px;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.google-login-button:hover {
+  transform: translateY(-1px);
+}
+
+.google-login-button > div {
+  width: 100% !important;
+}
+
+.google-login-button iframe {
+  max-width: 100%;
+}
+
+.auth-security-divider {
+  margin-top: 19px;
+  margin-bottom: 17px;
+}
+
+.auth-security-divider p {
+  white-space: nowrap;
+}
+
+.auth-switch {
+  line-height: 1.55;
+}
+
+.auth-switch a {
+  display: inline-block;
+  transition: transform 0.18s ease;
+}
+
+.auth-switch a:hover {
+  transform: translateX(1px);
+}
+
+.password-requirements {
+  gap: 7px 12px;
+  margin-top: -4px;
+  padding: 1px 2px 0;
+}
+
+.password-rule {
+  min-width: 0;
+  gap: 6px;
+  line-height: 1.35;
+}
+
+.password-rule-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+}
+
+.terms-container {
+  margin-top: -1px;
+  padding-top: 1px;
+}
+
+.terms-label {
+  gap: 8px;
+}
+
+.terms-label input {
+  flex: 0 0 auto;
+  border-radius: 4px;
+}
+
+@media (max-width: 760px) {
+  .auth-page {
+    min-height: 100svh;
+    align-items: flex-start;
+    padding: 62px 16px 32px;
+  }
+
+
+  .auth-wrapper,
+  .signup-wrapper {
+    max-width: 100%;
+  }
+
+  .back-home-btn {
+    margin-bottom: 10px;
+  }
+
+  .auth-card,
+  .signup-card {
+    padding: 30px 22px 28px;
+    border-radius: 18px;
+  }
+
+  .auth-brand {
+    margin-bottom: 23px;
+  }
+
+  .auth-heading {
+    margin-bottom: 24px;
+  }
+
+  .auth-heading h1 {
+    font-size: 23px;
+  }
+
+  .auth-heading p {
+    max-width: 330px;
+  }
+
+  .auth-input {
+    height: 51px;
+  }
+
+  .auth-submit-btn {
+    height: 51px;
+  }
+
+}
+
+@media (max-width: 480px) {
+  .auth-page {
+    padding: 58px 12px 24px;
+  }
+
+  .auth-card,
+  .signup-card {
+    padding: 26px 17px 24px;
+    border-radius: 16px;
+  }
+
+  .auth-brand {
+    font-size: 21px;
+  }
+
+  .auth-logo-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .auth-heading-icon {
+    width: 50px;
+    height: 50px;
+  }
+
+  .auth-heading h1 {
+    font-size: 22px;
+  }
+
+  .auth-form {
+    gap: 15px;
+  }
+
+  .password-requirements {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .auth-divider {
+    margin-top: 22px;
+  }
+
+  .auth-security-divider p {
+    font-size: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-card,
+  .back-home-btn,
+  .auth-submit-btn,
+  .google-login-button,
+  .password-toggle,
+  .auth-switch a {
+    transition: none;
+  }
+}
+
+
+:root[data-theme="dark"] .auth-card {
+  box-shadow:
+    0 34px 90px rgba(0, 0, 0, 0.42),
+    0 8px 28px rgba(0, 0, 0, 0.2);
+}
+
+:root[data-theme="dark"] .auth-input input:-webkit-autofill,
+:root[data-theme="dark"] .auth-input input:-webkit-autofill:hover,
+:root[data-theme="dark"] .auth-input input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #eef4fb;
+  -webkit-box-shadow: 0 0 0 1000px #0d1727 inset;
+}
+.auth-page {
+  min-height: 100svh;
+  width: 100%;
+  padding: 24px 34px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background:
+    radial-gradient(circle at 14% 0%, rgba(220, 38, 38, 0.08), transparent 25%),
+    radial-gradient(circle at 88% 100%, rgba(220, 38, 38, 0.045), transparent 28%),
+    #ffffff;
+}
+
+.auth-background {
+  display: none;
+}
+
+.auth-wrapper,
+.signup-wrapper {
+  width: min(1160px, 100%);
+  max-width: 1160px;
+  margin: 0 auto;
+}
+
+.back-home-btn {
+  display: none;
+}
+
+.auth-layout {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 440px);
+  align-items: stretch;
+  width: 100%;
+  min-height: 690px;
+  overflow: hidden;
+  border: 1px solid #e7ebf0;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow:
+    0 28px 70px rgba(37, 67, 110, 0.11),
+    0 8px 24px rgba(37, 67, 110, 0.045);
+}
+
+.auth-layout-login {
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 438px);
+}
+
+.auth-layout-signup {
+  grid-template-columns: minmax(0, 1fr) minmax(380px, 454px);
+}
+
+.auth-marketing-panel {
+  position: relative;
+  min-width: 0;
+  min-height: 690px;
+  overflow: hidden;
+  padding: 74px 44px 34px;
+  background:
+    radial-gradient(circle at 5% 0%, rgba(220, 38, 38, 0.16), transparent 22%),
+    radial-gradient(circle at 62% 78%, rgba(219, 234, 254, 0.68), transparent 35%),
+    linear-gradient(180deg, #ffffff 0%, #ffffff 56%, #f7faff 100%);
+}
+
+.auth-marketing-panel::before {
+  content: "";
+  position: absolute;
+  width: 290px;
+  height: 290px;
+  top: -160px;
+  left: -72px;
+  border-radius: 50%;
+  background: rgba(220, 38, 38, 0.10);
+  pointer-events: none;
+}
+
+.auth-marketing-panel::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 48%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0),
+    rgba(218, 231, 247, 0.58)
+  );
+  pointer-events: none;
+}
+
+.marketing-brand {
+  position: relative;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--auth-text-dark);
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.35px;
+}
+
+.marketing-brand .auth-logo-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  box-shadow: 0 7px 16px rgba(220, 38, 38, 0.22);
+}
+
+.marketing-brand > span > span {
+  color: var(--auth-primary);
+}
+
+.marketing-copy {
+  position: relative;
+  z-index: 4;
+  max-width: 310px;
+  margin-top: 76px;
+}
+
+.marketing-copy h1 {
+  margin: 0;
+  color: #1a2a43;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: clamp(30px, 3vw, 43px);
+  line-height: 1.04;
+  letter-spacing: -1.3px;
+}
+
+.marketing-road-scene {
+  position: absolute;
+  z-index: 2;
+  left: -12px;
+  right: -8px;
+  bottom: -8px;
+  height: 48%;
+  overflow: hidden;
+}
+
+.marketing-road-scene::before {
+  content: "";
+  position: absolute;
+  left: -8%;
+  right: -8%;
+  bottom: -22%;
+  height: 84%;
+  transform: perspective(380px) rotateX(58deg);
+  transform-origin: center bottom;
+  background: linear-gradient(180deg, #d7dee7 0%, #8d9aa8 100%);
+  box-shadow: inset 0 16px 30px rgba(255, 255, 255, 0.25);
+}
+
+.signup-marketing-panel .marketing-copy {
+  margin-top: 68px;
+}
+
+.signup-dashboard-visual {
+  position: absolute;
+  z-index: 4;
+  left: 40px;
+  right: 26px;
+  bottom: 44px;
+  height: 285px;
+}
+
+.auth-card {
+  align-self: center;
+  justify-self: center;
+  width: calc(100% - 42px);
+  max-width: 398px;
+  padding: 28px 26px 24px;
+  border: 1px solid #e3e9f0;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow:
+    0 18px 42px rgba(37, 67, 110, 0.10),
+    0 3px 10px rgba(37, 67, 110, 0.045);
+}
+
+.signup-card {
+  max-width: 404px;
+  padding: 26px 26px 22px;
+}
+
+.auth-brand {
+  justify-content: flex-start;
+  margin-bottom: 22px;
+  font-size: 17px;
+  gap: 8px;
+}
+
+.auth-logo-icon {
+  width: 31px;
+  height: 31px;
+  border-radius: 8px;
+  box-shadow: 0 7px 16px rgba(220, 38, 38, 0.20);
+}
+
+.auth-heading {
+  display: none;
+}
+
+.account-notice,
+.signup-card .password-requirements {
+  display: none;
+}
+
+.auth-form {
+  gap: 12px;
+}
+
+.auth-field {
+  gap: 5px;
+}
+
+.auth-field label {
+  font-size: 10px;
+  letter-spacing: 0.01em;
+}
+
+.auth-input {
+  height: 39px;
+  padding: 0 10px;
+  gap: 8px;
+  border-radius: 7px;
+  border-color: #e2e8ef;
+  box-shadow: none;
+}
+
+.auth-input svg {
+  width: 15px;
+  height: 15px;
+}
+
+.auth-input input {
+  font-size: 11px;
+}
+
+.password-toggle {
+  width: 24px;
+  height: 24px;
+}
+
+.password-toggle svg {
+  width: 15px;
+  height: 15px;
+}
+
+.forgot-password-link {
+  margin: -1px 0 3px;
+  font-size: 9px;
+}
+
+.auth-submit-btn {
+  height: 39px;
+  margin-top: 2px;
+  border-radius: 7px;
+  font-size: 11px;
+  box-shadow: 0 9px 18px rgba(220,38,38,0.17);
+}
+
+.auth-divider {
+  gap: 9px;
+  margin: 14px 0 11px;
+}
+
+.auth-divider p {
+  font-size: 8px;
+}
+
+.google-login-section {
+  margin-top: 0;
+}
+
+.google-login-button {
+  min-height: 39px;
+  border-radius: 7px;
+}
+
+.google-config-notice {
+  padding: 9px 10px;
+  font-size: 9px;
+}
+
+.auth-security-divider {
+  display: none;
+}
+
+.auth-switch {
+  margin-top: 16px;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.auth-switch a {
+  margin-left: 4px;
+}
+
+.signup-card .auth-form {
+  gap: 10px;
+}
+
+.signup-card .auth-input {
+  height: 37px;
+}
+
+.signup-card .auth-submit-btn {
+  height: 39px;
+}
+
+.signup-card .auth-switch {
+  margin-top: 13px;
+}
+
+.auth-server-error {
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  font-size: 9px;
+}
+
+@media (max-width: 900px) {
+  .auth-page {
+    padding: 18px;
+  }
+
+  .auth-layout,
+  .auth-layout-login,
+  .auth-layout-signup {
+    grid-template-columns: minmax(0, 1fr) minmax(330px, 410px);
+  }
+
+  .auth-marketing-panel {
+    padding-left: 30px;
+    padding-right: 24px;
+  }
+
+  .marketing-copy h1 {
+    font-size: 34px;
+  }
+
+  .auth-card {
+    width: calc(100% - 28px);
+  }
+}
+
+@media (max-width: 720px) {
+  .auth-page {
+    min-height: 100svh;
+    padding: 12px;
+  }
+
+  .auth-layout,
+  .auth-layout-login,
+  .auth-layout-signup {
+    display: block;
+    min-height: 0;
+    border-radius: 14px;
+  }
+
+  .auth-marketing-panel {
+    min-height: 230px;
+    height: 230px;
+    padding: 24px 22px 0;
+  }
+
+  .marketing-copy {
+    margin-top: 28px;
+    max-width: 240px;
+  }
+
+  .marketing-copy h1 {
+    font-size: 27px;
+  }
+
+  .marketing-road-scene {
+    left: 35%;
+    bottom: -10px;
+    width: 70%;
+    height: 68%;
+  }
+
+  .signup-dashboard-visual {
+    left: 34%;
+    right: 18px;
+    bottom: 8px;
+    height: 170px;
+  }
+
+  .auth-card,
+  .signup-card {
+    width: calc(100% - 24px);
+    max-width: 410px;
+    margin: 16px auto 18px;
+    padding: 23px 20px 20px;
+    border-radius: 10px;
+  }
+
+  .auth-brand {
+    margin-bottom: 17px;
+  }
+}
+
+@media (max-width: 430px) {
+  .auth-marketing-panel {
+    min-height: 205px;
+    height: 205px;
+  }
+
+  .marketing-copy {
+    margin-top: 22px;
+  }
+
+  .marketing-copy h1 {
+    font-size: 24px;
+  }
+
+  .auth-card,
+  .signup-card {
+    width: calc(100% - 16px);
+    padding: 21px 16px 18px;
+  }
+
+  .auth-input {
+    height: 40px;
+  }
+
+  .auth-form,
+  .signup-card .auth-form {
+    gap: 10px;
+  }
+}
+.auth-truck-image {
+  display: block;
+  max-width: none;
+  border: 0;
+  margin: 0;
+  object-fit: contain;
+  object-position: center;
+}
+.marketing-road-scene {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 53%;
+  overflow: hidden;
+}
+
+.marketing-road-scene::before,
+.marketing-road-scene::after {
+  content: none;
+  display: none;
+}
+
+.login-truck-image {
+  width: min(78%, 560px);
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 18px 18px rgba(37, 67, 110, 0.16));
+}
+.signup-dashboard-visual {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  left: 40px;
+  right: 26px;
+  bottom: 44px;
+  height: 285px;
+}
+
+.signup-truck-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 18px 18px rgba(37, 67, 110, 0.16));
+}
+@media (max-width: 720px) {
+  .login-truck-image {
+    width: min(82%, 430px);
+  }
+
+  .signup-dashboard-visual {
+    display: flex;
+  }
+
+  .signup-truck-image {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+@media (max-width: 430px) {
+  .login-truck-image {
+    width: 88%;
+  }
+}
+.login-marketing-panel .marketing-road-scene {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 57%;
+
+  overflow: hidden;
+  z-index: 2;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: transparent;
+}
+.login-marketing-panel .marketing-road-scene::before,
+.login-marketing-panel .marketing-road-scene::after {
+  display: none;
+  content: none;
+}
+.login-marketing-panel .road-glow,
+.login-marketing-panel .road-line,
+.login-marketing-panel .marketing-truck {
+  display: none;
+}
+.login-marketing-panel .login-truck-image {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+
+  display: block;
+  border: none;
+  outline: none;
+
+  filter: drop-shadow(
+    0 18px 24px rgba(37, 67, 110, 0.14)
+  );
+
+  z-index: 1;
+}
+.login-marketing-panel .marketing-road-scene {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.25) 8%,
+    rgba(0, 0, 0, 0.75) 17%,
+    #000 27%,
+    #000 100%
+  );
+
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.25) 8%,
+    rgba(0, 0, 0, 0.75) 17%,
+    #000 27%,
+    #000 100%
+  );
+}
+.login-marketing-panel .marketing-brand,
+.login-marketing-panel .marketing-copy {
+  position: relative;
+  z-index: 5;
+}
+@media (min-width: 1200px) {
+  .login-marketing-panel .marketing-road-scene {
+    height: 58%;
+  }
+
+  .login-marketing-panel .login-truck-image {
+    object-position: center center;
+  }
+}
+@media (max-width: 900px) and (min-width: 721px) {
+  .login-marketing-panel .marketing-road-scene {
+    height: 54%;
+  }
+
+  .login-marketing-panel .login-truck-image {
+    object-position: center center;
+  }
+}
+@media (max-width: 720px) {
+  .login-marketing-panel .marketing-road-scene {
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    width: 100%;
+    height: 58%;
+  }
+
+  .login-marketing-panel .login-truck-image {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+    object-position: center center;
+  }
+}
+@media (max-width: 430px) {
+  .login-marketing-panel .marketing-road-scene {
+    height: 55%;
+  }
+
+  .login-marketing-panel .login-truck-image {
+    object-position: center center;
+  }
+}
+.signup-marketing-panel .signup-dashboard-visual {
+  position: absolute;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  width: 100%;
+  height: 43%;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  overflow: hidden;
+
+  z-index: 2;
+
+  background: transparent;
+}
+.signup-marketing-panel .mini-dashboard-card {
+  display: none !important;
+}
+.signup-marketing-panel .marketing-truck {
+  display: none !important;
+}
+.signup-marketing-panel .signup-truck-image {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 58%;
+
+  display: block;
+
+  border: none;
+  outline: none;
+
+  filter: drop-shadow(
+    0 18px 25px rgba(37, 67, 110, 0.14)
+  );
+
+  z-index: 1;
+}
+.signup-marketing-panel .signup-dashboard-visual {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.15) 8%,
+    rgba(0, 0, 0, 0.55) 16%,
+    rgba(0, 0, 0, 0.9) 25%,
+    #000 34%,
+    #000 100%
+  );
+
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.15) 8%,
+    rgba(0, 0, 0, 0.55) 16%,
+    rgba(0, 0, 0, 0.9) 25%,
+    #000 34%,
+    #000 100%
+  );
+}
+.signup-marketing-panel .marketing-brand,
+.signup-marketing-panel .marketing-copy {
+  position: relative;
+  z-index: 5;
+}
+@media (min-width: 1200px) {
+  .signup-marketing-panel .signup-dashboard-visual {
+    height: 45%;
+  }
+
+  .signup-marketing-panel .signup-truck-image {
+    object-position: center 58%;
+  }
+}
+@media (max-width: 900px) and (min-width: 721px) {
+  .signup-marketing-panel .signup-dashboard-visual {
+    height: 42%;
+  }
+
+  .signup-marketing-panel .signup-truck-image {
+    object-position: center 58%;
+  }
+}
+@media (max-width: 720px) {
+  .signup-marketing-panel .signup-dashboard-visual {
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    width: 100%;
+    height: 45%;
+  }
+
+  .signup-marketing-panel .signup-truck-image {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+    object-position: center 55%;
+  }
+}
+@media (max-width: 430px) {
+  .signup-marketing-panel .signup-dashboard-visual {
+    height: 42%;
+  }
+
+  .signup-marketing-panel .signup-truck-image {
+    object-position: center 55%;
+  }
+}
+.signup-marketing-panel {
+  position: relative;
+  overflow: hidden;
+}
+.signup-marketing-panel .signup-dashboard-visual {
+  position: absolute;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  width: 100%;
+  height: 58%;
+
+  display: block;
+
+  overflow: hidden;
+
+  background: transparent;
+
+  z-index: 1;
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  border: 0;
+  box-shadow: none;
+}
+.signup-marketing-panel .mini-dashboard-card {
+  display: none !important;
+}
+.signup-marketing-panel .marketing-truck {
+  display: none !important;
+}
+.signup-marketing-panel .signup-truck-image {
+  position: absolute;
+  left: -4%;
+  right: -4%;
+
+  bottom: -2%;
+
+  width: 108%;
+  height: 104%;
+
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  object-fit: cover;
+  object-position: center 43%;
+  opacity: 1;
+
+  filter: none;
+
+  z-index: 1;
+}
+.signup-marketing-panel .signup-dashboard-visual::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: 20%;
+
+  pointer-events: none;
+
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 0.88) 18%,
+    rgba(255, 255, 255, 0.45) 48%,
+    rgba(255, 255, 255, 0) 100%
+  );
+
+  z-index: 3;
+}
+.signup-marketing-panel .signup-dashboard-visual::after {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  height: 8%;
+
+  pointer-events: none;
+
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(238, 245, 255, 0.18) 45%,
+    rgba(232, 241, 252, 0.48) 100%
+  );
+
+  z-index: 3;
+}
+.signup-marketing-panel .marketing-brand {
+  position: relative;
+
+  z-index: 10;
+}
+.signup-marketing-panel .marketing-copy {
+  position: relative;
+
+  z-index: 10;
+}
+.signup-marketing-panel .marketing-copy h1,
+.signup-marketing-panel .marketing-copy p {
+  position: relative;
+
+  z-index: 11;
+}
+@media (min-width: 1200px) {
+
+  .signup-marketing-panel .signup-dashboard-visual {
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    width: 100%;
+    height: 58%;
+  }
+
+  .signup-marketing-panel .signup-truck-image {
+    left: -4%;
+    right: -4%;
+
+    width: 108%;
+    height: 104%;
+
+    bottom: -2%;
+
+    object-fit: cover;
+    object-position: center 43%;
+  }
+}
+@media (max-width: 1199px) and (min-width: 901px) {
+
+  .signup-marketing-panel .signup-dashboard-visual {
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    width: 100%;
+    height: 56%;
+  }
+  .signup-marketing-panel .signup-truck-image {
+    left: -5%;
+    right: -5%;
+    width: 110%;
+    height: 104%;
+    bottom: -2%;
+    object-fit: cover;
+    object-position: center 43%;
+  }
+}
+@media (max-width: 900px) and (min-width: 721px) {
+  .signup-marketing-panel .signup-dashboard-visual {
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    width: 100%;
+    height: 52%;
+  }
+  .signup-marketing-panel .signup-truck-image {
+    left: -4%;
+    right: -4%;
+
+    width: 108%;
+    height: 104%;
+
+    bottom: -2%;
+
+    object-fit: cover;
+    object-position: center 43%;
+  }
+
+  .signup-marketing-panel .signup-dashboard-visual::before {
+    height: 18%;
+  }
+}
+@media (max-width: 720px) {
+
+  .signup-marketing-panel .signup-dashboard-visual {
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    width: 100%;
+    height: 48%;
+  }
+
+  .signup-marketing-panel .signup-truck-image {
+    left: -5%;
+    right: -5%;
+
+    width: 110%;
+    height: 105%;
+
+    bottom: -2%;
+
+    object-fit: cover;
+    object-position: center 43%;
+  }
+
+  .signup-marketing-panel .signup-dashboard-visual::before {
+    height: 20%;
+  }
+
+  .signup-marketing-panel .signup-dashboard-visual::after {
+    height: 7%;
+  }
+}
+@media (max-width: 430px) {
+  .signup-marketing-panel .signup-dashboard-visual {
+    height: 45%;
+  }
+  .signup-marketing-panel .signup-truck-image {
+    left: -6%;
+    right: -6%;
+
+    width: 112%;
+    height: 105%;
+
+    bottom: -2%;
+
+    object-fit: cover;
+    object-position: center 43%;
+  }
+}
+
+@media (max-width: 1024px) {
+  .auth-page {
+    min-height: 100svh !important;
+    height: auto !important;
+    width: 100% !important;
+    padding-top: max(10px, env(safe-area-inset-top)) !important;
+    padding-right: max(10px, env(safe-area-inset-right)) !important;
+    padding-bottom: max(20px, env(safe-area-inset-bottom)) !important;
+    padding-left: max(10px, env(safe-area-inset-left)) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  .auth-wrapper {
+    width: 100% !important;
+    max-width: 620px !important;
+    height: auto !important;
+    margin: 0 auto !important;
+  }
+  .auth-layout.auth-layout-login {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    border-radius: 18px !important;
+  }
+
+  .auth-layout.auth-layout-login > .login-marketing-panel {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 18px 18px 0 !important;
+    overflow: visible !important;
+    background:
+      radial-gradient(circle at 5% 0%, rgba(220, 38, 38, 0.13), transparent 30%),
+      linear-gradient(180deg, #ffffff 0%, #ffffff 100%) !important;
+  }
+  .auth-layout.auth-layout-login > .login-marketing-panel::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  .login-marketing-panel .marketing-brand {
+    position: relative !important;
+    z-index: 20 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    align-self: flex-start !important;
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+  }
+
+  .login-marketing-panel .marketing-copy {
+    position: relative !important;
+    z-index: 20 !important;
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    max-width: 340px !important;
+    margin: 14px 0 16px !important;
+  }
+
+  .login-marketing-panel .marketing-copy h1 {
+    position: relative !important;
+    z-index: 21 !important;
+    max-width: 340px !important;
+    margin: 0 !important;
+    line-height: 1.06 !important;
+  }
+
+  .login-marketing-panel .marketing-tagline,
+  .login-marketing-panel .marketing-description {
+    display: none !important;
+  }
+  .auth-layout.auth-layout-login
+    .login-marketing-panel
+    .marketing-road-scene {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    z-index: 2 !important;
+
+    display: block !important;
+    flex: 0 0 auto !important;
+
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+
+    aspect-ratio: 1350 / 1600 !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+  }
+
+  .auth-layout.auth-layout-login
+    .login-marketing-panel
+    .marketing-road-scene::before,
+  .auth-layout.auth-layout-login
+    .login-marketing-panel
+    .marketing-road-scene::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  .auth-layout.auth-layout-login
+    .login-marketing-panel
+    .login-truck-image {
+    position: static !important;
+    display: block !important;
+
+    width: 100% !important;
+    height: auto !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-width: 100% !important;
+    max-height: none !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    object-fit: fill !important;
+    object-position: center center !important;
+    transform: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+  }
+  .auth-layout.auth-layout-login > .auth-card-login {
+    position: relative !important;
+    z-index: 5 !important;
+    display: block !important;
+    width: calc(100% - 20px) !important;
+    max-width: 520px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 12px auto 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-layout.auth-layout-login {
+    border-radius: 15px !important;
+  }
+
+  .auth-layout.auth-layout-login > .login-marketing-panel {
+    padding: 16px 14px 0 !important;
+  }
+
+  .login-marketing-panel .marketing-brand {
+    gap: 8px !important;
+    font-size: 17px !important;
+  }
+
+  .login-marketing-panel .marketing-brand .auth-logo-icon {
+    width: 35px !important;
+    height: 35px !important;
+    border-radius: 9px !important;
+  }
+
+  .login-marketing-panel .marketing-copy {
+    max-width: 290px !important;
+    margin-top: 13px !important;
+    margin-bottom: 15px !important;
+  }
+
+  .login-marketing-panel .marketing-copy h1 {
+    max-width: 290px !important;
+    font-size: 25px !important;
+    line-height: 1.06 !important;
+    letter-spacing: -0.7px !important;
+  }
+  .auth-layout.auth-layout-login
+    .login-marketing-panel
+    .marketing-road-scene {
+    aspect-ratio: 1350 / 1600 !important;
+  }
+
+  .auth-layout.auth-layout-login > .auth-card-login {
+    width: calc(100% - 14px) !important;
+    margin-top: 10px !important;
+    margin-bottom: 12px !important;
+    padding: 21px 15px 18px !important;
+    border-radius: 14px !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .login-marketing-panel .marketing-copy {
+    max-width: 245px !important;
+  }
+
+  .login-marketing-panel .marketing-copy h1 {
+    max-width: 245px !important;
+    font-size: 24px !important;
+  }
+}
+@media (min-width: 391px) and (max-width: 480px) {
+  .login-marketing-panel .marketing-copy {
+    max-width: 300px !important;
+  }
+
+  .login-marketing-panel .marketing-copy h1 {
+    max-width: 300px !important;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 1024px) {
+  .auth-page {
+    padding-top: max(18px, env(safe-area-inset-top)) !important;
+  }
+
+  .auth-layout.auth-layout-login > .login-marketing-panel {
+    padding: 24px 26px 0 !important;
+  }
+
+  .login-marketing-panel .marketing-copy {
+    max-width: 390px !important;
+    margin-top: 16px !important;
+    margin-bottom: 20px !important;
+  }
+
+  .login-marketing-panel .marketing-copy h1 {
+    max-width: 390px !important;
+    font-size: clamp(28px, 4.4vw, 36px) !important;
+  }
+
+  .auth-layout.auth-layout-login
+    .login-marketing-panel
+    .marketing-road-scene {
+    aspect-ratio: 1350 / 1600 !important;
+  }
+
+  .auth-layout.auth-layout-login > .auth-card-login {
+    width: calc(100% - 32px) !important;
+    max-width: 520px !important;
+    margin-top: 16px !important;
+    padding: 28px 28px 24px !important;
+  }
+}
+
+@media (max-width: 1024px) and (orientation: landscape) {
+  .auth-page {
+    padding-top: 10px !important;
+    padding-bottom: 16px !important;
+  }
+  .auth-layout.auth-layout-login
+    .login-marketing-panel
+    .marketing-road-scene {
+    aspect-ratio: 1350 / 1600 !important;
+  }
+
+  .login-marketing-panel .marketing-copy {
+    margin-top: 10px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .login-marketing-panel .marketing-copy h1 {
+    font-size: 24px !important;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .auth-card-login .auth-input input,
+  .auth-card-login .auth-input select,
+  .auth-card-login .auth-input textarea {
+    font-size: 16px !important;
+  }
+
+  .auth-card-login .password-toggle {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@media (max-width: 1024px) {
+  .auth-layout.auth-layout-signup {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    border-radius: 18px !important;
+  }
+
+  .auth-layout.auth-layout-signup > .signup-marketing-panel {
+    position: relative !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+
+    padding: 18px 18px 0 !important;
+
+    overflow: visible !important;
+
+    background:
+      radial-gradient(
+        circle at 5% 0%,
+        rgba(220, 38, 38, 0.13),
+        transparent 30%
+      ),
+      linear-gradient(
+        180deg,
+        #ffffff 0%,
+        #ffffff 100%
+      ) !important;
+  }
+  .auth-layout.auth-layout-signup
+    > .signup-marketing-panel::after {
+
+    display: none !important;
+    content: none !important;
+  }
+
+  .signup-marketing-panel .marketing-brand {
+    position: relative !important;
+    z-index: 20 !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    align-self: flex-start !important;
+
+    flex: 0 0 auto !important;
+
+    margin: 0 !important;
+  }
+  .signup-marketing-panel .marketing-copy {
+    position: relative !important;
+    z-index: 20 !important;
+
+    flex: 0 0 auto !important;
+
+    width: 100% !important;
+    max-width: 340px !important;
+
+    margin: 14px 0 16px !important;
+  }
+
+  .signup-marketing-panel .marketing-copy h1 {
+    position: relative !important;
+    z-index: 21 !important;
+
+    max-width: 340px !important;
+
+    margin: 0 !important;
+
+    line-height: 1.06 !important;
+  }
+
+  .signup-marketing-panel .marketing-tagline,
+  .signup-marketing-panel .marketing-description {
+    display: none !important;
+  }
+  .auth-layout.auth-layout-signup
+    .signup-marketing-panel
+    .signup-dashboard-visual {
+
+    position: relative !important;
+
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+
+    z-index: 2 !important;
+
+    display: block !important;
+
+    flex: 0 0 auto !important;
+
+    width: 100% !important;
+    height: auto !important;
+
+    min-height: 0 !important;
+    max-height: none !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    overflow: visible !important;
+
+    background: transparent !important;
+
+    border: 0 !important;
+    box-shadow: none !important;
+
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+  }
+  .auth-layout.auth-layout-signup
+    .signup-marketing-panel
+    .signup-dashboard-visual::before,
+
+  .auth-layout.auth-layout-signup
+    .signup-marketing-panel
+    .signup-dashboard-visual::after {
+
+    display: none !important;
+    content: none !important;
+  }
+
+  .auth-layout.auth-layout-signup
+    .signup-marketing-panel
+    .signup-truck-image {
+
+    position: static !important;
+
+    display: block !important;
+
+    width: 100% !important;
+    height: auto !important;
+
+    min-width: 0 !important;
+    min-height: 0 !important;
+
+    max-width: 100% !important;
+    max-height: none !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    object-fit: contain !important;
+    object-position: center center !important;
+
+    transform: none !important;
+
+    opacity: 1 !important;
+
+    filter: none !important;
+
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+  }
+  .auth-layout.auth-layout-signup > .auth-card-signup {
+    position: relative !important;
+
+    z-index: 5 !important;
+
+    display: block !important;
+
+    width: calc(100% - 20px) !important;
+    max-width: 520px !important;
+
+    height: auto !important;
+    min-height: 0 !important;
+
+    margin: 12px auto 16px !important;
+  }
+}
+@media (max-width: 480px) {
+
+  .auth-layout.auth-layout-signup {
+    border-radius: 15px !important;
+  }
+
+  .auth-layout.auth-layout-signup
+    > .signup-marketing-panel {
+
+    padding: 16px 14px 0 !important;
+  }
+
+  .signup-marketing-panel .marketing-brand {
+    gap: 8px !important;
+    font-size: 17px !important;
+  }
+
+  .signup-marketing-panel
+    .marketing-brand
+    .auth-logo-icon {
+
+    width: 35px !important;
+    height: 35px !important;
+    border-radius: 9px !important;
+  }
+
+  .signup-marketing-panel .marketing-copy {
+
+    max-width: 290px !important;
+
+    margin-top: 13px !important;
+    margin-bottom: 15px !important;
+  }
+
+  .signup-marketing-panel .marketing-copy h1 {
+
+    max-width: 290px !important;
+
+    font-size: 25px !important;
+    line-height: 1.06 !important;
+    letter-spacing: -0.7px !important;
+  }
+  .auth-layout.auth-layout-signup
+    .signup-marketing-panel
+    .signup-dashboard-visual {
+
+    width: 100% !important;
+    height: auto !important;
+
+    aspect-ratio: auto !important;
+  }
+
+  .auth-layout.auth-layout-signup
+    .signup-marketing-panel
+    .signup-truck-image {
+
+    width: 100% !important;
+    height: auto !important;
+
+    max-width: 100% !important;
+
+    object-fit: contain !important;
+    object-position: center center !important;
+  }
+
+  .auth-layout.auth-layout-signup > .auth-card-signup {
+
+    width: calc(100% - 14px) !important;
+
+    margin-top: 10px !important;
+    margin-bottom: 12px !important;
+
+    padding: 21px 15px 18px !important;
+
+    border-radius: 14px !important;
+  }
+}
+@media (max-width: 390px) {
+
+  .signup-marketing-panel .marketing-copy {
+
+    max-width: 245px !important;
+  }
+
+  .signup-marketing-panel .marketing-copy h1 {
+
+    max-width: 245px !important;
+
+    font-size: 24px !important;
+  }
+
+  .auth-layout.auth-layout-signup
+    .signup-marketing-panel
+    .signup-truck-image {
+
+    width: 100% !important;
+    height: auto !important;
+  }
+}
+@media (min-width: 391px) and (max-width: 480px) {
+
+  .signup-marketing-panel .marketing-copy {
+
+    max-width: 300px !important;
+  }
+
+  .signup-marketing-panel .marketing-copy h1 {
+
+    max-width: 300px !important;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 1024px) {
+
+  .auth-layout.auth-layout-signup
+    > .signup-marketing-panel {
+
+    padding: 24px 26px 0 !important;
+  }
+
+  .signup-marketing-panel .marketing-copy {
+
+    max-width: 390px !important;
+
+    margin-top: 16px !important;
+    margin-bottom: 20px !important;
+  }
+
+  .signup-marketing-panel .marketing-copy h1 {
+
+    max-width: 390px !important;
+
+    font-size: clamp(28px, 4.4vw, 36px) !important;
+  }
+  .auth-layout.auth-layout-signup
+    .signup-marketing-panel
+    .signup-dashboard-visual {
+
+    width: 100% !important;
+    height: auto !important;
+
+    aspect-ratio: auto !important;
+  }
+
+  .auth-layout.auth-layout-signup
+    .signup-marketing-panel
+    .signup-truck-image {
+
+    width: 100% !important;
+    height: auto !important;
+
+    max-width: 100% !important;
+
+    object-fit: contain !important;
+    object-position: center center !important;
+  }
+
+  .auth-layout.auth-layout-signup > .auth-card-signup {
+
+    width: calc(100% - 32px) !important;
+    max-width: 520px !important;
+
+    margin-top: 16px !important;
+
+    padding: 28px 28px 24px !important;
+  }
+}
+
+@media (max-width: 1024px) and (orientation: landscape) {
+
+  .auth-layout.auth-layout-signup
+    .signup-marketing-panel
+    .signup-dashboard-visual {
+
+    width: 100% !important;
+    height: auto !important;
+
+    aspect-ratio: auto !important;
+  }
+
+  .signup-marketing-panel .marketing-copy {
+
+    margin-top: 10px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .signup-marketing-panel .marketing-copy h1 {
+
+    font-size: 24px !important;
+  }
+
+  .auth-layout.auth-layout-signup
+    .signup-marketing-panel
+    .signup-truck-image {
+
+    width: 100% !important;
+    height: auto !important;
+
+    object-fit: contain !important;
+    object-position: center center !important;
+  }
+}
+
+
+@media (hover: none) and (pointer: coarse) {
+
+  .auth-card-signup .auth-input input,
+  .auth-card-signup .auth-input select,
+  .auth-card-signup .auth-input textarea {
+
+    font-size: 16px !important;
+  }
+
+  .auth-card-signup .password-toggle {
+
+    -webkit-tap-highlight-color: transparent;
+  }
 }

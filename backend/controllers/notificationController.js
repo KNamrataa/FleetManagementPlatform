@@ -6,7 +6,7 @@ const validId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 async function listNotifications(req, res) {
   try {
-    const { page, limit, skip } = paginationParams(req, { limit: 20, max: 100 });
+    const { page, limit, skip } = paginationParams(req, { limit: 10, max: 100 });
     const filter = { recipient: req.user._id };
     if (req.query.category) filter.category = String(req.query.category).toUpperCase();
     if (req.query.read === "true") filter.isRead = true;
