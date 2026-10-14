@@ -48,7 +48,7 @@ function TripsView({ data, pagination, onPageChange, onLimitChange, onExport, on
   const completed = trips.filter((x) => x.tripStatus === "COMPLETED").length;
   return <>
     <div className="sa-data-cards"><DataCard label="Total Trips" value={trips.length} icon={<Activity />} /><DataCard label="Active Trips" value={active} icon={<Activity />} /><DataCard label="Completed" value={completed} icon={<ShieldCheck />} /></div>
-    <section className="sa-data-panel"><div className="sa-panel-heading"><h2>Trip Management Data</h2><p>All trips currently stored in MongoDB.</p></div><Table columns={[
+    <section className="sa-data-panel"><div className="sa-panel-heading"><h2>Trip Management Data</h2></div><Table columns={[
       { label: "Trip ID", render: (r) => r.tripId },
       { label: "Customer", render: (r) => name(r.customer) },
       { label: "Route", render: (r) => `${r.pickupLocation || "—"} → ${r.destination || "—"}` },
@@ -488,7 +488,7 @@ function FuelView({ data, pagination, onPageChange, onLimitChange, onExport, onE
   const fuel = data?.fuel || [];
   return <>
     <div className="sa-data-cards"><DataCard label="Fuel Entries" value={fuel.length} icon={<Fuel />} /><DataCard label="Total Fuel Cost" value={money(data?.total)} icon={<CircleDollarSign />} /><DataCard label="Litres Used" value={Number(data?.litres || 0).toLocaleString()} icon={<Fuel />} /></div>
-    <section className="sa-data-panel"><div className="sa-panel-heading"><h2>Fuel Expenses</h2><p>Fuel transactions recorded across the fleet.</p></div><Table columns={[
+    <section className="sa-data-panel"><div className="sa-panel-heading"><h2>Fuel Expenses</h2></div><Table columns={[
       { label: "Fuel No.", render: (r) => r.fuelNumber },
       { label: "Date", render: (r) => date(r.fuelDate) },
       { label: "Vehicle", render: (r) => r.vehicle?.registrationNumber || "—" },
@@ -564,10 +564,6 @@ function MaintenanceView({
 
         <div className="sa-panel-heading">
           <h2>Vehicle Issues</h2>
-
-          <p>
-            Issues reported by drivers and other authorized users.
-          </p>
         </div>
 
         <Table
@@ -638,10 +634,6 @@ function MaintenanceView({
 
         <div className="sa-panel-heading">
           <h2>Maintenance Work Orders</h2>
-
-          <p>
-            Current and historical maintenance work orders.
-          </p>
         </div>
 
         <Table
@@ -731,10 +723,6 @@ function MaintenanceView({
 
         <div className="sa-panel-heading">
           <h2>Maintenance Service Records</h2>
-
-          <p>
-            Completed maintenance and service history.
-          </p>
         </div>
 
         <Table
@@ -812,10 +800,6 @@ function MaintenanceView({
 
         <div className="sa-panel-heading">
           <h2>Service Schedule</h2>
-
-          <p>
-            Upcoming, due and overdue vehicle services.
-          </p>
         </div>
 
         <Table
@@ -894,7 +878,7 @@ function ExpensesView({ data, pagination, onPageChange, onLimitChange, onExport,
   const payments = data?.payments || [];
   return <div className="sa-section-stack">
     <div className="sa-data-cards"><DataCard label="Expense Records" value={expenses.length} icon={<CircleDollarSign />} /><DataCard label="Total Expenses" value={money(data?.totalExpenses)} icon={<CircleDollarSign />} /><DataCard label="Payments Recorded" value={payments.length} icon={<ShieldCheck />} /><DataCard label="Payment Amount" value={money(data?.totalPayments)} icon={<CircleDollarSign />} /></div>
-    <section className="sa-data-panel"><div className="sa-panel-heading"><h2>Fleet Expenses</h2><p>General, trip, driver and fuel expenses combined for monitoring.</p></div><Table columns={[
+    <section className="sa-data-panel"><div className="sa-panel-heading"><h2>Fleet Expenses</h2></div><Table columns={[
       { label: "Reference", render: (r) => r.reference },
       { label: "Source", render: (r) => r.source },
       { label: "Category", render: (r) => r.category || "FUEL" },
@@ -903,7 +887,7 @@ function ExpensesView({ data, pagination, onPageChange, onLimitChange, onExport,
       { label: "Amount", render: (r) => money(r.amount) },
       { label: "Status", render: (r) => status(r.status) },
     ]} rows={expenses} pagination={pagination} onPageChange={onPageChange} onLimitChange={onLimitChange} onExport={onExport} onExportPdf={onExportPdf} /></section>
-    <section className="sa-data-panel"><div className="sa-panel-heading"><h2>Payments</h2><p>Received and paid payment records.</p></div><Table columns={[
+    <section className="sa-data-panel"><div className="sa-panel-heading"><h2>Payments</h2></div><Table columns={[
       { label: "Payment No.", render: (r) => r.paymentNumber },
       { label: "Type", render: (r) => r.type },
       { label: "Invoice", render: (r) => r.invoice?.invoiceNumber || "—" },

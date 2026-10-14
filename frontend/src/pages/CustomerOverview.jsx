@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
 import CustomerLayout from "./CustomerLayout";
 import "./CustomerDashboard.css";
+import DashboardExportButtons from "../components/DashboardExportButtons";
 
 const money = (v) => `₹${Number(v || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 const dateTime = (v) => v ? new Date(v).toLocaleString("en-IN") : "—";
@@ -28,6 +29,7 @@ export default function CustomerOverview() {
       </div>
       <section className="customer-card"><div className="customer-card-head"><h3>Recent Invoices</h3><Link className="customer-link" to="/customer/billing">View billing</Link></div><div className="customer-table-wrap"><table className="customer-table"><thead><tr><th>Invoice</th><th>Trip</th><th>Total</th><th>Paid</th><th>Outstanding</th><th>Status</th></tr></thead><tbody>{d.recentInvoices?.length ? d.recentInvoices.map(i => <tr key={i._id}><td>{i.invoiceNumber}</td><td>{i.trip?.tripId || "—"}</td><td>{money(i.totalAmount)}</td><td>{money(i.paidAmount)}</td><td>{money(i.balanceAmount)}</td><td><span className={`customer-badge ${badge(i.status)}`}>{i.status.replaceAll("_", " ")}</span></td></tr>) : <tr><td colSpan="6" className="customer-empty">No invoices available.</td></tr>}</tbody></table></div></section>
       <section className="customer-card"><div className="customer-card-head"><h3>Quick Actions</h3></div><div className="customer-actions"><Link className="customer-button primary" to="/customer/trip-request"><Send size={16}/> Request a Trip</Link><Link className="customer-button" to="/customer/history"><FileText size={16}/> View Trip History</Link><Link className="customer-button" to="/customer/billing"><WalletCards size={16}/> View Billing</Link></div></section>
+      <DashboardExportButtons title="Customer Dashboard Recent Invoices" headers={["Invoice","Trip","Total","Paid","Outstanding","Status"]} rows={(d.recentInvoices||[]).map(i=>[i.invoiceNumber || "—",i.trip?.tripId || "—",money(i.totalAmount),money(i.paidAmount),money(i.balanceAmount),i.status || "—"])} />
     </>}
   </CustomerLayout>;
 }

@@ -1425,3 +1425,23 @@
     right: clamp(180px, calc(42.05vw - 224px), 365px);
   }
 }
+
+
+/* Analytics & Daily Reports should use the same card surface as dashboard KPI cards. */
+.fleetflow-analytics-report-panel {
+  background: #fff !important;
+  border-color: var(--border-color, #dce3ed);
+  color: var(--text-color, #172033);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+:root[data-theme="dark"] .fleetflow-analytics-report-panel {
+  background: #111a2a !important;
+  border-color: #29384f !important;
+  color: #e8eef8 !important;
+}
+:root[data-theme="dark"] .fleetflow-analytics-report-panel input,
+:root[data-theme="dark"] .fleetflow-analytics-report-panel button {
+  background: #111a2a !important;
+  color: #e8eef8 !important;
+  border-color: #34445d !important;
+}

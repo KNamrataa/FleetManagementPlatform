@@ -799,3 +799,16 @@
     min-width: 680px;
   }
 }
+
+/* Maintenance Manager dashboard overview KPI cards */
+.mm-stats { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 13px; }
+.mm-stat { min-height: 100px; padding: 16px; gap: 13px; border-color: #dce5f1; border-radius: 12px; box-shadow: 0 2px 7px rgba(22,45,78,.025); }
+.mm-stat:hover { border-color: #c7d8ee; box-shadow: 0 6px 16px rgba(22,45,78,.07); }
+.mm-stat-icon { width: 46px; height: 46px; flex: 0 0 46px; border-radius: 12px; background: #e8f3ff; color: #1682f5; }
+.mm-stat:nth-child(6n + 2) .mm-stat-icon { background: #e2f8ee; color: #079b68; }
+.mm-stat:nth-child(6n + 3) .mm-stat-icon { background: #fff2dc; color: #d88a08; }
+.mm-stat:nth-child(6n + 4) .mm-stat-icon { background: #ffe8ea; color: #f0444d; }
+.mm-stat:nth-child(6n + 5) .mm-stat-icon { background: #f3e7ff; color: #9a42e8; }
+.mm-stat:nth-child(6n) .mm-stat-icon { background: #e0f7f7; color: #0899a5; }
+.mm-stat span { font-size: 12px; line-height: 1.35; }
+.mm-stat strong { font-size: 23px; line-height: 1.2; font-weight: 750; }

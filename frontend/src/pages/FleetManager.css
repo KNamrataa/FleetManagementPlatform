@@ -671,3 +671,16 @@
 @media(max-width:650px){.fm-customer-summary-grid{grid-template-columns:1fr}.fm-trend-grid{grid-template-columns:1fr}.fm-customer-detail-grid{grid-template-columns:1fr}.fm-tag-analytics>div{grid-template-columns:minmax(100px,1fr) minmax(90px,1.5fr) 30px}}
 
 .fm-review-other{margin-top:10px;padding:10px 12px;border-radius:9px;background:#fff7ed;border:1px solid #fed7aa}.fm-review-other strong{display:block;font-size:11px;color:#9a3412;margin-bottom:4px}.fm-review-other p{margin:0!important;color:#7c2d12;line-height:1.5}.fm-driver-document-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px;border:1px solid #e6ebf2;border-radius:10px;background:#f8fafc;margin:0 0 18px}.fm-driver-document-card>div{display:flex;flex-direction:column;gap:4px}.fm-driver-document-card strong{font-size:12px;color:#172033}.fm-driver-document-card span{font-size:11px;color:#64748b;overflow-wrap:anywhere}.fm-document-upload-section{margin-top:18px;padding-top:16px;border-top:1px solid #e6ebf2}.fm-document-upload-heading h3{margin:0;font-size:14px;color:#172033}.fm-document-upload-heading p{margin:4px 0 12px;color:#64748b;font-size:11px;line-height:1.5}.fm-document-upload-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.fm-document-upload-card{display:flex;flex-direction:column;gap:7px;padding:12px;border:1px solid #e6ebf2;border-radius:10px;background:#f8fafc}.fm-document-upload-card strong{font-size:12px;color:#334155}.fm-document-upload-card input[type=file]{font-size:11px;max-width:100%}.fm-document-upload-card input[type=date]{border:1px solid #d8e0ea;border-radius:8px;background:#fff;padding:9px;color:#334155;outline:0}.fm-document-upload-card small{font-size:10px;color:#64748b;overflow-wrap:anywhere}@media(max-width:650px){.fm-document-upload-grid{grid-template-columns:1fr}.fm-driver-document-card{align-items:flex-start;flex-direction:column}}
+
+/* Fleet Manager dashboard overview KPI cards */
+.fm-stats { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 13px; }
+.fm-stat { min-height: 100px; padding: 16px; gap: 13px; border-color: #dce5f1; border-radius: 12px; box-shadow: 0 2px 7px rgba(22,45,78,.025); }
+.fm-stat:hover { border-color: #c7d8ee; box-shadow: 0 6px 16px rgba(22,45,78,.07); transform: translateY(-1px); }
+.fm-stat-icon { width: 46px; height: 46px; flex: 0 0 46px; border-radius: 12px; background: #e8f3ff; color: #1682f5; }
+.fm-stat:nth-child(6n + 2) .fm-stat-icon { background: #e2f8ee; color: #079b68; }
+.fm-stat:nth-child(6n + 3) .fm-stat-icon { background: #fff2dc; color: #d88a08; }
+.fm-stat:nth-child(6n + 4) .fm-stat-icon { background: #ffe8ea; color: #f0444d; }
+.fm-stat:nth-child(6n + 5) .fm-stat-icon { background: #f3e7ff; color: #9a42e8; }
+.fm-stat:nth-child(6n) .fm-stat-icon { background: #e0f7f7; color: #0899a5; }
+.fm-stat span { font-size: 12px; line-height: 1.35; margin-bottom: 4px; }
+.fm-stat strong { font-size: 23px; line-height: 1.2; font-weight: 750; margin-top: 0; color: #0b1f3a; }

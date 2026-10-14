@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
 import DriverLayout from "./DriverLayout";
 import "./DriverDashboard.css";
+import DashboardExportButtons from "../components/DashboardExportButtons";
 
 const n = (v) => Number(v || 0);
 const statusClass = (s = "") => s.toLowerCase().replaceAll("_", "-");
@@ -45,6 +46,7 @@ export default function DriverOverview() {
         <section className="driver-panel"><h2>My Vehicle</h2>{d.assignedVehicle ? <div className="driver-info-list"><div className="driver-info-row"><span>Registration</span><strong>{d.assignedVehicle.registrationNumber}</strong></div><div className="driver-info-row"><span>Vehicle</span><strong>{d.assignedVehicle.make} {d.assignedVehicle.model}</strong></div><div className="driver-info-row"><span>Type</span><strong>{d.assignedVehicle.vehicleType}</strong></div><div className="driver-info-row"><span>Status</span><strong><span className={`driver-badge ${statusClass(d.assignedVehicle.status)}`}>{d.assignedVehicle.status?.replaceAll("_", " ")}</span></strong></div></div> : <div className="driver-empty"><Car size={34}/><h3>No vehicle assigned</h3><p>No vehicle is currently assigned to you.</p></div>}</section>
       </div>
       <section className="driver-panel" style={{marginTop:18}}><div className="driver-toolbar"><div><h2>Today's Trips</h2><p>Trips scheduled for your account today</p></div><button className="driver-button" onClick={() => navigate("/driver/trips")}>View all</button></div><div className="driver-table-wrap"><table className="driver-table"><thead><tr><th>Trip</th><th>Route</th><th>Vehicle</th><th>Time</th><th>Status</th></tr></thead><tbody>{(d.todayTripsList || []).map(t => <tr key={t._id}><td>{t.tripId}</td><td>{t.pickupLocation} → {t.destination}</td><td>{t.vehicle?.registrationNumber || "—"}</td><td>{fmtDate(t.scheduledStart)}</td><td><span className={`driver-badge ${statusClass(t.tripStatus)}`}>{t.tripStatus.replaceAll("_", " ")}</span></td></tr>)}{!d.todayTripsList?.length && <tr><td colSpan="5" className="driver-empty">No trips scheduled for today.</td></tr>}</tbody></table></div></section>
+      <DashboardExportButtons title="Driver Dashboard Summary" headers={["Metric","Value"]} rows={cards.map(([,label,value])=>[label,value])} />
     </>}
   </DriverLayout>;
 }

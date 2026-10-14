@@ -81,12 +81,6 @@ function SuperAdminDashboard() {
 
   const [viewSearch, setViewSearch] = useState("");
   const [viewStatus, setViewStatus] = useState("");
-
-  /*
-   * Common authenticated API request helper.
-   * authFetch already handles API_URL internally,
-   * therefore all paths passed here must be relative.
-   */
   const request = useCallback(async (path, options = {}) => {
     const response = await authFetch(path, {
       credentials: "include",
@@ -665,32 +659,7 @@ function SuperAdminDashboard() {
               }
             </h1>
 
-            <p className="dashboard-subtitle">
-              {
-                {
-                  overview:
-                    "Complete fleet and platform overview",
-                  vehicles:
-                    "Active vehicles from MongoDB",
-                  drivers:
-                    "Active drivers from MongoDB",
-                  trips:
-                    "All trip records and current statuses",
-                  tracking:
-                    "Latest GPS information for tracked trips",
-                  fuel:
-                    "Fleet fuel transactions and costs",
-                  maintenance:
-                    "Vehicle issues, work orders and service schedules",
-                  expenses:
-                    "Fleet expense and payment records",
-                  reports:
-                    "Read-only operational and financial reports",
-                  settings:
-                    "Super Admin account and FleetFlow system information",
-                }[adminView]
-              }
-            </p>
+            
           </div>
 
           <div className="admin-header-actions">

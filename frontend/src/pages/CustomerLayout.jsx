@@ -1,3 +1,4 @@
+import PageBottomExportActions from "../components/PageBottomExportActions";
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Activity, ClipboardList, LayoutDashboard, LogOut, Menu, MapPin, ReceiptIndianRupee, Send, UserCircle, X, Car } from "lucide-react";
@@ -41,7 +42,7 @@ export default function CustomerLayout({ title, subtitle, children }) {
           <NotificationBell />
           <div className="customer-user"><strong>{user.fullName || "Customer"}</strong><small>{user.email || ""}</small></div>
         </header>
-        <div className="customer-content">{children}</div>
+        <div className="customer-content">{children}<PageBottomExportActions title={`Customer ${title}`} /></div>
       </main>
     </div>
   );

@@ -3,6 +3,7 @@ import { Bot, Calendar, CheckCircle, Eye, RefreshCw, Search, Sparkles, Truck, X,
 import FleetManagerLayout from "./FleetManagerLayout";
 import { apiRequest } from "../services/api";
 import { Pagination } from "../components/Pagination";
+import DashboardExportButtons from "../components/DashboardExportButtons";
 
 const STATUSES = ["PENDING", "REVIEWED", "ACCEPTED", "TRIP_CREATED", "REJECTED", "CANCELLED"];
 const emptySchedule = { vehicle: "", driver: "", scheduledStart: "", scheduledEnd: "", distance: 0, notes: "" };
@@ -130,9 +131,9 @@ export default function TripRequestsPage() {
   };
 
   return (
-    <FleetManagerLayout title="Trip Requests" subtitle="Review customer requests and schedule fleet resources">
+    <FleetManagerLayout title="Trip Requests">
       <div className="fm-toolbar">
-        <div><h2>Customer Trip Requests</h2><p>Customer requests are stored in MongoDB and become operational trips only after scheduling.</p></div>
+        <div><h2>Customer Trip Requests</h2></div>
         <div className="fm-actions"><button onClick={load}><RefreshCw size={16}/> Refresh</button></div>
       </div>
 
@@ -173,6 +174,7 @@ export default function TripRequestsPage() {
             </tr>)}</tbody>
           </table><Pagination page={pagination?.page||page} totalPages={pagination?.totalPages||1} total={pagination?.total||requests.length} limit={pagination?.limit||10} onPageChange={setPage} onLimitChange={(value)=>{setLimit(value);setPage(1)}}/></div>
         )}
+        <DashboardExportButtons title="Fleet Manager Trip Requests" headers={["Request","Customer","Pickup","Destination","Requested Date","Requested Time","Service","Vehicle Requirement","Status"]} rows={requests.map(r=>[r.requestNumber || r._id,r.customer?.fullName || "—",r.pickupLocation || "—",r.destination || "—",r.requestedDate ? fmtDate(r.requestedDate) : "—",r.requestedTime || "—",r.serviceType || "—",r.vehicleType || "—",r.status || "—"])} />
       </div>
 
       {modal && <div className="fm-modal-backdrop" onMouseDown={() => setModal(null)}><div className="fm-modal wide" onMouseDown={e => e.stopPropagation()}>

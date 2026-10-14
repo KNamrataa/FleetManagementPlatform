@@ -808,3 +808,156 @@
 .super-admin-dashboard .sa-live-driver { color: #475569; }
 .super-admin-dashboard .sa-lazy-loading,
 .super-admin-dashboard .sa-map-placeholder { min-height: 180px; display: flex; align-items: center; justify-content: center; }
+
+
+
+/* Super Admin vehicle and driver tables use the same refined data-page style */
+.dashboard-main .sa-settings-grid {
+  gap: 14px;
+}
+.dashboard-main .sa-settings-grid > div {
+  border: 1px solid #e7edf5;
+  border-radius: 10px;
+  padding: 12px;
+  background: #f8fafc;
+}
+.dashboard-main .sa-settings-grid small {
+  color: #637894;
+  font-size: 11px;
+  font-weight: 650;
+}
+.dashboard-main .sa-report-date {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid #d9e3ef;
+  border-radius: 8px;
+  background: #fff;
+  color: #172b49;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+.dashboard-main .sa-report-date:focus {
+  border-color: #80a9df;
+  box-shadow: 0 0 0 3px rgba(57, 121, 206, .12);
+}
+.dashboard-main .dashboard-card {
+  border: 1px solid #dce5f1;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(22, 45, 78, .035);
+}
+.dashboard-main .dashboard-card-header {
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #edf1f7;
+}
+.dashboard-main .dashboard-card-header h2 {
+  font-size: 17px;
+  font-weight: 750;
+  letter-spacing: -.015em;
+}
+.dashboard-main .table-wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+}
+.dashboard-main .dashboard-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 760px;
+}
+.dashboard-main .dashboard-table th,
+.dashboard-main .dashboard-table td {
+  padding: 13px 11px;
+  border-bottom: 1px solid #e8eef6;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.dashboard-main .dashboard-table th {
+  color: #607491;
+  background: #f7f9fc;
+  font-size: 10.5px;
+  font-weight: 750;
+  letter-spacing: .055em;
+  white-space: nowrap;
+}
+.dashboard-main .dashboard-table td { color: #253753; }
+.dashboard-main .dashboard-table tbody tr { transition: background-color 140ms ease; }
+.dashboard-main .dashboard-table tbody tr:hover { background: #f8fbff; }
+.dashboard-main .dashboard-table tbody tr:last-child td { border-bottom: 0; }
+.dashboard-main .dashboard-table td strong { color: #172b49; font-weight: 700; }
+.dashboard-main .sa-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+/* Super Admin overview KPI card refinements (shared palette is declared in App.css). */
+.super-admin-dashboard .sa-stats-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+.super-admin-dashboard .sa-stat-card { min-height: 106px; padding: 16px; gap: 13px; border: 1px solid #d9e4f2; border-radius: 12px; box-shadow: 0 2px 7px rgba(22,45,78,.025); transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease; }
+.super-admin-dashboard .sa-stat-card:hover { border-color: #c7d8ee; box-shadow: 0 6px 16px rgba(22,45,78,.07); transform: translateY(-1px); }
+.super-admin-dashboard .sa-stat-icon { width: 48px; height: 48px; flex: 0 0 48px; border-radius: 13px; background: #e8f3ff; color: #1682f5; }
+.super-admin-dashboard .sa-stat-card:nth-child(6n + 2) .sa-stat-icon { background: #e2f8ee; color: #079b68; }
+.super-admin-dashboard .sa-stat-card:nth-child(6n + 3) .sa-stat-icon { background: #fff2dc; color: #d88a08; }
+.super-admin-dashboard .sa-stat-card:nth-child(6n + 4) .sa-stat-icon { background: #ffe8ea; color: #f0444d; }
+.super-admin-dashboard .sa-stat-card:nth-child(6n + 5) .sa-stat-icon { background: #f3e7ff; color: #9a42e8; }
+.super-admin-dashboard .sa-stat-card:nth-child(6n) .sa-stat-icon { background: #e0f7f7; color: #0899a5; }
+.super-admin-dashboard .sa-stat-icon svg { width: 22px; height: 22px; }
+.super-admin-dashboard .sa-stat-card span { color: #607491; font-size: 12px; line-height: 1.35; margin-bottom: 4px; }
+.super-admin-dashboard .sa-stat-card strong { color: #0b1f3a; font-size: 23px; line-height: 1.2; font-weight: 750; }
+@media (max-width: 1350px) { .super-admin-dashboard .sa-stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 1050px) { .super-admin-dashboard .sa-stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .super-admin-dashboard .sa-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } }
+@media (max-width: 460px) { .super-admin-dashboard .sa-stats-grid { grid-template-columns: 1fr; } }
+
+
+/* Shared bottom-of-page dashboard export actions */
+.page-bottom-export-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 24px 0 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 10px;
+  background: var(--surface, #fff);
+  color: var(--text, #334155);
+  font-size: 13px;
+  font-weight: 600;
+}
+.page-bottom-export-actions > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.page-bottom-export-actions button {
+  appearance: none;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  padding: 8px 12px;
+  background: var(--surface, #fff);
+  color: var(--text, #1f2937);
+  font: inherit;
+  cursor: pointer;
+}
+.page-bottom-export-actions button:hover {
+  background: var(--hover, #f1f5f9);
+}
+.page-bottom-export-actions button:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+@media (max-width: 520px) {
+  .page-bottom-export-actions { align-items: flex-start; flex-direction: column; }
+  .page-bottom-export-actions > div { width: 100%; }
+  .page-bottom-export-actions button { flex: 1; }
+}

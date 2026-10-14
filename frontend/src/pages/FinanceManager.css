@@ -489,3 +489,16 @@
     padding-right: 130px !important;
   }
 }
+
+/* Finance Manager dashboard overview KPI cards */
+.finance-stats { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 13px; }
+.finance-stat { min-height: 100px; padding: 16px; gap: 13px; border-color: #dce5f1; border-radius: 12px; box-shadow: 0 2px 7px rgba(22,45,78,.025); }
+.finance-stat:hover { border-color: #c7d8ee; box-shadow: 0 6px 16px rgba(22,45,78,.07); transform: translateY(-1px); }
+.finance-stat-icon { width: 46px; height: 46px; border-radius: 12px; background: #e8f3ff; color: #1682f5; }
+.finance-stat:nth-child(6n + 2) .finance-stat-icon { background: #e2f8ee; color: #079b68; }
+.finance-stat:nth-child(6n + 3) .finance-stat-icon { background: #fff2dc; color: #d88a08; }
+.finance-stat:nth-child(6n + 4) .finance-stat-icon { background: #ffe8ea; color: #f0444d; }
+.finance-stat:nth-child(6n + 5) .finance-stat-icon { background: #f3e7ff; color: #9a42e8; }
+.finance-stat:nth-child(6n) .finance-stat-icon { background: #e0f7f7; color: #0899a5; }
+.finance-stat span { font-size: 12px; line-height: 1.35; }
+.finance-stat strong { font-size: 23px; line-height: 1.2; font-weight: 750; margin-top: 4px; }

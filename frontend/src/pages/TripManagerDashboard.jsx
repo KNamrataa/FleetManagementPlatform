@@ -30,6 +30,8 @@ import { getSocket } from "../services/socket";
 import "./FleetManager.css";
 import "./TripManagerDashboard.css";
 import AnalyticsReportPanel from "../components/AnalyticsReportPanel";
+import DashboardExportButtons from "../components/DashboardExportButtons";
+import PageBottomExportActions from "../components/PageBottomExportActions";
 
 const cls = (s = "") =>
   String(s).toLowerCase().replaceAll("_", "-");
@@ -394,6 +396,7 @@ export default function TripManagerDashboard() {
             path={path}
             user={user}
           />
+          <PageBottomExportActions title="Trip Manager Dashboard" />
         </div>
       </main>
     </div>
@@ -1006,6 +1009,8 @@ function Requests({ onChanged }) {
         onRefresh={load}
         loading={loading}
       />
+
+      <DashboardExportButtons title="Trip Requests" headers={["Request","Customer","Pickup","Destination","Requested Date","Requested Time","Service","Priority","Status"]} rows={requests.map(r=>[r.requestNumber || r._id, r.customer?.fullName || "—", r.pickupLocation || "—", r.destination || "—", r.requestedDate ? fmt(r.requestedDate) : "—", r.requestedTime || "—", r.serviceType || r.vehicleRequirement || "—", r.priority || "—", label(r.status)])} />
 
       {error && (
         <Alert
@@ -1980,6 +1985,8 @@ function TripsWorkspace({ mode }) {
         onRefresh={load}
         loading={loading}
       />
+
+      <DashboardExportButtons title={mode === "board" ? "Dispatch Board" : mode === "driver" ? "Driver Assignments" : mode === "vehicle" ? "Vehicle Assignments" : "Trip Schedule"} headers={["Trip","Customer","Pickup","Destination","Scheduled Start","Driver","Vehicle","Status","Priority"]} rows={shown.map(t=>[t.tripId || t._id, t.customer?.fullName || "—", t.pickupLocation || "—", t.destination || "—", t.scheduledStart ? fmt(t.scheduledStart) : "—", t.driver?.fullName || t.assignedDriver?.fullName || "—", t.vehicle?.registrationNumber || t.assignedVehicle?.registrationNumber || "—", label(t.tripStatus || t.status), label(t.priority)])} />
 
       {error && (
         <Alert

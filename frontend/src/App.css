@@ -2190,3 +2190,207 @@ button {
 .app .footer-bottom {
   color: #94a3b8;
 }
+
+/* Shared overview KPI card polish: balanced spacing, soft borders and varied pastel icon tiles. */
+:root {
+  --ff-kpi-blue-bg: #e8f3ff;
+  --ff-kpi-blue: #1682f5;
+  --ff-kpi-green-bg: #e2f8ee;
+  --ff-kpi-green: #079b68;
+  --ff-kpi-amber-bg: #fff2dc;
+  --ff-kpi-amber: #d88a08;
+  --ff-kpi-red-bg: #ffe8ea;
+  --ff-kpi-red: #f0444d;
+  --ff-kpi-purple-bg: #f3e7ff;
+  --ff-kpi-purple: #9a42e8;
+  --ff-kpi-teal-bg: #e0f7f7;
+  --ff-kpi-teal: #0899a5;
+}
+
+/* General / role dashboard overview cards */
+.role-stats > .metric-card,
+.management-kpis > .metric-card,
+.dashboard-stats > .dashboard-stat-card,
+.hero-dashboard-stats > .hero-stat-card {
+  min-width: 0;
+  min-height: 104px;
+  padding: 17px 16px;
+  gap: 14px;
+  border: 1px solid #dce5f1;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 7px rgba(22, 45, 78, .025);
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+.role-stats > .metric-card:hover,
+.management-kpis > .metric-card:hover,
+.dashboard-stats > .dashboard-stat-card:hover,
+.hero-dashboard-stats > .hero-stat-card:hover {
+  border-color: #c7d8ee;
+  box-shadow: 0 6px 16px rgba(22, 45, 78, .07);
+  transform: translateY(-1px);
+}
+.role-stats > .metric-card .metric-icon,
+.management-kpis > .metric-card .metric-icon,
+.dashboard-stats > .dashboard-stat-card .stat-icon,
+.hero-dashboard-stats > .hero-stat-card .hero-stat-icon {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+}
+.role-stats > .metric-card:nth-child(6n + 1) .metric-icon,
+.management-kpis > .metric-card:nth-child(6n + 1) .metric-icon,
+.dashboard-stats > .dashboard-stat-card:nth-child(6n + 1) .stat-icon,
+.hero-dashboard-stats > .hero-stat-card:nth-child(6n + 1) .hero-stat-icon { background: var(--ff-kpi-blue-bg); color: var(--ff-kpi-blue); }
+.role-stats > .metric-card:nth-child(6n + 2) .metric-icon,
+.management-kpis > .metric-card:nth-child(6n + 2) .metric-icon,
+.dashboard-stats > .dashboard-stat-card:nth-child(6n + 2) .stat-icon,
+.hero-dashboard-stats > .hero-stat-card:nth-child(6n + 2) .hero-stat-icon { background: var(--ff-kpi-green-bg); color: var(--ff-kpi-green); }
+.role-stats > .metric-card:nth-child(6n + 3) .metric-icon,
+.management-kpis > .metric-card:nth-child(6n + 3) .metric-icon,
+.dashboard-stats > .dashboard-stat-card:nth-child(6n + 3) .stat-icon,
+.hero-dashboard-stats > .hero-stat-card:nth-child(6n + 3) .hero-stat-icon { background: var(--ff-kpi-amber-bg); color: var(--ff-kpi-amber); }
+.role-stats > .metric-card:nth-child(6n + 4) .metric-icon,
+.management-kpis > .metric-card:nth-child(6n + 4) .metric-icon,
+.dashboard-stats > .dashboard-stat-card:nth-child(6n + 4) .stat-icon,
+.hero-dashboard-stats > .hero-stat-card:nth-child(6n + 4) .hero-stat-icon { background: var(--ff-kpi-red-bg); color: var(--ff-kpi-red); }
+.role-stats > .metric-card:nth-child(6n + 5) .metric-icon,
+.management-kpis > .metric-card:nth-child(6n + 5) .metric-icon,
+.dashboard-stats > .dashboard-stat-card:nth-child(6n + 5) .stat-icon,
+.hero-dashboard-stats > .hero-stat-card:nth-child(6n + 5) .hero-stat-icon { background: var(--ff-kpi-purple-bg); color: var(--ff-kpi-purple); }
+.role-stats > .metric-card:nth-child(6n) .metric-icon,
+.management-kpis > .metric-card:nth-child(6n) .metric-icon,
+.dashboard-stats > .dashboard-stat-card:nth-child(6n) .stat-icon,
+.hero-dashboard-stats > .hero-stat-card:nth-child(6n) .hero-stat-icon { background: var(--ff-kpi-teal-bg); color: var(--ff-kpi-teal); }
+.role-stats > .metric-card span,
+.management-kpis > .metric-card span,
+.dashboard-stats > .dashboard-stat-card span,
+.hero-dashboard-stats > .hero-stat-card span { color: #607491; font-size: 12px; line-height: 1.35; margin-bottom: 4px; }
+.role-stats > .metric-card strong,
+.management-kpis > .metric-card strong,
+.dashboard-stats > .dashboard-stat-card strong,
+.hero-dashboard-stats > .hero-stat-card strong { color: #0b1f3a; font-size: 23px; line-height: 1.2; font-weight: 750; }
+
+/* Super Admin overview analytics KPI cards */
+.super-admin-dashboard .sa-stats-grid {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.super-admin-dashboard .sa-stat-card {
+  min-width: 0;
+  min-height: 106px;
+  padding: 16px;
+  gap: 13px;
+  border: 1px solid #d9e4f2;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 7px rgba(22, 45, 78, .025);
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+.super-admin-dashboard .sa-stat-card:hover {
+  border-color: #c7d8ee;
+  box-shadow: 0 6px 16px rgba(22, 45, 78, .07);
+  transform: translateY(-1px);
+}
+.super-admin-dashboard .sa-stat-icon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border-radius: 13px;
+  background: var(--ff-kpi-blue-bg);
+  color: var(--ff-kpi-blue);
+}
+.super-admin-dashboard .sa-stat-card:nth-child(6n + 2) .sa-stat-icon { background: var(--ff-kpi-green-bg); color: var(--ff-kpi-green); }
+.super-admin-dashboard .sa-stat-card:nth-child(6n + 3) .sa-stat-icon { background: var(--ff-kpi-amber-bg); color: var(--ff-kpi-amber); }
+.super-admin-dashboard .sa-stat-card:nth-child(6n + 4) .sa-stat-icon { background: var(--ff-kpi-red-bg); color: var(--ff-kpi-red); }
+.super-admin-dashboard .sa-stat-card:nth-child(6n + 5) .sa-stat-icon { background: var(--ff-kpi-purple-bg); color: var(--ff-kpi-purple); }
+.super-admin-dashboard .sa-stat-card:nth-child(6n) .sa-stat-icon { background: var(--ff-kpi-teal-bg); color: var(--ff-kpi-teal); }
+.super-admin-dashboard .sa-stat-icon svg { width: 22px; height: 22px; }
+.super-admin-dashboard .sa-stat-card span { color: #607491; font-size: 12px; line-height: 1.35; margin-bottom: 4px; }
+.super-admin-dashboard .sa-stat-card strong { color: #0b1f3a; font-size: 23px; line-height: 1.2; font-weight: 750; }
+
+/* Fleet Manager overview */
+.fm-stats { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 13px; }
+.fm-stat {
+  min-width: 0;
+  min-height: 100px;
+  padding: 16px;
+  gap: 13px;
+  border-color: #dce5f1;
+  border-radius: 12px;
+  box-shadow: 0 2px 7px rgba(22, 45, 78, .025);
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+.fm-stat:hover { border-color: #c7d8ee; box-shadow: 0 6px 16px rgba(22, 45, 78, .07); transform: translateY(-1px); }
+.fm-stat-icon { width: 46px; height: 46px; flex: 0 0 46px; border-radius: 12px; background: var(--ff-kpi-blue-bg); color: var(--ff-kpi-blue); }
+.fm-stat:nth-child(6n + 2) .fm-stat-icon { background: var(--ff-kpi-green-bg); color: var(--ff-kpi-green); }
+.fm-stat:nth-child(6n + 3) .fm-stat-icon { background: var(--ff-kpi-amber-bg); color: var(--ff-kpi-amber); }
+.fm-stat:nth-child(6n + 4) .fm-stat-icon { background: var(--ff-kpi-red-bg); color: var(--ff-kpi-red); }
+.fm-stat:nth-child(6n + 5) .fm-stat-icon { background: var(--ff-kpi-purple-bg); color: var(--ff-kpi-purple); }
+.fm-stat:nth-child(6n) .fm-stat-icon { background: var(--ff-kpi-teal-bg); color: var(--ff-kpi-teal); }
+.fm-stat span { font-size: 12px; line-height: 1.35; margin-bottom: 4px; }
+.fm-stat strong { font-size: 23px; line-height: 1.2; font-weight: 750; margin-top: 0; color: #0b1f3a; }
+
+/* Finance Manager overview */
+.finance-stats { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 13px; }
+.finance-stat {
+  min-height: 100px;
+  padding: 16px;
+  gap: 13px;
+  border-color: #dce5f1;
+  border-radius: 12px;
+  box-shadow: 0 2px 7px rgba(22, 45, 78, .025);
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+.finance-stat:hover { border-color: #c7d8ee; box-shadow: 0 6px 16px rgba(22, 45, 78, .07); transform: translateY(-1px); }
+.finance-stat-icon { width: 46px; height: 46px; border-radius: 12px; background: var(--ff-kpi-blue-bg); color: var(--ff-kpi-blue); }
+.finance-stat:nth-child(6n + 2) .finance-stat-icon { background: var(--ff-kpi-green-bg); color: var(--ff-kpi-green); }
+.finance-stat:nth-child(6n + 3) .finance-stat-icon { background: var(--ff-kpi-amber-bg); color: var(--ff-kpi-amber); }
+.finance-stat:nth-child(6n + 4) .finance-stat-icon { background: var(--ff-kpi-red-bg); color: var(--ff-kpi-red); }
+.finance-stat:nth-child(6n + 5) .finance-stat-icon { background: var(--ff-kpi-purple-bg); color: var(--ff-kpi-purple); }
+.finance-stat:nth-child(6n) .finance-stat-icon { background: var(--ff-kpi-teal-bg); color: var(--ff-kpi-teal); }
+.finance-stat span { font-size: 12px; line-height: 1.35; }
+.finance-stat strong { font-size: 23px; line-height: 1.2; font-weight: 750; margin-top: 4px; }
+
+/* Maintenance Manager overview */
+.mm-stats { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 13px; }
+.mm-stat { min-height: 100px; padding: 16px; gap: 13px; border-color: #dce5f1; border-radius: 12px; box-shadow: 0 2px 7px rgba(22, 45, 78, .025); }
+.mm-stat:hover { border-color: #c7d8ee; box-shadow: 0 6px 16px rgba(22, 45, 78, .07); }
+.mm-stat-icon { width: 46px; height: 46px; flex: 0 0 46px; border-radius: 12px; background: var(--ff-kpi-blue-bg); color: var(--ff-kpi-blue); }
+.mm-stat:nth-child(6n + 2) .mm-stat-icon { background: var(--ff-kpi-green-bg); color: var(--ff-kpi-green); }
+.mm-stat:nth-child(6n + 3) .mm-stat-icon { background: var(--ff-kpi-amber-bg); color: var(--ff-kpi-amber); }
+.mm-stat:nth-child(6n + 4) .mm-stat-icon { background: var(--ff-kpi-red-bg); color: var(--ff-kpi-red); }
+.mm-stat:nth-child(6n + 5) .mm-stat-icon { background: var(--ff-kpi-purple-bg); color: var(--ff-kpi-purple); }
+.mm-stat:nth-child(6n) .mm-stat-icon { background: var(--ff-kpi-teal-bg); color: var(--ff-kpi-teal); }
+.mm-stat span { font-size: 12px; line-height: 1.35; }
+.mm-stat strong { font-size: 23px; line-height: 1.2; font-weight: 750; }
+
+/* Analytics pages and shared dashboard KPI icon tiles */
+.ff-analytics-kpis > * { border-color: #dce5f1; border-radius: 12px; box-shadow: 0 2px 7px rgba(22, 45, 78, .025); }
+.ff-analytics-kpi-icon { width: 46px; height: 46px; border-radius: 12px; }
+.ff-analytics-kpis > *:nth-child(6n + 1) .ff-analytics-kpi-icon { background: var(--ff-kpi-blue-bg); color: var(--ff-kpi-blue); }
+.ff-analytics-kpis > *:nth-child(6n + 2) .ff-analytics-kpi-icon { background: var(--ff-kpi-green-bg); color: var(--ff-kpi-green); }
+.ff-analytics-kpis > *:nth-child(6n + 3) .ff-analytics-kpi-icon { background: var(--ff-kpi-amber-bg); color: var(--ff-kpi-amber); }
+.ff-analytics-kpis > *:nth-child(6n + 4) .ff-analytics-kpi-icon { background: var(--ff-kpi-red-bg); color: var(--ff-kpi-red); }
+.ff-analytics-kpis > *:nth-child(6n + 5) .ff-analytics-kpi-icon { background: var(--ff-kpi-purple-bg); color: var(--ff-kpi-purple); }
+.ff-analytics-kpis > *:nth-child(6n) .ff-analytics-kpi-icon { background: var(--ff-kpi-teal-bg); color: var(--ff-kpi-teal); }
+
+@media (max-width: 1350px) {
+  .super-admin-dashboard .sa-stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 1050px) {
+  .super-admin-dashboard .sa-stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .super-admin-dashboard .sa-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .role-stats > .metric-card, .management-kpis > .metric-card,
+  .dashboard-stats > .dashboard-stat-card, .hero-dashboard-stats > .hero-stat-card,
+  .fm-stat, .finance-stat, .mm-stat { min-height: 88px; padding: 13px; }
+}
+@media (max-width: 460px) {
+  .super-admin-dashboard .sa-stats-grid { grid-template-columns: 1fr; }
+}

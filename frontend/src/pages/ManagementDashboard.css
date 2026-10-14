@@ -160,3 +160,16 @@
 .management-dashboard .role-mobile-menu { min-width: 44px; min-height: 44px; }
 .management-dashboard .management-refresh,
 .management-dashboard .management-error button { min-height: 40px; }
+
+/* Management dashboard overview metric card finish */
+.management-kpis > .metric-card { min-height: 104px; padding: 17px 16px; gap: 14px; border-color: #dce5f1; border-radius: 12px; box-shadow: 0 2px 7px rgba(22,45,78,.025); }
+.management-kpis > .metric-card:hover { border-color: #c7d8ee; box-shadow: 0 6px 16px rgba(22,45,78,.07); transform: translateY(-1px); }
+.management-kpis > .metric-card .metric-icon { width: 46px; height: 46px; flex: 0 0 46px; border-radius: 12px; }
+.management-kpis > .metric-card:nth-child(6n + 1) .metric-icon { background: #e8f3ff; color: #1682f5; }
+.management-kpis > .metric-card:nth-child(6n + 2) .metric-icon { background: #e2f8ee; color: #079b68; }
+.management-kpis > .metric-card:nth-child(6n + 3) .metric-icon { background: #fff2dc; color: #d88a08; }
+.management-kpis > .metric-card:nth-child(6n + 4) .metric-icon { background: #ffe8ea; color: #f0444d; }
+.management-kpis > .metric-card:nth-child(6n + 5) .metric-icon { background: #f3e7ff; color: #9a42e8; }
+.management-kpis > .metric-card:nth-child(6n) .metric-icon { background: #e0f7f7; color: #0899a5; }
+.management-kpis > .metric-card span { color: #607491; font-size: 12px; line-height: 1.35; margin-bottom: 4px; }
+.management-kpis > .metric-card strong { color: #0b1f3a; font-size: 23px; line-height: 1.2; }

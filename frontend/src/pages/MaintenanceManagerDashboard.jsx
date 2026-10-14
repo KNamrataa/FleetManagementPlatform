@@ -23,6 +23,7 @@ import {
 import { apiRequest, getStoredUser } from "../services/api";
 import "./MaintenanceManager.css";
 import AnalyticsReportPanel from "../components/AnalyticsReportPanel";
+import DashboardExportButtons from "../components/DashboardExportButtons";
 
 const money = value => `₹${Number(value || 0).toLocaleString("en-IN")}`;
 const label = value => String(value || "").replaceAll("_", " ");
@@ -795,7 +796,7 @@ function Panel({ title, children }) {
 }
 
 function Table({ headers, rows, empty }) {
-  return <ClientPaginationTable className="mm-table-wrap" tableClassName="mm-table" headers={headers} items={rows} pageSize={10} empty={empty} renderRow={(row, index) => <tr key={index}>{row.map((cell, cellIndex) => <td key={cellIndex}>{cell}</td>)}</tr>} />;
+  return <><ClientPaginationTable className="mm-table-wrap" tableClassName="mm-table" headers={headers} items={rows} pageSize={10} empty={empty} renderRow={(row, index) => <tr key={index}>{row.map((cell, cellIndex) => <td key={cellIndex}>{cell}</td>)}</tr>} /><DashboardExportButtons title={`${headers?.[0] || "Maintenance"} Report`} headers={headers} rows={rows || []} /></>;
 }
 
 function Badge({ value }) {

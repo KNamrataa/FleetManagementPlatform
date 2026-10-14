@@ -3,6 +3,7 @@ import { ChevronDown, ClipboardList, Link2, RefreshCw, Unlink, X } from "lucide-
 import FleetManagerLayout from "./FleetManagerLayout";
 import { apiRequest } from "../services/api";
 import { Pagination } from "../components/Pagination";
+import DashboardExportButtons from "../components/DashboardExportButtons";
 
 
 const ASSIGNMENT_SELECT_STYLES = `
@@ -279,18 +280,17 @@ export default function AssignmentsPage() {
   return (
     <FleetManagerLayout
       title="Vehicle / Driver Assignments"
-      subtitle="Maintain one active driver-to-vehicle assignment at a time"
     >
       <style>{ASSIGNMENT_SELECT_STYLES}</style>
       <div className="fm-toolbar">
         <div>
           <h2>Assignments</h2>
-          <p>Assignments are persisted in MongoDB.</p>
         </div>
         <button onClick={load}>
           <RefreshCw size={16} /> Refresh
         </button>
       </div>
+      
 
       {error && <div className="fm-alert error">{error}</div>}
       {success && (
@@ -396,6 +396,7 @@ export default function AssignmentsPage() {
           />
         </section>
       </div>
-    </FleetManagerLayout>
+    <DashboardExportButtons title="Fleet Manager Assignments" headers={["Vehicle","Driver","Assignment Status","Assigned At","Notes"]} rows={assignments.map(a=>[a.vehicle?.registrationNumber || a.vehicle?.vehicleNumber || "—",a.driver?.fullName || "—",a.status || a.vehicle?.status || "—",a.assignedAt ? new Date(a.assignedAt).toLocaleString() : "—",a.notes || "—"])} />
+</FleetManagerLayout>
   );
 }
