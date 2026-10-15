@@ -67,25 +67,112 @@ async function sumFuelExpenses(dateMatch = null) {
   ]);
   return native + legacy;
 }
+// Aggregate a date-ranged metric into monthly buckets in one database pass.
+// The bucket boundaries are the same local-month boundaries used by the
+// dashboard's existing JavaScript date calculations.
+async function monthlyTotalsByDate(model, dateField, valueField, match, boundaries) {
+  const first = boundaries[0];
+  const end = boundaries[boundaries.length - 1];
+  const rows = await model.aggregate([
+    {
+      $match: {
+        ...match,
+        [dateField]: { $gte: first, $lt: end },
+      },
+    },
+    {
+      $bucket: {
+        groupBy: `$${dateField}`,
+        boundaries,
+        output: { total: { $sum: `$${valueField}` } },
+      },
+    },
+  ]);
+
+  return new Map(rows.map((row) => [row._id.getTime(), n(row.total)]));
+}
+
 async function monthlyRevenueExpenses() {
   const now = new Date();
   const months = [];
-  for (let i = 5; i >= 0; i--) months.push(new Date(now.getFullYear(), now.getMonth() - i, 1));
-  const result = [];
-  for (let i = 0; i < months.length; i++) {
-    const start = months[i], end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
-    const revenue = await sum(Invoice, { invoiceDate: { $gte: start, $lt: end }, status: { $in: INVOICE_REVENUE_STATUSES } }, "totalAmount");
-    const [fuel, maint, trip, driver, other] = await Promise.all([
-      sumFuelExpenses({ $gte: start, $lt: end }),
-      sum(MaintenanceRecord, { completionDate: { $gte: start, $lt: end } }, "totalCost"),
-      sum(TripExpense, { expenseDate: { $gte: start, $lt: end }, status: { $ne: "REJECTED" } }),
-      sum(DriverExpense, { expenseDate: { $gte: start, $lt: end }, status: { $ne: "REJECTED" } }),
-      sum(Expense, { expenseDate: { $gte: start, $lt: end }, category: { $nin: ["FUEL", "MAINTENANCE", "TRIP", "DRIVER_ALLOWANCE"] }, status: { $ne: "REJECTED" } }),
-    ]);
-    const expenses = fuel + maint + trip + driver + other;
-    result.push({ month: start.toLocaleString("en-IN", { month: "short", year: "numeric" }), revenue, expenses, profit: revenue - expenses });
+  for (let i = 5; i >= 0; i--) {
+    months.push(new Date(now.getFullYear(), now.getMonth() - i, 1));
   }
-  return result;
+  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const boundaries = [...months, nextMonth];
+
+  // Previously, each month ran separate aggregates for each metric. Aggregate
+  // all six months at once per source collection instead. This preserves the
+  // original filters and month boundaries while reducing repeated DB work.
+  const [
+    revenueByMonth,
+    nativeFuelByMonth,
+    legacyFuelByMonth,
+    maintenanceByMonth,
+    tripByMonth,
+    driverByMonth,
+    otherByMonth,
+  ] = await Promise.all([
+    monthlyTotalsByDate(
+      Invoice,
+      "invoiceDate",
+      "totalAmount",
+      { status: { $in: INVOICE_REVENUE_STATUSES } },
+      boundaries
+    ),
+    monthlyTotalsByDate(FuelExpense, "fuelDate", "totalAmount", {}, boundaries),
+    monthlyTotalsByDate(Expense, "expenseDate", "amount", { category: "FUEL" }, boundaries),
+    monthlyTotalsByDate(MaintenanceRecord, "completionDate", "totalCost", {}, boundaries),
+    monthlyTotalsByDate(
+      TripExpense,
+      "expenseDate",
+      "amount",
+      { status: { $ne: "REJECTED" } },
+      boundaries
+    ),
+    monthlyTotalsByDate(
+      DriverExpense,
+      "expenseDate",
+      "amount",
+      { status: { $ne: "REJECTED" } },
+      boundaries
+    ),
+    monthlyTotalsByDate(
+      Expense,
+      "expenseDate",
+      "amount",
+      {
+        category: {
+          $nin: ["FUEL", "MAINTENANCE", "TRIP", "DRIVER_ALLOWANCE"],
+        },
+        status: { $ne: "REJECTED" },
+      },
+      boundaries
+    ),
+  ]);
+
+  return months.map((start) => {
+    const key = start.getTime();
+    const revenue = revenueByMonth.get(key) || 0;
+    const fuel =
+      (nativeFuelByMonth.get(key) || 0) +
+      (legacyFuelByMonth.get(key) || 0);
+    const maintenance = maintenanceByMonth.get(key) || 0;
+    const trip = tripByMonth.get(key) || 0;
+    const driver = driverByMonth.get(key) || 0;
+    const other = otherByMonth.get(key) || 0;
+    const expenses = fuel + maintenance + trip + driver + other;
+
+    return {
+      month: start.toLocaleString("en-IN", {
+        month: "short",
+        year: "numeric",
+      }),
+      revenue,
+      expenses,
+      profit: revenue - expenses,
+    };
+  });
 }
 
 async function dashboard(req, res) {
@@ -130,20 +217,113 @@ async function dashboard(req, res) {
   } catch (e) { console.error("Finance dashboard error:", e); return fail(res, 500, "Unable to load finance dashboard."); }
 }
 
+// Evaluate each budget's exact date range in one aggregation per source collection.
+// Facets preserve overlapping budget periods and the original category/status rules.
+async function aggregateBudgetSpendFacets(Model, dateField, valueField, entries, matchForBudget = () => ({}), baseMatch = {}) {
+  if (!entries.length) return new Map();
+
+  const validEntries = entries.filter(({ budget }) =>
+    budget.startDate instanceof Date && !Number.isNaN(budget.startDate.getTime()) &&
+    budget.endDate instanceof Date && !Number.isNaN(budget.endDate.getTime()) &&
+    budget.startDate <= budget.endDate
+  );
+  if (!validEntries.length) return new Map();
+
+  const earliest = new Date(Math.min(...validEntries.map(({ budget }) => budget.startDate.getTime())));
+  const latest = new Date(Math.max(...validEntries.map(({ budget }) => budget.endDate.getTime())));
+  const facets = {};
+  for (const { index, budget } of validEntries) {
+    facets[`budget_${index}`] = [
+      { $match: {
+        [dateField]: { $gte: budget.startDate, $lte: budget.endDate },
+        ...matchForBudget(budget),
+      } },
+      { $group: { _id: null, total: { $sum: `$${valueField}` } } },
+    ];
+  }
+
+  const [result] = await Model.aggregate([
+    { $match: { ...baseMatch, [dateField]: { $gte: earliest, $lte: latest } } },
+    { $facet: facets },
+  ]);
+  const totals = new Map();
+  for (const { index } of validEntries) {
+    totals.set(index, Number(result?.[`budget_${index}`]?.[0]?.total || 0));
+  }
+  return totals;
+}
+
 async function getBudgetsWithSpend() {
   const budgets = await Budget.find({}).sort({ startDate: -1 }).lean();
-  const now = new Date();
-  return Promise.all(budgets.map(async b => {
-    const range = { $gte: b.startDate, $lte: b.endDate };
+  if (!budgets.length) return [];
+
+  const entries = budgets.map((budget, index) => ({ budget, index }));
+  const fuelEntries = entries.filter(({ budget }) => budget.category === "FUEL");
+  const maintenanceEntries = entries.filter(({ budget }) => budget.category === "MAINTENANCE");
+  const tripEntries = entries.filter(({ budget }) => budget.category === "TRIP");
+  const driverEntries = entries.filter(({ budget }) => budget.category === "DRIVER");
+  const otherEntries = entries.filter(({ budget }) => !["FUEL", "MAINTENANCE", "TRIP", "DRIVER"].includes(budget.category));
+
+  const [nativeFuel, legacyFuel, maintenanceSpend, tripSpend, driverSpend, otherSpend] = await Promise.all([
+    aggregateBudgetSpendFacets(FuelExpense, "fuelDate", "totalAmount", fuelEntries),
+    aggregateBudgetSpendFacets(
+      Expense,
+      "expenseDate",
+      "amount",
+      fuelEntries,
+      () => ({ category: "FUEL" }),
+      { category: "FUEL" }
+    ),
+    aggregateBudgetSpendFacets(MaintenanceRecord, "completionDate", "totalCost", maintenanceEntries),
+    aggregateBudgetSpendFacets(
+      TripExpense,
+      "expenseDate",
+      "amount",
+      tripEntries,
+      () => ({ status: { $ne: "REJECTED" } }),
+      { status: { $ne: "REJECTED" } }
+    ),
+    aggregateBudgetSpendFacets(
+      DriverExpense,
+      "expenseDate",
+      "amount",
+      driverEntries,
+      () => ({ status: { $ne: "REJECTED" } }),
+      { status: { $ne: "REJECTED" } }
+    ),
+    aggregateBudgetSpendFacets(
+      Expense,
+      "expenseDate",
+      "amount",
+      otherEntries,
+      () => ({
+        category: { $nin: ["FUEL", "MAINTENANCE", "TRIP", "DRIVER_ALLOWANCE"] },
+        status: { $ne: "REJECTED" },
+      }),
+      {
+        category: { $nin: ["FUEL", "MAINTENANCE", "TRIP", "DRIVER_ALLOWANCE"] },
+        status: { $ne: "REJECTED" },
+      }
+    ),
+  ]);
+
+  return budgets.map((budget, index) => {
     let spent = 0;
-    if (b.category === "FUEL") spent = await sumFuelExpenses(range);
-    else if (b.category === "MAINTENANCE") spent = await sum(MaintenanceRecord, { completionDate: range }, "totalCost");
-    else if (b.category === "TRIP") spent = await sum(TripExpense, { expenseDate: range, status: { $ne: "REJECTED" } });
-    else if (b.category === "DRIVER") spent = await sum(DriverExpense, { expenseDate: range, status: { $ne: "REJECTED" } });
-    else spent = await sum(Expense, { expenseDate: range, category: { $nin: ["FUEL", "MAINTENANCE", "TRIP", "DRIVER_ALLOWANCE"] }, status: { $ne: "REJECTED" } });
-    const utilization = b.allocatedAmount > 0 ? (spent / b.allocatedAmount) * 100 : spent > 0 ? 100 : 0;
-    return { ...b, spentAmount: spent, remainingAmount: b.allocatedAmount - spent, utilization, calculatedStatus: utilization > 100 ? "EXCEEDED" : b.status };
-  }));
+    if (budget.category === "FUEL") spent = (nativeFuel.get(index) || 0) + (legacyFuel.get(index) || 0);
+    else if (budget.category === "MAINTENANCE") spent = maintenanceSpend.get(index) || 0;
+    else if (budget.category === "TRIP") spent = tripSpend.get(index) || 0;
+    else if (budget.category === "DRIVER") spent = driverSpend.get(index) || 0;
+    else spent = otherSpend.get(index) || 0;
+
+    const utilization = budget.allocatedAmount > 0 ? (spent / budget.allocatedAmount) * 100 : spent > 0 ? 100 : 0;
+    return {
+      ...budget,
+      spentAmount: spent,
+      remainingAmount: budget.allocatedAmount - spent,
+      utilization,
+      calculatedStatus: utilization > 100 ? "EXCEEDED" : budget.status,
+    };
+  });
 }
 
 function buildListFilter(query, fields, dateField) {
@@ -171,10 +351,22 @@ async function listFuel(req, res) {
   try {
     const filter = buildListFilter(req.query, ["fuelNumber", "fuelStation", "fuelType"], "fuelDate");
     const { page, limit, skip } = paging(req.query);
-    const [nativeRows, legacyRows] = await Promise.all([
-      FuelExpense.find(filter).populate([["vehicle", "registrationNumber vehicleNumber vehicleType"], ["driver", "fullName"], ["trip", "tripId"]]).sort({ fuelDate: -1 }).lean(),
-      Expense.find({ category: "FUEL", ...(req.query.vehicle && validId(req.query.vehicle) ? { vehicle: req.query.vehicle } : {}), ...(req.query.driver && validId(req.query.driver) ? { driver: req.query.driver } : {}), ...(req.query.trip && validId(req.query.trip) ? { trip: req.query.trip } : {}) })
-        .populate([["vehicle", "registrationNumber vehicleNumber vehicleType"], ["driver", "fullName"], ["trip", "tripId"]]).sort({ expenseDate: -1 }).lean(),
+    // For the first N records of a merged, newest-first list, no source needs
+    // to contribute more than N records. This bounds memory while preserving
+    // the combined ordering and correct pagination across native and legacy data.
+    const sourceLimit = skip + limit;
+    const legacyFilter = {
+      category: "FUEL",
+      ...(req.query.vehicle && validId(req.query.vehicle) ? { vehicle: req.query.vehicle } : {}),
+      ...(req.query.driver && validId(req.query.driver) ? { driver: req.query.driver } : {}),
+      ...(req.query.trip && validId(req.query.trip) ? { trip: req.query.trip } : {}),
+    };
+    const populate = [["vehicle", "registrationNumber vehicleNumber vehicleType"], ["driver", "fullName"], ["trip", "tripId"]];
+    const [nativeRows, legacyRows, nativeTotal, legacyTotal] = await Promise.all([
+      FuelExpense.find(filter).populate(populate).sort({ fuelDate: -1 }).limit(sourceLimit).lean(),
+      Expense.find(legacyFilter).populate(populate).sort({ expenseDate: -1 }).limit(sourceLimit).lean(),
+      FuelExpense.countDocuments(filter),
+      Expense.countDocuments(legacyFilter),
     ]);
     const normalizedLegacy = legacyRows.map(x => ({
       _id: x._id,
@@ -192,7 +384,7 @@ async function listFuel(req, res) {
     }));
     const rows = [...nativeRows.map(x => ({ ...x, source: "FuelExpense", legacyExpense: false })), ...normalizedLegacy]
       .sort((a, b) => new Date(b.fuelDate || 0) - new Date(a.fuelDate || 0));
-    const total = rows.length;
+    const total = nativeTotal + legacyTotal;
     return ok(res, listResult(rows.slice(skip, skip + limit), total, page, limit));
   } catch (e) {
     console.error("Fuel expense list error", e);

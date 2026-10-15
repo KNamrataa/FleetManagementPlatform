@@ -19,4 +19,7 @@ const schema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
 }, { timestamps: true });
 
+// Supports newest-completed maintenance history and dashboard summaries.
+schema.index({ completionDate: -1 });
+
 module.exports = mongoose.model("MaintenanceRecord", schema);

@@ -17,6 +17,7 @@ const driverProfileSchema = new mongoose.Schema({
   availability: { type: Boolean, default: true },
 }, { timestamps: true });
 
+driverProfileSchema.index({ licenseExpiry: 1, user: 1 }); // Scheduled document-expiry scan
 driverProfileSchema.index({ user: 1, status: 1, availability: 1 });
 driverProfileSchema.index({ assignedVehicle: 1, status: 1 });
 

@@ -110,5 +110,6 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+userSchema.index({ role: 1, isActive: 1, accountStatus: 1 }); // Role-scoped dashboard and notification jobs
 module.exports = mongoose.model("User", userSchema);
 module.exports.ROLES = ROLES;

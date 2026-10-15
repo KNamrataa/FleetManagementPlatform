@@ -48,6 +48,44 @@ const dayNumber = (date, timeZone = EXPIRY_TIME_ZONE) => {
 const daysUntil = (expiryDate, today = new Date()) =>
   Math.round((dayNumber(expiryDate) - dayNumber(today)) / DAY_MS);
 
+// Convert a calendar date in the configured timezone into its actual start
+// instant so expiry queries align with daysUntil(), regardless of server TZ.
+function startOfDayInTimeZone(parts, timeZone = EXPIRY_TIME_ZONE) {
+  const target = Date.UTC(parts.year, parts.month - 1, parts.day);
+  let guess = target;
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const formatted = new Intl.DateTimeFormat("en-CA", {
+      timeZone,
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23",
+    }).formatToParts(new Date(guess));
+    const values = Object.fromEntries(formatted.map(({ type, value }) => [type, value]));
+    const displayed = Date.UTC(
+      Number(values.year), Number(values.month) - 1, Number(values.day),
+      Number(values.hour), Number(values.minute), Number(values.second)
+    );
+    const adjustment = target - displayed;
+    if (adjustment === 0) break;
+    guess += adjustment;
+  }
+  return new Date(guess);
+}
+
+function shiftCalendarDate(parts, days) {
+  const shifted = new Date(Date.UTC(parts.year, parts.month - 1, parts.day + days));
+  return { year: shifted.getUTCFullYear(), month: shifted.getUTCMonth() + 1, day: shifted.getUTCDate() };
+}
+
+function expiryScanRange(today = new Date()) {
+  const todayParts = dateParts(today);
+  // Preserve the existing milestones: yesterday's expired grace milestone
+  // through today + 30 days, inclusive. The upper boundary is exclusive.
+  return {
+    from: startOfDayInTimeZone(shiftCalendarDate(todayParts, EXPIRED_GRACE_DAYS)),
+    to: startOfDayInTimeZone(shiftCalendarDate(todayParts, REMINDER_WINDOW_DAYS + 1)),
+  };
+}
+
 const getExpiryMilestone = (remaining) => {
   if (remaining >= 0 && remaining <= REMINDER_WINDOW_DAYS) return String(remaining);
   if (remaining === EXPIRED_GRACE_DAYS) return "EXPIRED";
@@ -364,6 +402,7 @@ async function notifyUpdatedVehicleDocumentExpiry({ io, vehicleId, documentId, f
 }
 
 async function runDocumentExpiryChecks(io) {
+  const { from, to } = expiryScanRange();
   const [fleetManagers, driverProfiles, vehicles] = await Promise.all([
     User.find({
       role: "FLEET_MANAGER",
@@ -371,14 +410,20 @@ async function runDocumentExpiryChecks(io) {
       accountStatus: "ACTIVE",
     }).select("_id").lean(),
 
-    DriverProfile.find({ licenseExpiry: { $ne: null } })
+    // Fetch only profiles whose expiry falls on an existing notification
+    // milestone: yesterday's expired grace day through 30 days from today.
+    DriverProfile.find({ licenseExpiry: { $gte: from, $lt: to } })
+      .select("user licenseExpiry")
       .populate({
         path: "user",
         select: "_id fullName isActive accountStatus role",
       })
       .lean(),
 
-    Vehicle.find({ "documents.expiryDate": { $ne: null } })
+    // Match vehicles with at least one expiring document, while retaining all
+    // documents on each matched vehicle for the existing per-document logic.
+    Vehicle.find({ documents: { $elemMatch: { expiryDate: { $gte: from, $lt: to } } } })
+      .select("registrationNumber vehicleNumber documents assignedDriver")
       .populate({
         path: "assignedDriver",
         select: "_id fullName isActive accountStatus role",

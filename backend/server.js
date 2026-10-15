@@ -28,6 +28,7 @@ const routeRoutes = require("./routes/routeRoutes");
 const tripRatingRoutes = require("./routes/tripRatingRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const publicDashboardRoutes = require("./routes/publicDashboardRoutes");
+const contactRoutes = require("./routes/contactRoutes");
 const registerTrackingSocket = require("./realtime/trackingSocket");
 const rateLimit = require("express-rate-limit");
 const auditRequest = require("./middleware/auditMiddleware");
@@ -124,6 +125,7 @@ app.use("/api/routes", routeRoutes);
 app.use("/api/ratings", tripRatingRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/public/dashboard-overview", publicDashboardRoutes);
+app.use("/api/contact", contactRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use((req, res) => {
   res.status(404).json({

@@ -38,6 +38,7 @@ schema.pre("validate", function() {
 
 schema.index({ customer: 1, status: 1 });
 schema.index({ customer: 1, status: 1, invoiceDate: -1 });
+schema.index({ invoiceDate: -1, status: 1 }); // Finance analytics by invoice date and status
 schema.index({ dueDate: 1, status: 1 });
 
 module.exports = mongoose.model("Invoice", schema);

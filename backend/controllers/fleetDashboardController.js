@@ -12,13 +12,14 @@ const TripRating = require("../models/TripRating");
 async function getFleetDashboard(req, res) {
   try {
     await syncAssignmentRecords();
-    const [vehicleAgg, driverAgg, tripAgg, recentTrips, assignments, recentDrivers, maintenanceCostAgg, activeMaintenanceOrders, tripRequestAgg, recentTripRequests, ratingSummaryAgg, topRatedDrivers] = await Promise.all([
+    const [vehicleAgg, driverAgg, tripAgg, recentTrips, assignments, recentDrivers, totalDriversCount, maintenanceCostAgg, activeMaintenanceOrders, tripRequestAgg, recentTripRequests, ratingSummaryAgg, topRatedDrivers] = await Promise.all([
       Vehicle.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
       DriverProfile.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
       Trip.aggregate([{ $group: { _id: "$tripStatus", count: { $sum: 1 } } }]),
       Trip.find().populate("vehicle", "registrationNumber").populate("driver", "fullName").sort({ createdAt: -1 }).limit(8).lean(),
       Assignment.find({ assignmentStatus: "ACTIVE" }).populate("vehicle", "registrationNumber vehicleType status").populate("driver", "fullName phone").sort({ assignedAt: -1 }).limit(8).lean(),
       User.find({ role: "DRIVER" }).select("fullName email updatedAt isActive accountStatus").sort({ updatedAt: -1 }).limit(8).lean(),
+      User.countDocuments({ role: "DRIVER" }),
       MaintenanceRecord.aggregate([
         {
           $group: {
@@ -63,7 +64,7 @@ async function getFleetDashboard(req, res) {
     const ratingSummary = ratingSummaryAgg[0] || { driverAverage: 0, serviceAverage: 0, ratingCount: 0 };
     res.json({ success: true, kpis: {
       totalVehicles: Object.values(v).reduce((a,b)=>a+b,0), availableVehicles: v.AVAILABLE || 0, vehiclesOnTrip: v.ON_TRIP || 0, vehiclesInMaintenance: v.MAINTENANCE || 0,
-      totalDrivers: await User.countDocuments({ role: "DRIVER" }), availableDrivers: d.AVAILABLE || 0, driversOnTrip: d.ON_TRIP || 0, pendingTripRequests: (r.PENDING || 0) + (r.REVIEWED || 0) + (r.ACCEPTED || 0),
+      totalDrivers: totalDriversCount, availableDrivers: d.AVAILABLE || 0, driversOnTrip: d.ON_TRIP || 0, pendingTripRequests: (r.PENDING || 0) + (r.REVIEWED || 0) + (r.ACCEPTED || 0),
       activeTrips: (t.ASSIGNED || 0) + (t.IN_PROGRESS || 0) + (t.PAUSED || 0), scheduledTrips: t.SCHEDULED || 0, completedTrips: t.COMPLETED || 0,
     }, vehicleStatus: v, driverStatus: d, tripStatus: t, recentTrips, assignments, recentDrivers, tripRequests: { status: r, recent: recentTripRequests }, maintenance: { totalCost: maintenanceCostAgg.reduce((sum, item) => sum + Number(item.totalCost || 0), 0), byVehicle: maintenanceCostAgg, activeWorkOrders: activeMaintenanceOrders }, customerRatings: { driverAverage: Number(Number(ratingSummary.driverAverage || 0).toFixed(2)), serviceAverage: Number(Number(ratingSummary.serviceAverage || 0).toFixed(2)), ratingCount: Number(ratingSummary.ratingCount || 0), topDrivers: topRatedDrivers.map(x => ({ ...x, driverAverage: Number(Number(x.driverAverage || 0).toFixed(2)), serviceAverage: Number(Number(x.serviceAverage || 0).toFixed(2)), ratingCount: Number(x.ratingCount || 0) })) } });
   } catch (e) { console.error(e); res.status(500).json({ success: false, message: "Unable to load fleet dashboard." }); }

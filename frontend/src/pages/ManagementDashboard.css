@@ -173,3 +173,17 @@
 .management-kpis > .metric-card:nth-child(6n) .metric-icon { background: #e0f7f7; color: #0899a5; }
 .management-kpis > .metric-card span { color: #607491; font-size: 12px; line-height: 1.35; margin-bottom: 4px; }
 .management-kpis > .metric-card strong { color: #0b1f3a; font-size: 23px; line-height: 1.2; }
+
+/* Keep each management report export aligned beneath its corresponding section. */
+.management-bottom-exports {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px 14px;
+  margin-top: 20px;
+  padding-top: 4px;
+}
+.management-bottom-exports > [aria-label$="export actions"] {
+  margin-top: 0 !important;
+}

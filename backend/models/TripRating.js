@@ -25,6 +25,7 @@ const tripRatingSchema = new mongoose.Schema({
   recommendation: { type: String, enum: ["Definitely", "Probably", "Not sure", "Probably not", "Definitely not", ""], default: "" },
 }, { timestamps: true });
 tripRatingSchema.index({ trip: 1, customer: 1 }, { unique: true });
+tripRatingSchema.index({ createdAt: -1 }); // Date-window analytics across all drivers
 tripRatingSchema.index({ driver: 1, createdAt: -1 });
 tripRatingSchema.index({ driverRating: 1, createdAt: -1 });
 tripRatingSchema.index({ serviceRating: 1, createdAt: -1 });

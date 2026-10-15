@@ -44,4 +44,9 @@ const tripRequestSchema = new mongoose.Schema({
   },
 }, { timestamps: true });
 
+// Supports newest-first request lists and recent requests on dashboards.
+tripRequestSchema.index({ status: 1, createdAt: -1 }); // Pending request queues sorted newest-first
+tripRequestSchema.index({ createdAt: -1 });
+tripRequestSchema.index({ customer: 1, createdAt: -1 });
+
 module.exports = mongoose.model("TripRequest", tripRequestSchema);

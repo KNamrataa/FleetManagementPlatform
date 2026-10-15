@@ -93,9 +93,14 @@ tripSchema.pre("save", function() {
     });
   }
 });
+tripSchema.index({ createdAt: -1, tripStatus: 1 }); // Dashboard date-range scans and status summaries
+tripSchema.index({ tripStatus: 1, createdAt: -1 }); // Status-filtered recent-trip lists and dashboard queries
 tripSchema.index({ customer: 1, tripStatus: 1, scheduledStart: -1 });
 tripSchema.index({ driver: 1, tripStatus: 1, scheduledStart: -1 });
 tripSchema.index({ vehicle: 1, tripStatus: 1, scheduledStart: -1 });
 tripSchema.index({ scheduledStart: -1, createdAt: -1 });
+
+// Supports dashboard queries that show the most recently updated trips.
+tripSchema.index({ updatedAt: -1 });
 
 module.exports = mongoose.model("Trip", tripSchema);

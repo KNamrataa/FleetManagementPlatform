@@ -32,8 +32,49 @@ function Home() {
   const [dashboardData, setDashboardData] = useState(null);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState("");
+  const [contactForm, setContactForm] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
+  const [contactStatus, setContactStatus] = useState({ type: "", message: "" });
+  const [contactSubmitting, setContactSubmitting] = useState(false);
 
   const navigate = useNavigate();
+
+  const handleContactChange = (event) => {
+    const { name, value } = event.target;
+    setContactForm((previous) => ({ ...previous, [name]: value }));
+    if (contactStatus.message) setContactStatus({ type: "", message: "" });
+  };
+
+  const handleContactSubmit = async (event) => {
+    event.preventDefault();
+    if (contactSubmitting) return;
+
+    setContactSubmitting(true);
+    setContactStatus({ type: "", message: "" });
+
+    try {
+      const response = await apiRequest("/api/contact", {
+        method: "POST",
+        body: JSON.stringify(contactForm),
+      });
+      setContactStatus({
+        type: "success",
+        message: response.message || "Your message was sent successfully. Our team will get back to you.",
+      });
+      setContactForm({ name: "", email: "", subject: "", message: "" });
+    } catch (error) {
+      setContactStatus({
+        type: "error",
+        message: error.message || "We could not send your message. Please try again later.",
+      });
+    } finally {
+      setContactSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -1411,7 +1452,7 @@ function Home() {
             </div>
 
 
-            <form className="contact-form">
+            <form className="contact-form" onSubmit={handleContactSubmit}>
 
               <div className="contact-form-row">
 
@@ -1426,6 +1467,11 @@ function Home() {
                     name="name"
                     type="text"
                     placeholder="Your name"
+                    value={contactForm.name}
+                    onChange={handleContactChange}
+                    autoComplete="name"
+                    maxLength={100}
+                    required
                   />
 
                 </div>
@@ -1442,6 +1488,11 @@ function Home() {
                     name="email"
                     type="email"
                     placeholder="Your email"
+                    value={contactForm.email}
+                    onChange={handleContactChange}
+                    autoComplete="email"
+                    maxLength={254}
+                    required
                   />
 
                 </div>
@@ -1460,6 +1511,10 @@ function Home() {
                   name="subject"
                   type="text"
                   placeholder="How can we help?"
+                  value={contactForm.subject}
+                  onChange={handleContactChange}
+                  maxLength={150}
+                  required
                 />
 
               </div>
@@ -1475,17 +1530,33 @@ function Home() {
                   id="contact-message"
                   name="message"
                   placeholder="Write your message..."
+                  value={contactForm.message}
+                  onChange={handleContactChange}
+                  maxLength={5000}
+                  rows={5}
+                  required
                 ></textarea>
 
               </div>
 
 
+              {contactStatus.message && (
+                <p
+                  className={`contact-status ${contactStatus.type}`}
+                  role="status"
+                  aria-live="polite"
+                >
+                  {contactStatus.message}
+                </p>
+              )}
+
               <button
                 type="submit"
                 className="contact-submit"
+                disabled={contactSubmitting}
               >
-                Send Message
-                <ArrowRight size={15} />
+                {contactSubmitting ? "Sending..." : "Send Message"}
+                {!contactSubmitting && <ArrowRight size={15} />}
               </button>
 
             </form>

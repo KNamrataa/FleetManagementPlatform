@@ -13,7 +13,7 @@ const ROLE_GROUPS = [
 const reportDateKey = date => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
 const isActive = user => user && user.email && user.isActive !== false && user.accountStatus !== "INACTIVE";
 
-async function sendRoleReport(user, role, date = new Date(), force = false) {
+async function sendRoleReport(user, role, date = new Date(), force = false, analyticsCache = null) {
   const group = ROLE_GROUPS.find(item => item.roles.includes(role)) || ROLE_GROUPS[4];
   const reportType = group.type;
   const reportDate = reportDateKey(date);
@@ -38,7 +38,21 @@ async function sendRoleReport(user, role, date = new Date(), force = false) {
   log.recipientEmail = user.email;
   try {
     const roleForAnalytics = role === "SUPER_ADMIN" || role === "VIEWER" ? role : role;
-    const analytics = await buildAnalytics({ startDate: reportDate, endDate: reportDate, role: roleForAnalytics });
+    let analytics;
+    if (analyticsCache) {
+      const cacheKey = `${reportDate}:${roleForAnalytics}`;
+      if (!analyticsCache.has(cacheKey)) {
+        const analyticsPromise = buildAnalytics({ startDate: reportDate, endDate: reportDate, role: roleForAnalytics })
+          .catch((error) => {
+            analyticsCache.delete(cacheKey);
+            throw error;
+          });
+        analyticsCache.set(cacheKey, analyticsPromise);
+      }
+      analytics = await analyticsCache.get(cacheKey);
+    } else {
+      analytics = await buildAnalytics({ startDate: reportDate, endDate: reportDate, role: roleForAnalytics });
+    }
     await sendAnalyticsReportEmail({ email: user.email, fullName: user.fullName, reportType, reportDate, analytics, dashboardPath: group.path });
     log.status = "SENT";
     log.sentAt = new Date();
@@ -57,6 +71,15 @@ async function sendRoleReport(user, role, date = new Date(), force = false) {
 
 async function runDailyReports(date = new Date(), { force = false } = {}) {
   const results = [];
+  // Analytics are identical for recipients with the same exact role and date.
+  // Cache the promise (not only the resolved value) so concurrent recipients
+  // share one calculation; delivery logs and email attempts remain per recipient.
+  const analyticsCache = new Map();
+  const configuredConcurrency = Number.parseInt(process.env.DAILY_ANALYTICS_REPORT_CONCURRENCY || "3", 10);
+  const concurrency = Number.isFinite(configuredConcurrency)
+    ? Math.min(5, Math.max(1, configuredConcurrency))
+    : 3;
+
   for (const group of ROLE_GROUPS) {
     const users = await User.find({
       role: { $in: group.roles },
@@ -64,9 +87,17 @@ async function runDailyReports(date = new Date(), { force = false } = {}) {
       accountStatus: { $ne: "INACTIVE" },
       email: { $exists: true, $nin: ["", null] },
     }).select("fullName email role isActive accountStatus").lean();
-    for (const user of users) {
-      results.push(await sendRoleReport(user, user.role, date, force));
-    }
+    const groupResults = new Array(users.length);
+    let nextIndex = 0;
+    const worker = async () => {
+      while (true) {
+        const index = nextIndex++;
+        if (index >= users.length) return;
+        groupResults[index] = await sendRoleReport(users[index], users[index].role, date, force, analyticsCache);
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(concurrency, users.length) }, () => worker()));
+    results.push(...groupResults);
   }
   return {
     reportDate: reportDateKey(date),

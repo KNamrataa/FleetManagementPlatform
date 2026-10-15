@@ -15,4 +15,5 @@ const schema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
 }, { timestamps: true });
 
+schema.index({ nextServiceDate: 1, status: 1 }); // Due/upcoming schedule queries and date ordering
 module.exports = mongoose.model("MaintenanceSchedule", schema);
