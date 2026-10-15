@@ -23,8 +23,6 @@ const schema = new mongoose.Schema({
 schema.index({ status: 1, expenseDate: -1 });
 schema.index({ expenseDate: -1, status: 1 });
 schema.index({ vehicle: 1, expenseDate: -1 });
-
-// Supports newest-first expense lists without an in-memory blocking sort.
 schema.index({ createdAt: -1 });
 
 module.exports = mongoose.model("Expense", schema);

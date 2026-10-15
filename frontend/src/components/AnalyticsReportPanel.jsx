@@ -9,8 +9,6 @@ const dateInput = value => {
 };
 const INITIAL_TODAY = dateInput(new Date());
 const INITIAL_WEEK_AGO = dateInput(new Date(new Date().getTime() - 6 * 86400000));
-
-// Small pastel icon tiles match the summary cards used elsewhere in FleetFlow.
 const metricVisuals = {
   Vehicles: { Icon: Car, color: "#1683f8", background: "#e8f3ff" },
   "Active drivers": { Icon: Users, color: "#0ca66b", background: "#e5f9ee" },

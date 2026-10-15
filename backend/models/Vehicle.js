@@ -38,7 +38,5 @@ const vehicleSchema = new mongoose.Schema({
   },
 }, { timestamps: true });
 
-vehicleSchema.index({ "documents.expiryDate": 1 }); // Multikey index for document-expiry scans
-// registrationNumber already declares unique: true in the schema field above.
-// Keep a single declaration to avoid Mongoose duplicate-index warnings.
+vehicleSchema.index({ "documents.expiryDate": 1 });
 module.exports = mongoose.model("Vehicle", vehicleSchema);
