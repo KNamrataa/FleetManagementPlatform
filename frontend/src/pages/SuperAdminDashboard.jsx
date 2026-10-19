@@ -25,7 +25,7 @@ import {
 import "../Dashboard.css";
 import { authFetch } from "../services/api";
 import { Pagination } from "../components/Pagination";
-import AnalyticsReportPanel from "../components/AnalyticsReportPanel";
+const AnalyticsReportPanel = lazy(() => import("../components/AnalyticsReportPanel"));
 const SuperAdminDataView = lazy(() => import("./SuperAdminDataView"));
 const LiveFleetMap = lazy(() => import("../components/LiveFleetMap"));
 
@@ -753,7 +753,6 @@ function SuperAdminDashboard() {
           </div>
         ) : adminView === "overview" ? (
           <>
-          <AnalyticsReportPanel />
           <OverviewView
             dashboard={dashboard}
             overviewExtras={overviewExtras}
@@ -768,6 +767,7 @@ function SuperAdminDashboard() {
             onVehicleLimitChange={(value) => { setOverviewVehicleLimit(value); setOverviewVehiclePage(1); }}
             onDriverLimitChange={(value) => { setOverviewDriverLimit(value); setOverviewDriverPage(1); }}
           />
+          <DeferredAnalyticsReportPanel />
           </>
         ) : adminView === "vehicles" ? (
           <AdminVehiclesView
@@ -817,6 +817,24 @@ function SuperAdminDashboard() {
       </main>
     </div>
   );
+}
+
+function DeferredAnalyticsReportPanel() {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const run = () => { if (!cancelled) setReady(true); };
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(run, { timeout: 2200 });
+      return () => { cancelled = true; window.cancelIdleCallback?.(id); };
+    }
+    const id = window.setTimeout(run, 1000);
+    return () => { cancelled = true; window.clearTimeout(id); };
+  }, []);
+
+  if (!ready) return <div className="table-empty sa-analytics-placeholder" aria-label="Analytics loading">Analytics report loads shortly…</div>;
+  return <Suspense fallback={<div className="table-empty sa-analytics-placeholder">Loading analytics report…</div>}><AnalyticsReportPanel /></Suspense>;
 }
 
 function DeferredLiveFleetMap({ vehicles }) {

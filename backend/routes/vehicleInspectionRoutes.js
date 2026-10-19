@@ -1,0 +1,10 @@
+const express = require("express");
+const { authenticate, authorize } = require("../middleware/authMiddleware");
+const c = require("../controllers/vehicleInspectionController");
+const router = express.Router();
+router.get("/driver/checklist", authenticate, authorize("DRIVER"), c.getChecklist);
+router.post("/driver", authenticate, authorize("DRIVER"), c.submitInspection);
+router.get("/driver", authenticate, authorize("DRIVER"), c.getDriverInspections);
+router.get("/maintenance", authenticate, authorize("MAINTENANCE_MANAGER"), c.getMaintenanceInspections);
+router.post("/maintenance/:id/release", authenticate, authorize("MAINTENANCE_MANAGER"), c.releaseSafetyHold);
+module.exports = router;

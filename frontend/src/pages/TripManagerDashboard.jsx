@@ -11,6 +11,7 @@ import {
   ClipboardList,
   Clock3,
   Eye,
+  FileCheck2,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -32,6 +33,7 @@ import "./TripManagerDashboard.css";
 import AnalyticsReportPanel from "../components/AnalyticsReportPanel";
 import DashboardExportButtons from "../components/DashboardExportButtons";
 import PageBottomExportActions from "../components/PageBottomExportActions";
+import ProofOfDelivery from "./ProofOfDelivery";
 
 const cls = (s = "") =>
   String(s).toLowerCase().replaceAll("_", "-");
@@ -210,6 +212,7 @@ const NAV = [
   ["/trip-manager/driver-assignment", "Driver Assignment", UserRound],
   ["/trip-manager/vehicle-assignment", "Vehicle Assignment", Car],
   ["/trip-manager/dispatch-board", "Dispatch Board", Activity],
+  ["/trip-manager/proof-of-delivery", "Proof of Delivery", FileCheck2],
   ["/trip-manager/rescheduled", "Rescheduled Trips", RefreshCw],
   ["/trip-manager/cancelled", "Cancelled Trips", XCircle],
   ["/trip-manager/active", "Active Trips", Truck],
@@ -273,6 +276,9 @@ export default function TripManagerDashboard() {
     title = "Dispatch Board";
     subtitle =
       "Central operational view of trips and resources";
+  } else if (path.includes("proof-of-delivery")) {
+    title = "Proof of Delivery";
+    subtitle = "Review arrival photos, delivery evidence and delivery outcomes";
   } else if (path.includes("rescheduled")) {
     title = "Rescheduled Trips";
     subtitle =
@@ -486,6 +492,10 @@ function TripManagerContent({ path }) {
         mode="board"
       />
     );
+  }
+
+  if (path.includes("proof-of-delivery")) {
+    return <ProofOfDelivery mode="manager" />;
   }
 
   if (path.includes("rescheduled")) {

@@ -1,7 +1,7 @@
 import NotificationBell from "../components/NotificationBell";
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Activity, Car, ClipboardList, LayoutDashboard, LogOut, Menu, UserCircle, Wrench, X, Receipt, MapPinned } from "lucide-react";
+import { Activity, Car, ClipboardList, LayoutDashboard, LogOut, Menu, UserCircle, Wrench, X, Receipt, MapPinned, ClipboardCheck, FileCheck2 } from "lucide-react";
 import { API_URL, authFetch } from "../services/api";
 import "./DriverDashboard.css";
 
@@ -24,6 +24,8 @@ export default function DriverLayout({ title, subtitle, children }) {
     ["/driver/live-fleet", "Live Fleet Map", MapPinned],
     ["/driver/history", "Trip History", ClipboardList],
     ["/driver/issues", "Vehicle Issues", Wrench],
+    ["/driver/inspections", "Digital Inspection", ClipboardCheck],
+    ["/driver/proof-of-delivery", "Proof of Delivery", FileCheck2],
     ["/driver/records", "Expenses & Vehicle History", Receipt],
     ["/driver/profile", "My Profile", UserCircle],
   ];

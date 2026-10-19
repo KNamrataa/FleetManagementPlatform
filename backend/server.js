@@ -34,6 +34,8 @@ const rateLimit = require("express-rate-limit");
 const auditRequest = require("./middleware/auditMiddleware");
 const { startDocumentExpiryJob } = require("./jobs/documentExpiryJob");
 const analyticsRoutes = require("./routes/analyticsRoutes");
+const vehicleInspectionRoutes = require("./routes/vehicleInspectionRoutes");
+const proofOfDeliveryRoutes = require("./routes/proofOfDeliveryRoutes");
 const { startDailyAnalyticsReportJob } = require("./jobs/dailyAnalyticsReportJob");
 
 const app = express();
@@ -78,7 +80,7 @@ app.use(
 
 app.use(cors(corsOptions));
 
-app.use(express.json({ limit: "5mb" }));
+app.use(express.json({ limit: "8mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
@@ -127,6 +129,8 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/public/dashboard-overview", publicDashboardRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/inspections", vehicleInspectionRoutes);
+app.use("/api/proof-of-delivery", proofOfDeliveryRoutes);
 app.use((req, res) => {
   res.status(404).json({
     success: false,

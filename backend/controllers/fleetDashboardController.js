@@ -16,8 +16,16 @@ async function getFleetDashboard(req, res) {
       Vehicle.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
       DriverProfile.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
       Trip.aggregate([{ $group: { _id: "$tripStatus", count: { $sum: 1 } } }]),
-      Trip.find().populate("vehicle", "registrationNumber").populate("driver", "fullName").sort({ createdAt: -1 }).limit(8).lean(),
-      Assignment.find({ assignmentStatus: "ACTIVE" }).populate("vehicle", "registrationNumber vehicleType status").populate("driver", "fullName phone").sort({ assignedAt: -1 }).limit(8).lean(),
+      Trip.find()
+        .select("tripId pickupLocation destination tripStatus createdAt scheduledDate startTime endTime vehicle driver")
+        .populate("vehicle", "registrationNumber")
+        .populate("driver", "fullName")
+        .sort({ createdAt: -1 }).limit(8).lean(),
+      Assignment.find({ assignmentStatus: "ACTIVE" })
+        .select("assignmentStatus assignedAt vehicle driver")
+        .populate("vehicle", "registrationNumber vehicleType status")
+        .populate("driver", "fullName phone")
+        .sort({ assignedAt: -1 }).limit(8).lean(),
       User.find({ role: "DRIVER" }).select("fullName email updatedAt isActive accountStatus").sort({ updatedAt: -1 }).limit(8).lean(),
       User.countDocuments({ role: "DRIVER" }),
       MaintenanceRecord.aggregate([
@@ -53,9 +61,12 @@ async function getFleetDashboard(req, res) {
         },
         { $sort: { totalCost: -1 } },
       ]),
-      MaintenanceWorkOrder.find({ status: { $in: ["PENDING", "ASSIGNED", "IN_PROGRESS", "ON_HOLD"] } }).populate("vehicle", "vehicleNumber registrationNumber status").sort({ createdAt: -1 }).limit(6).lean(),
+      MaintenanceWorkOrder.find({ status: { $in: ["PENDING", "ASSIGNED", "IN_PROGRESS", "ON_HOLD"] } }).select("workOrderNumber vehicle maintenanceType priority description assignedMechanic status startDate expectedCompletionDate totalCost createdAt updatedAt").populate("vehicle", "vehicleNumber registrationNumber status").sort({ createdAt: -1 }).limit(6).lean(),
       TripRequest.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
-      TripRequest.find({ status: { $in: ["PENDING", "REVIEWED", "ACCEPTED"] } }).populate("customer", "fullName email").sort({ createdAt: -1 }).limit(6).lean(),
+      TripRequest.find({ status: { $in: ["PENDING", "REVIEWED", "ACCEPTED"] } })
+        .select("requestNumber pickupLocation destination requestedDate requestedTime status createdAt customer")
+        .populate("customer", "fullName")
+        .sort({ createdAt: -1 }).limit(6).lean(),
       TripRating.aggregate([{$group:{_id:null,driverAverage:{$avg:"$driverRating"},serviceAverage:{$avg:"$serviceRating"},ratingCount:{$sum:1}}}]),
       TripRating.aggregate([{$group:{_id:"$driver",driverAverage:{$avg:"$driverRating"},serviceAverage:{$avg:"$serviceRating"},ratingCount:{$sum:1}}},{$match:{ratingCount:{$gte:3}}},{$sort:{driverAverage:-1,ratingCount:-1}},{$limit:5},{$lookup:{from:"users",localField:"_id",foreignField:"_id",as:"driver"}},{$unwind:"$driver"},{$project:{_id:1,fullName:"$driver.fullName",driverAverage:1,serviceAverage:1,ratingCount:1}}]),
     ]);

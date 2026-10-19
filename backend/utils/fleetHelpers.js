@@ -12,6 +12,7 @@ async function getDriverProfile(driverId) {
 async function validateAvailablePair(vehicleId, driverId) {
   const vehicle = await Vehicle.findById(vehicleId);
   if (!vehicle) return { error: "Vehicle not found." };
+  if (vehicle.safetyHold) return { error: `Vehicle is on safety hold${vehicle.safetyHoldReason ? `: ${vehicle.safetyHoldReason}` : " due to an unresolved safety issue."}` };
   if (!["AVAILABLE", "ASSIGNED"].includes(vehicle.status)) return { error: "Vehicle is not available for assignment." };
 
   if (vehicle.ownershipType === "DRIVER_OWNED") {
@@ -34,7 +35,7 @@ async function reservePair(vehicleId, driverId) {
   const checked = await validateAvailablePair(vehicleId, driverId);
   if (checked.error) throw Object.assign(new Error(checked.error), { status: 409 });
   const vehicle = await Vehicle.findOneAndUpdate(
-    { _id: vehicleId, status: { $in: ["AVAILABLE", "ASSIGNED"] }, $or: [{ assignedDriver: null }, { assignedDriver: driverId }] },
+    { _id: vehicleId, safetyHold: { $ne: true }, status: { $in: ["AVAILABLE", "ASSIGNED"] }, $or: [{ assignedDriver: null }, { assignedDriver: driverId }] },
     { $set: { assignedDriver: driverId, status: "ASSIGNED" } },
     { new: true }
   );

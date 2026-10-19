@@ -5,7 +5,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import Home from "./pages/Home";
+const Home = lazy(() => import("./pages/Home"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
@@ -35,6 +35,8 @@ const DriverTripDetails = lazy(() => import("./pages/DriverTripDetails"));
 const DriverLiveFleetMap = lazy(() => import("./pages/DriverLiveFleetMap"));
 const DriverHistory = lazy(() => import("./pages/DriverHistory"));
 const DriverIssues = lazy(() => import("./pages/DriverIssues"));
+const DriverInspections = lazy(() => import("./pages/DriverInspections"));
+const ProofOfDelivery = lazy(() => import("./pages/ProofOfDelivery"));
 const DriverProfile = lazy(() => import("./pages/DriverProfile"));
 const DriverRecords = lazy(() => import("./pages/DriverRecords"));
 const MaintenanceManagerDashboard = lazy(() => import("./pages/MaintenanceManagerDashboard"));
@@ -286,6 +288,20 @@ function App() {
         />
 
         <Route
+          path="/driver/inspections"
+          element={
+            <RoleProtectedRoute allowedRoles={["DRIVER"]}>
+              <DriverInspections />
+            </RoleProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/driver/proof-of-delivery"
+          element={<RoleProtectedRoute allowedRoles={["DRIVER"]}><ProofOfDelivery mode="driver" /></RoleProtectedRoute>}
+        />
+
+        <Route
           path="/driver/records"
           element={<RoleProtectedRoute allowedRoles={["DRIVER"]}><DriverRecords /></RoleProtectedRoute>}
         />
@@ -351,6 +367,11 @@ function App() {
               <CustomerTracking />
             </RoleProtectedRoute>
           }
+        />
+
+        <Route
+          path="/customer/delivery-history"
+          element={<RoleProtectedRoute allowedRoles={["CUSTOMER"]}><ProofOfDelivery mode="customer" /></RoleProtectedRoute>}
         />
 
         <Route

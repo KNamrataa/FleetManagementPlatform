@@ -26,6 +26,10 @@ const vehicleSchema = new mongoose.Schema({
   fuelCostPerUnit: { type: Number, min: 0, default: 0 },
   currentOdometer: { type: Number, min: 0, default: 0 },
   status: { type: String, enum: ["AVAILABLE", "ASSIGNED", "ON_TRIP", "MAINTENANCE", "INACTIVE"], default: "AVAILABLE", index: true },
+  safetyHold: { type: Boolean, default: false, index: true },
+  safetyHoldReason: { type: String, trim: true, default: "" },
+  safetyHoldIssue: { type: mongoose.Schema.Types.ObjectId, ref: "VehicleIssue", default: null },
+  safetyHoldAt: { type: Date, default: null },
   assignedDriver: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null, index: true },
   insurance: {
     provider: { type: String, trim: true, default: "" },

@@ -9,6 +9,7 @@ import {
   Car,
   CheckCircle2,
   ClipboardList,
+  ClipboardCheck,
   Clock,
   DollarSign,
   LayoutDashboard,
@@ -24,6 +25,7 @@ import { apiRequest, getStoredUser } from "../services/api";
 import "./MaintenanceManager.css";
 import AnalyticsReportPanel from "../components/AnalyticsReportPanel";
 import DashboardExportButtons from "../components/DashboardExportButtons";
+import VehicleInspections from "./VehicleInspections";
 
 const money = value => `₹${Number(value || 0).toLocaleString("en-IN")}`;
 const label = value => String(value || "").replaceAll("_", " ");
@@ -76,7 +78,9 @@ export default function MaintenanceManagerDashboard() {
   const path = location.pathname;
   const title = path === "/maintenance"
     ? "Maintenance Overview"
-    : path.includes("requests")
+    : path.includes("inspections")
+      ? "Digital Vehicle Inspections"
+      : path.includes("requests")
       ? "Maintenance Requests"
       : path.includes("work-orders")
         ? "Work Orders"
@@ -111,6 +115,7 @@ export default function MaintenanceManagerDashboard() {
             ["/maintenance", "Overview", LayoutDashboard],
             ["/analytics", "Analytics", BarChart3],
             ["/maintenance/requests", "Maintenance Requests", AlertTriangle],
+            ["/maintenance/inspections", "Digital Inspections", ClipboardCheck],
             ["/maintenance/work-orders", "Work Orders", ClipboardList],
             ["/maintenance/vehicles", "Vehicles", Car],
             ["/maintenance/schedule", "Service Schedule", CalendarDays],
@@ -162,10 +167,14 @@ export default function MaintenanceManagerDashboard() {
             </div>
           )}
 
-          {path === "/maintenance" && <AnalyticsReportPanel />}
           {path === "/maintenance" && (
             <Overview data={data} loading={loading} reload={loadDashboard} navigate={navigate} />
           )}
+          {/* Keep the primary dashboard content above this independently loaded report.
+              Analytics responses can vary in height; rendering this panel after the overview
+              prevents its asynchronous expansion from shifting the KPI cards. */}
+          {path === "/maintenance" && <AnalyticsReportPanel />}
+          {path.includes("inspections") && <VehicleInspections />}
           {path.includes("requests") && <Requests />}
           {path.includes("work-orders") && <WorkOrders />}
           {path.includes("vehicles") && <Vehicles />}
@@ -201,7 +210,35 @@ function Overview({ data, loading, reload, navigate }) {
       />
 
       {loading && !data ? (
-        <div className="mm-loading"><div className="spinner" /> Loading maintenance data...</div>
+        <div className="mm-overview-skeleton" aria-label="Loading maintenance dashboard" aria-busy="true">
+          <div className="mm-stats">
+            {cards.map(([Icon, name]) => (
+              <div className="mm-stat" key={name}>
+                <div className="mm-stat-icon"><Icon size={19} /></div>
+                <div>
+                  <span>{name}</span>
+                  <span className="mm-skeleton-value" aria-hidden="true" />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mm-grid-2">
+            {["Recent Maintenance Requests", "Active Work Orders"].map(title => (
+              <section className="mm-card mm-skeleton-panel" key={title}>
+                <div className="mm-card-head"><h2>{title}</h2></div>
+                <div className="mm-skeleton-rows" aria-hidden="true">
+                  {Array.from({ length: 5 }, (_, index) => <span className="mm-skeleton-row" key={index} />)}
+                </div>
+              </section>
+            ))}
+          </div>
+          <section className="mm-card mm-skeleton-panel">
+            <div className="mm-card-head"><h2>Upcoming Service / Due Soon</h2></div>
+            <div className="mm-skeleton-rows" aria-hidden="true">
+              {Array.from({ length: 5 }, (_, index) => <span className="mm-skeleton-row" key={index} />)}
+            </div>
+          </section>
+        </div>
       ) : (
         <>
           <div className="mm-stats">

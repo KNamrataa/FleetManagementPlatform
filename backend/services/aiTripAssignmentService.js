@@ -282,7 +282,7 @@ async function getLatestDriverLocations(driverIds) {
 
 async function buildCandidates(request, start, end, route) {
   const [vehicles, profiles] = await Promise.all([
-    Vehicle.find({ status: { $in: ["AVAILABLE", "ASSIGNED"] }, approvalStatus: "APPROVED" })
+    Vehicle.find({ status: { $in: ["AVAILABLE", "ASSIGNED"] }, approvalStatus: "APPROVED", safetyHold: { $ne: true } })
       .populate("ownerId", "fullName email phone")
       .lean(),
     DriverProfile.find({ status: { $in: ["AVAILABLE", "ASSIGNED"] }, availability: true })

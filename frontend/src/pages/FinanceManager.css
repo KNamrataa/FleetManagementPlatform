@@ -502,3 +502,27 @@
 .finance-stat:nth-child(6n) .finance-stat-icon { background: #e0f7f7; color: #0899a5; }
 .finance-stat span { font-size: 12px; line-height: 1.35; }
 .finance-stat strong { font-size: 23px; line-height: 1.2; font-weight: 750; margin-top: 4px; }
+.fleetflow-analytics-report-panel {
+  min-height: 430px;
+  contain: layout style;
+}
+.finance-stats {
+  min-height: 100px;
+  align-content: start;
+}
+.finance-stat {
+  transform: none;
+}
+.finance-stat:hover {
+  transform: none;
+}
+@media (max-width: 760px) {
+  .fleetflow-analytics-report-panel {
+    min-height: 720px;
+  }
+}
+@media (max-width: 420px) {
+  .fleetflow-analytics-report-panel {
+    min-height: 780px;
+  }
+}

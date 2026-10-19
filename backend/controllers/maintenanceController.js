@@ -6,6 +6,7 @@ const VehicleIssue = require("../models/VehicleIssue");
 const MaintenanceWorkOrder = require("../models/MaintenanceWorkOrder");
 const MaintenanceRecord = require("../models/MaintenanceRecord");
 const MaintenanceSchedule = require("../models/MaintenanceSchedule");
+const VehicleInspection = require("../models/VehicleInspection");
 const Assignment = require("../models/Assignment");
 const DriverProfile = require("../models/DriverProfile");
 const { safeNotify, notifyRoles } = require("../services/notificationService");
@@ -369,12 +370,53 @@ async function releaseWorkOrder(req, res) {
       return fail(res, 409, "Vehicle has an active trip and cannot be released.");
     }
 
+    // A completed work order may also be the repair workflow for a DVI safety hold.
+    // Do not release a DVI-restricted vehicle until no unresolved high/critical issue remains.
+    const blockingSafetyIssue = await VehicleIssue.exists({
+      vehicle: vehicle._id,
+      severity: { $in: ["HIGH", "CRITICAL"] },
+      status: { $nin: ["RESOLVED", "CLOSED"] },
+    });
+    if (blockingSafetyIssue) {
+      return fail(res, 409, "Vehicle cannot be released while unresolved high-priority or critical issues remain.");
+    }
+
+    const hadDviSafetyHold = Boolean(vehicle.safetyHold);
     vehicle.status = "AVAILABLE";
-    vehicle.assignedDriver = null;
+    if (hadDviSafetyHold) {
+      vehicle.safetyHold = false;
+      vehicle.safetyHoldReason = "";
+      vehicle.safetyHoldIssue = null;
+      vehicle.safetyHoldAt = null;
+    }
+    // Preserve the assigned driver so the vehicle can be used again by its assigned driver.
     await vehicle.save();
     order.releasedBy = req.user._id;
     order.releasedDate = new Date();
     await order.save();
+
+    // Mark eligible DVI safety-hold inspections as released so the UI does not show
+    // the release action again. Keep inspection history and defect evidence intact.
+    if (hadDviSafetyHold) {
+      const heldInspections = await VehicleInspection.find({
+        vehicle: vehicle._id,
+        overallStatus: "SAFETY_HOLD",
+        releasedAt: null,
+      }).select("_id defects");
+      for (const inspection of heldInspections) {
+        const linkedIds = (inspection.defects || []).map(d => d.issue).filter(Boolean);
+        if (!linkedIds.length) continue;
+        const unresolved = await VehicleIssue.exists({
+          _id: { $in: linkedIds },
+          status: { $nin: ["RESOLVED", "CLOSED"] },
+        });
+        if (!unresolved) {
+          inspection.releasedBy = req.user._id;
+          inspection.releasedAt = new Date();
+          await inspection.save();
+        }
+      }
+    }
 
     const io = req.app.get("io");
     await safeNotify(() => notifyRoles({

@@ -1,3 +1,11 @@
+/* Keep maintenance dashboard typography consistent with the other FleetFlow dashboards. */
+.mm-shell,
+.mm-shell button,
+.mm-shell input,
+.mm-shell select,
+.mm-shell textarea {
+  font-family: Arial, Helvetica, sans-serif;
+}
 .mm-shell {
   min-height: 100vh;
   background: #f6f8fc;
@@ -799,8 +807,6 @@
     min-width: 680px;
   }
 }
-
-/* Maintenance Manager dashboard overview KPI cards */
 .mm-stats { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 13px; }
 .mm-stat { min-height: 100px; padding: 16px; gap: 13px; border-color: #dce5f1; border-radius: 12px; box-shadow: 0 2px 7px rgba(22,45,78,.025); }
 .mm-stat:hover { border-color: #c7d8ee; box-shadow: 0 6px 16px rgba(22,45,78,.07); }
@@ -812,3 +818,53 @@
 .mm-stat:nth-child(6n) .mm-stat-icon { background: #e0f7f7; color: #0899a5; }
 .mm-stat span { font-size: 12px; line-height: 1.35; }
 .mm-stat strong { font-size: 23px; line-height: 1.2; font-weight: 750; }
+
+.mm-skeleton-value,
+.mm-skeleton-row {
+  display: block;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #edf1f7 25%, #f8fafc 50%, #edf1f7 75%);
+  background-size: 200% 100%;
+  animation: mm-skeleton-shimmer 1.25s ease-in-out infinite;
+}
+
+.mm-skeleton-value {
+  width: 68px;
+  height: 23px;
+  margin-top: 6px;
+  color: transparent;
+}
+
+.mm-skeleton-panel {
+  min-height: 260px;
+}
+
+.mm-skeleton-rows {
+  display: grid;
+  gap: 17px;
+  padding: 18px;
+}
+
+.mm-skeleton-row {
+  width: 100%;
+  height: 15px;
+}
+
+.mm-skeleton-row:nth-child(3n + 2) {
+  width: 84%;
+}
+
+.mm-skeleton-row:nth-child(3n) {
+  width: 68%;
+}
+
+@keyframes mm-skeleton-shimmer {
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mm-skeleton-value,
+  .mm-skeleton-row {
+    animation: none;
+  }
+}
